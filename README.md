@@ -24,6 +24,8 @@ The simplicity of cb also enables better error messages. There are not a lot of 
 Remember what you dislike about zls.
 # Compiler
 Helpful and friendly errors.
+## Command line interface
+The errors from either the compiler or parser will have color end text formating woth Ansi escape codes. as well as file, line and column number in a clickable link (I do not know if this works with neovim). A image of the location of the error woth underlining of the specofoc part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
 # Parser
 indentation parsing from python.
 # Undefined
@@ -34,6 +36,7 @@ int number
 number = 2
 print(number)
 ```
+just like zig. cb will set all undefined bytes to hexadecimal `0xaa` that is `10101010` in binary. This is for debuggng puropses and only works when running the program directly, that is `$ cb prpgram.cb -r`. The `-r` flag means to run the program.
 # Comptime
 Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrow from zig.
 
