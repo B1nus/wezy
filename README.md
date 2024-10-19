@@ -36,11 +36,11 @@ int number
 number = 2
 print(number)
 ```
-just like zig. cb will set all undefined bytes to hexadecimal `0xaa` that is `10101010` in binary. This is for debuggng puropses and only works when running the program directly, that is `$ cb prpgram.cb -r`. The `-r` flag means to run the program.
+just like zig. cb will set all undefined bytes to hexadecimal `0xaa` that is `10101010` in binary. This is for debuggng puropses and only works when running the program directly, that is `$ cb program.cb -r`. The `-r` flag means to run the program.
 # Comptime
-Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrow from zig.
+Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrowed from zig.
 
-Any expressiom that would normaly require error handling that is compile time known can omit the error handling. The compiler will throw an error if the expression is evaluated as such.
+Any expressiom that would normaly require error handling that is compile time known can omit the error handling. The compiler will throw an error if the expression is evaluated to be an error.
 # Try
 `try function()` is syntax sugar for the code block:
 ```
