@@ -3,11 +3,9 @@ The borrowchecker from rust with the simplicity of c.
 
 # Main goals of cb
 1. simplicity
-2. simplicity
-3. simplicity
+2. low level of abstraction
+3. no hidden control flows
 
-- Indexing on slices and arithmetic operations return errors as values.
-- Indexing into array with known size is bounds checked at compile time.
 - arithmetic operations known at compile time are checked for errors at compile time.
 - undefined. (pinky promise I wont forget)
 - bounds check: if end of range is more than or equal to length of slice.
@@ -20,7 +18,8 @@ int number
 number = 2
 print(number)
 ```
-
+# Comptime
+Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrow from zig.
 # Try
 `try function()` is syntax sugar for the code block:
 ```
