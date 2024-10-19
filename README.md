@@ -1,14 +1,16 @@
+If you asked what the people wanted, they'd say they wanted a simpler rust. - Harisson Ford
+
 # cb
-The borrowchecker from rust with the simplicity of c.
+The simplicity of c with the memory safety of rust.
 
 # Main goals of cb
 1. simplicity
 2. low level of abstraction
 3. no hidden control flows
 
-- arithmetic operations known at compile time are checked for errors at compile time.
-- undefined. (pinky promise I wont forget)
-- bounds check: if end of range is more than or equal to length of slice.
+cb tries to stay as close to assembly code as possible. This is why there is no scope in the same as it would in other languages and there is only one `loop` keyword.
+
+The most important abstraction from assembly code is memory manegement. cd uses a borrow checker similiar to rust. However, because of cb's simplicity there are no lifetimes and the borrow checker is much simpler.
 
 # Undefined
 You can declare a variable without giving it a value. However, if the variable is used before getting a value a runtime error occurs. Think of it as a pinky promise that you will give the variable a value before using it:
@@ -20,6 +22,8 @@ print(number)
 ```
 # Comptime
 Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrow from zig.
+
+Any expressiom that would normaly require error handling that is compile time known can omit the error handling. The compiler will throw an error if the expression is evaluated as such.
 # Try
 `try function()` is syntax sugar for the code block:
 ```
