@@ -8,10 +8,23 @@ The simplicity of c with the memory safety of rust.
 2. low level of abstraction
 3. no hidden control flows
 
-cb tries to stay as close to assembly code as possible. This is why there is no scope in the same as it would in other languages and there is only one `loop` keyword. This makes the syntax simple and the language fast both in execution and compilation.
+cb tries to stay as close to assembly code as possible. This is why it handles scope in an unconventional way and why there is only one `loop` keyword. This makes the syntax simple and the language fast both in execution and compilation.
 
-The most important abstraction from assembly code is memory manegement. cd uses a borrow checker similiar to rust. However, because of cb's simplicity there are no lifetimes and the borrow checker is much simpler.
+The most important abstraction from assembly code is memory management. cb uses a borrow checker similiar to rust for this. However, because of cb's simplicity there are no lifetimes and the borrow checker is much simpler.
 
+In general, cb's goal is to be as low level and simple as possible while still being a powerfu tool. Similar to c, but even simpler and with a select few modern features.
+
+The compiler is by its design incredibly simple. The assembly code generated is mostly readable. I have strayed away from implementing too many optimisations in order to keep it this way.
+
+I believe it is important for a developer to understand his own tools. cb is designed in a way to be as understandable as possible. The abstraction cb does on assembly is not as big as one might think.
+
+The simplicity of cb also enables better error messages. There are not a lot of possible errors in cb. The first one you're probably going to run into is either `error: cb is one-indexed` or `error: exoected indentation`.
+# Lsp
+Remember what you dislike about zls.
+# Compiler
+Helpful and friendly errors.
+# Parser
+indentation parsing from python.
 # Undefined
 You can declare a variable without giving it a value. However, if the variable is used before getting a value a runtime error occurs. Think of it as a pinky promise that you will give the variable a value before using it:
 ```
