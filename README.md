@@ -1,4 +1,4 @@
-If you asked what the people wanted, they'd say they wanted a simpler rust. - Harisson Ford
+“If I had asked my customers what they wanted they would have said a simpler rust.” -Henry Ford
 
 # cb
 The simplicity of c with the memory safety of rust.
@@ -8,7 +8,7 @@ The simplicity of c with the memory safety of rust.
 2. low level of abstraction
 3. no hidden control flows
 
-cb tries to stay as close to assembly code as possible. This is why there is no scope in the same as it would in other languages and there is only one `loop` keyword.
+cb tries to stay as close to assembly code as possible. This is why there is no scope in the same as it would in other languages and there is only one `loop` keyword. This makes the syntax simple and the language fast both in execution and compilation.
 
 The most important abstraction from assembly code is memory manegement. cd uses a borrow checker similiar to rust. However, because of cb's simplicity there are no lifetimes and the borrow checker is much simpler.
 
