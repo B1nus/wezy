@@ -1,4 +1,4 @@
-“If I had asked my customers what they wanted they would have said a simpler rust.” -Henry Ford
+“If I had asked my customers what they wanted they would have said a simpler rust.” - Henry Ford
 
 # cb
 The simplicity of c with the memory safety of rust.
