@@ -25,7 +25,15 @@ Remember what you dislike about zls.
 # Compiler
 Helpful and friendly errors.
 ## Command line interface
-The errors from either the compiler or parser will have color end text formating woth Ansi escape codes. as well as file, line and column number in a clickable link (I do not know if this works with neovim). A image of the location of the error woth underlining of the specofoc part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
+The errors from either the compiler or parser will have color end text formating woth Ansi escape codes. as well as file, line and column number in a clickable link (I do not know if this works with neovim). A image of the location of the error woth underlining of the specific part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
+
+### Command line flags
+The avaliable command line flags are
+```
+$ cb program.cb       Compile
+$ cb program.cb -r    Run
+$ cb program.cb -t    Test
+```
 # Parser
 indentation parsing from python.
 # Undefined
@@ -36,7 +44,7 @@ int number
 number = 2
 print(number)
 ```
-just like zig. cb will set all undefined bytes to hexadecimal `0xaa` that is `10101010` in binary. This is for debuggng puropses and only works when running the program directly, that is `$ cb program.cb -r`. The `-r` flag means to run the program.
+just like zig. cb will set all undefined bytes to hexadecimal `0xaa` or `10101010` in binary. This is for debuggng puropses and only works when running the program directly, that is `$ cb program.cb -r`. The `-r` flag means to run the program.
 # Comptime
 Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrowed from zig.
 
@@ -74,7 +82,17 @@ x = function("1234567890") switch error
   _ => Default case.
 ```
 The reason for this syntax sugar is that you're going to be switching on errors a lot in cb. The compiler checks that you have covered all possibilites in your switch statement.
-
+# Tests
+cb has the keyword `test` for implementing tests in programs. Write `test` and the start of a line and write the boolean statement you want to test: `test x + y > 1`. If said test fails cb will show you the values of the variables
+```
+testing filename.cb...
+  5 | passed!
+  9 | passed!
+  13 | failed at file://filename.cb:13
+    x + y > 1 is false because 0 + 1 > 1 is false
+  20 | passed!
+```
+cb tests sequencially and does all tests even though a early test might have failed.
 # Strings
 Strings are handled as arrays or slices of bytes. That is `array20_u8` or `slice_u8`.
 
