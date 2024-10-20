@@ -92,7 +92,7 @@ testing filename.cb...
     x + y > 1 is false because 0 + 1 > 1 is false
   20 | passed!
 ```
-cb tests sequencially and does all tests even though a early test might have failed.
+cb tests sequentially and doesn't stop upon failure.
 # Strings
 Strings are handled as arrays or slices of bytes. That is `array20_u8` or `slice_u8`.
 
