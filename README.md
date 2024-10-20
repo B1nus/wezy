@@ -20,10 +20,22 @@ The compiler is by design incredibly simple and the assembly code generated is m
 I believe it is important for a developer to understand his own tools. cb is designed in a way to be as understandable as possible. The abstraction cb does on assembly is not as big as one might think.
 
 The simplicity of cb also enables better error messages. There are not a lot of possible errors in cb. The first one you're probably going to run into is either `error: cb is one-indexed` or `error: cb expected indentation here`.
+# Game programming
+cb has first class support for game development.
+## Graphics programming
+cb natively supports graphics programming in [webgpu](https://en.wikipedia.org/wiki/WebGPU). As mentioned below, cb compiles to webassembly code for compatibility and this plays nicely with webgpu which is meant to be used in the browser. The builtin ... is called
+## Networking
+cb natively supports websockets for easy multiplayer implementations. The builtin ... is called.
+## Audio
+bla bla
+## Input handling
+bla bla
 # Lsp
 Remember what you dislike about zls.
 # Compiler
-Helpful and friendly errors.
+cb compiles to webassembly code for compatibility. The `-r` flag uses wasmtime to run the webassembly code and wasmtime is therefore a dependency of the cb compiler. When graphics programming is used or javascript is otherwise required cb will generate the necessary html and javascript in a file called `index.html`. Starting the program is as easy as running `$ cb serve` which starts a webserver for your program and opens a browser tab with your program.
+
+Helpful and friendly errors. Include values when relevant. Don't let the conventional structure of a compiler stop you from implementing friendlier errors. Also, don't make a conventional compiler. Thas boring as hell and also very limiting. Also, it's not really necessary for this language and would just cause unnecessary overhead and worse compilation times.
 ## Command line interface
 The errors from either the compiler or parser will have color end text formating woth Ansi escape codes. as well as file, line and column number in a clickable link (I do not know if this works with neovim). A image of the location of the error woth underlining of the specific part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
 
@@ -33,6 +45,7 @@ The avaliable command line flags are
 $ cb program.cb       Compile
 $ cb program.cb -r    Run
 $ cb program.cb -t    Test
+$ cb -s
 ```
 # Parser
 indentation parsing from python.
