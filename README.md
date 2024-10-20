@@ -33,7 +33,7 @@ bla bla
 # Lsp
 Remember what you dislike about zls.
 # Compiler
-cb compiles to webassembly code for compatibility. The `-r` flag uses wasmtime to run the webassembly code and wasmtime is therefore a dependency of the cb compiler. When graphics programming is used or javascript is otherwise required cb will generate the necessary html and javascript in a file called `index.html`. Starting the program is as easy as running `$ cb serve` which starts a webserver for your program and opens a browser tab with your program.
+cb compiles to webassembly code for compatibility. The `-r` flag uses your browser to run the webassembly code. When graphics programming is used or javascript is otherwise required cb will generate the necessary html and javascript in a file called `index.html`. Start your program after compiling it by running `$ cb -s` which starts a webserver for your program and opens it in a new tab.
 
 Helpful and friendly errors. Include values when relevant. Don't let the conventional structure of a compiler stop you from implementing friendlier errors. Also, don't make a conventional compiler. Thas boring as hell and also very limiting. Also, it's not really necessary for this language and would just cause unnecessary overhead and worse compilation times.
 ## Command line interface
