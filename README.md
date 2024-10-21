@@ -55,10 +55,13 @@ file myfile = file
 # Lsp
 Remember what you dislike about zls.
 # Compiler
-Helpful and friendly errors. Include values when relevant. Don't let the conventional structure of a compiler stop you from implementing friendlier errors. Also, don't make a conventional compiler. Thas boring as hell and also very limiting. Also, it's not really necessary for this language since it's quite a close abstraction from webassembly.
+The cb compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
 ## Command line interface
-The errors from either the compiler or parser will have color end text formatting with Ansi escape codes. as well as file, line and column number in a clickable link. An illustration of the location of the error woth underlining of the specific part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
-
+Errors should
+- Be friendly and easy yo udnerstand
+- Have the necessary informations (file, location, values, stack trace etc...)
+- Be pretty printed using ANSI
+- Show the part of code in question
 # Parser
 indentation parsing from python.
 # Import/Include
