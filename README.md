@@ -7,8 +7,6 @@ The simplicity of c with the memory safety of rust.
 1. simplicity & friendliness
 2. explicit error handling
 3. memory safety
-
-cb programs have to handle all possible runtime errors explicitly. This means that one can be sure that a program won't crash by reading the source code a cb program.
 # Webassembly
 cb compiles to webassembly for compatibility and is planned to use [WASI](#WASI) for performing operations such as reading files etc. Read more about WASI and why it is not currently implemented [here](#WASI). As a temporary solution cb compiles to a web application which can be served on a web server. Detailed instruction for running the cb web application can be found [below](#Running%20a%20program).
 ## Running a program
@@ -26,15 +24,22 @@ bla bla javascript glue bla bla
 > [!NOTE]
 > cb was intended to use WASI instead of relying on javascript and browsers for this functionality. When the WASI api is mature enough, cb will compile to a single webassembly file which can be ran with a webassembly runtime such as [wasmtime](https://wasmtime.dev/).
 # Types
-cb supports the same types as [webassembly](https://webassembly.github.io/spec/core/syntax/types.html). That are the integers `i32, i64` and floats `f32, f64` as defined in [IEEE 754](https://ieeexplore.ieee.org/document/8766229). The lack of unsigned integers might seem like a problem but it's not. The [two's compliment](https://en.wikipedia.org/wiki/Two's_complement) representation for signed integers works the same as unsigned integers for addition, subtraction and multiplication. cb handles choosing the right division function for you.
-
-cb provides abstraction from webassembly in the form of arrays `array10_i8` and slices `slice_i8` and of course booleans `true, false`. Notice the use of `i8` as the element type in the array and slice? cb allows 8 bit integers in arrays and slices conventionally used to store strings. When performing arithmetic on said bytes they are really just coerced into `i32`. There are also errors, which is just an enum.
+```
+int
+float
+byte
+bool
+enum
+```
+The `int` and `float` datatype correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64` respectively). A `byte` can always coerce to an `int` since the int is bigger. The `bool` and `enum` datatypes work as in any other programming language.
+## Datastructures
+cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array. The length is still known at compilw time.
 # Lsp
 Remember what you dislike about zls.
 # Compiler
-Helpful and friendly errors. Include values when relevant. Don't let the conventional structure of a compiler stop you from implementing friendlier errors. Also, don't make a conventional compiler. Thas boring as hell and also very limiting. Also, it's not really necessary for this language and would just cause unnecessary overhead and worse compilation times.
+Helpful and friendly errors. Include values when relevant. Don't let the conventional structure of a compiler stop you from implementing friendlier errors. Also, don't make a conventional compiler. Thas boring as hell and also very limiting. Also, it's not really necessary for this language since it's quite a close abstraction from webassembly.
 ## Command line interface
-The errors from either the compiler or parser will have color end text formating woth Ansi escape codes. as well as file, line and column number in a clickable link (I do not know if this works with neovim). A image of the location of the error woth underlining of the specific part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
+The errors from either the compiler or parser will have color end text formatting with Ansi escape codes. as well as file, line and column number in a clickable link. An illustration of the location of the error woth underlining of the specific part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
 
 ### Command line flags
 The avaliable command line flags are
@@ -46,15 +51,6 @@ $ cb -s
 ```
 # Parser
 indentation parsing from python.
-# Undefined
-You can declare a variable without giving it a value. However, if the variable is used before getting a value a runtime error occurs. Think of it as a pinky promise that you will give the variable a value before using it:
-```
-int number
-
-number = 2
-print(number)
-```
-just like zig. cb will set all undefined bytes to hexadecimal `0xaa` or `10101010` in binary. This is for debuggng puropses and only works when running the program directly, that is `$ cb program.cb -r`. The `-r` flag means to run the program.
 # Comptime
 Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrowed from zig.
 
@@ -68,10 +64,9 @@ function() catch error
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors. Generally, you should use `catch` and `switch` if you want to handle errors properly.
 
 # Error handling
-cb handles errors like values. To declare a function that can return an error, use the `!` operator. `!uint function(int number)` `my_error!uint function(int number)`. This is that same syntax as zig. The syntax for catching errors is also similar:
+cb handles errors like values. To declare a function that can return an error you use the `!` operator. `!uint function(int number)` `my_error!uint function(int number)`. The syntax for catching errors is the following:
 ```
 x = function("1234567890") catch error
-  Handle the error here:
   ...
 ```
 And with a switch statement:
@@ -111,7 +106,7 @@ testing filename.cb...
     x + y > 1 is false because 0 + 1 > 1 is false
   20 | passed!
 ```
-cb tests sequentially and doesn't stop upon failure.
+cb tests sequentially and doesn't stop upon failure. More complicated tests can benefit from being separated into it's own file.
 # Slices with known size
 Slices can Either have a known size or unknown size at compile time. The benefit of slices with known size is that the bounds check is performed at compile time, which means that you can omit error handling when indexing or slicing. The benefit of slices with unkown size is the ability to define functions with a variable sized argument `i64 parse_i64(slice_i8 text)`. All slices have a len property which is the size of the slice. The cb compiler will keep track of which slices are compile time known in size and not.
 # Strings
