@@ -7,7 +7,6 @@ The simplicity of c with the memory safety of rust.
 2. explicit error handling
 3. memory safety
 # Usage
-The cb command line utility can be used three ways.
 ```
 $ cb program.cb       Compile
 $ cb program.cb -r    Run
