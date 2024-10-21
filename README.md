@@ -13,12 +13,12 @@ $ cb program.cb -r    Run
 $ cb program.cb -t    Test
 ```
 # Webassembly
-cb compiles to webassembly and will use the [WASI api](https://wasi.dev/) for performing operations such as reading files, networking etc. WASI is not [currently implemented](#WASI) and as a temporary solution cb compiles to a web application which can be run in a browser. `$ cb program.cb -r` starts your program in a new browser tab. cb will generate the necessary javascript glue in a file called `index.html` and automatically serve the program on a web server.
+cb compiles to webassembly and will use the [WASI api](https://wasi.dev/) for performing operations such as reading files, networking etc. WASI is not [currently implemented](#WASI) and as a temporary solution cb compiles to a web application which can be run in a browser. Use `$ cb program.cb -r` to start your program. cb will generate the necessary javascript "glue" in a file called `index.html` and start a web server.
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of [API's](https://en.wikipedia.org/wiki/API) to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). The benefit of WASI and Webassembly is cross-compatilibity at near native performance. WASI is still in it's early days but when the day comes cb won't rely on a browser.
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). The benefit of WASI and Webassembly is cross-compatilibity at near native performance. WASI is still in its early days but when the day comes cb won't have to rely on a browser.
 # Game Development
 ## Graphics programming
-cb natively support webgl with the module `graphics`. Include it using `load graphics`.
+cb has a module called `graphics` for interfacing with [webgl](https://en.wikipedia.org/wiki/WebGL). Include it using `load graphics`.
 > [!NOTE]
 > cb was intended to support webgpu but [webgpu](https://en.wikipedia.org/wiki/WebGPU) adoption is slow. The idea was to make a language with great interoperability with the webgpu api, making the painful parts of webgpu easier.
 ## Networking, input and audio
@@ -33,7 +33,7 @@ byte
 bool
 enum
 ```
-The `int` and `float` datatype correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). The `bool` and `enum` datatypes work as in any other programming language.
+The `int` and `float` datatypes correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). An `enum` can be thought of as a list of possible values a variable can have and a `bool` is a datatype with two values, `true` and `false`.
 # Datastructures
 cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array. An array must have a known size at compile time and a slice doesn't need to.
 > [!NOTE]
