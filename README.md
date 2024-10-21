@@ -86,17 +86,17 @@ x = function(1234) catch error
 And with a switch statement:
 ```
 x = function(1234) catch error switch error
-  my_error.type1 => Do something.
-  my_error.type2 =>
+  .type1 => Do something.
+  .type2 =>
     Do something on
     multiple lines.
-  my_error.type3 => Do something.
+  .type3 => Do something.
   _ => Default case.
 ```
 Which can be simplified with some syntax sugar:
 ```
 x = function(1234) switch error
-  my_error.type1 => Do something.
+  .type1 => Do something.
   ...
   _ => Default case.
 ```
