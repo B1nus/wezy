@@ -24,6 +24,8 @@ The simplicity of cb also enables better error messages. There are not a lot of 
 cb has first class support for game development.
 ## Graphics programming
 cb natively supports graphics programming in [webgpu](https://en.wikipedia.org/wiki/WebGPU). As mentioned below, cb compiles to webassembly code for compatibility and this plays nicely with webgpu which is meant to be used in the browser. The builtin ... is called
+
+Working with webgpu in other languages can be a massive pain. You need to redefine your types, you need to memorize numbers since shader language doesn't have enums. Etc. cb interacts with webgpu in a very convenient way, the languages are not too dissimilar though to be fair.
 ## Networking
 cb natively supports websockets for easy multiplayer implementations. The builtin ... is called.
 ## Audio
