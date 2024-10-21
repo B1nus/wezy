@@ -37,10 +37,7 @@ The `int` and `float` datatypes correspond to their respecitve types in [webasse
 # Datastructures
 cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array.
 > [!NOTE]
-> Strings in cb are slices of bytes. That is `slice_byte string = "string text"`
-
-> [!NOTE]
-> Also note that strings without a known size need to have error handling for the possibility of out of bounds. ``
+> Strings in are slices of bytes
 ### Structs
 A struct is a collection of attributes with a name. For example:
 ```
@@ -129,14 +126,11 @@ cb runs tests sequentially and doesn't stop upon failure.
 # Slices with known size
 Slices can either have a known size or unknown size at compile time. The benefit of slices with known size is that the bounds check is performed at compile time, which means that you can omit error handling when indexing or slicing. The benefit of slices with unkown size is the ability to define functions with a variable sized argument `i64 parse_i64(slice_i8 *text)`. All slices have a len property which is the size of the slice. The cb compiler will keep track of which slices are compile time known in size and which are not.
 # Coersion
-cb will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to a `int`, an `array` can always be coerced to a `slice`. For example, passing an array to a function that takes 
-
-# No main function
-There are no main functions in cb. Just write your code in the top level.
-
+cb will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to an `int`. An `array` can always be coerced to a `slice`. For example, passing an array to a function that takes a slice as an argument is fine, since cb automatically coerces the array to a slice.
+# Mutability
+Everything is immutable by default. Make something mutable with the `mut` keyword: `mut int x = 5`
 # Command line arguments
-to access command line arguments in cb you use the builtin constant `args`.
-
+Access command line arguments in cb you use the builtin constant `args`.
 # Loops
 cb has one loop keyword. This loops forever:
 ```
@@ -157,8 +151,6 @@ This is equivalent to a while loop:
 loop
   break if ...
 ```
-# Mutability
-Everything is immutable by default. Make something mutable with the `mut` keyword: `mut int x = 5`
 # Indexing
 Index a slice, list or array with the syntax `array[1]`. Please note that cb is one indexed. Cry about it. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: cb is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
 ### Why one-indexed?
