@@ -175,7 +175,7 @@ The value pointers point to is immutable by default. Add the `mut` keyword to ma
 # Memory management
 cb handles memory management through a borrow checker [similar to rust](https://rustc-dev-guide.rust-lang.org/borrow_check.html). But before you get scared and run away, please note that cb's borrow checkear is simplier than rusts. cb's borrow checker does not have lifetimes and it only enforces a simple set of rules:
 - You cannot use a moved variable
-- You cannot have a immutable pointer while having a mutable pointer to a value
+- You cannot have an immutable pointer while having a mutable pointer to a value
 - You cannot have a mutable pointer to an immutable value
 - ...
 # Comments
