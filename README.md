@@ -161,13 +161,13 @@ You always need to handle errors. No matter what the operation is. Indexing can 
 # Runtime Errors
 Because of cb's (possibly excessive) error handling is that runtime errors are all the more rare. That is, if you actually implement proper error handling, if you use the `try` keyword everywhere and never handle the errors, cb will of course still have runtime errors. cb programs can be analyzed statically for the possibility of runtime errors. As long as you do not put the `try` keyword in the top level of your program, your cb program will not have runtime errors.
 # Scope
-Scope in cb is a bit wierd. There are only two scopes. Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. The reason for this is to make the borrow checker simpler. As well as making the language simpler. This means that:
+Scope in cb is a bit wierd. There are only two scopes: Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. The reason for this is to make the borrow checker simple. This means that:
 ```
 if true
   x = 2
 print(x)
 ```
-Will compile without any errors and prints `2`.
+Will compile without any errors and print `2`.
 # Pointers
 Pointers are made with an asterix `*variable`. Dereference the pointer by removing the asterix `variable`. This is weird syntax compared to other languages however it less ambiguous. You can always be sure that an asterix before an identifier means it's a pointer and that nothing else can be a pointer. This also means that you cannot store a pointer in another variable. There is no pointer datatype. The only way to use a pointer is as a function argument. This is especially important to make the borrow checker simple.
 
