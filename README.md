@@ -1,29 +1,32 @@
+# cb
 “If I had asked my customers what they wanted they would have said a simpler rust.” - Henry Ford
 
-# cb
 The simplicity of c with the memory safety of rust.
-
 # Main goals of cb
 1. simplicity & friendliness
 2. explicit error handling
 3. memory safety
+# Usage
+The cb command line utility can be used three ways.
+```
+$ cb program.cb       Compile
+$ cb program.cb -r    Run
+$ cb program.cb -t    Test
+```
 # Webassembly
-cb compiles to webassembly for compatibility and is planned to use [WASI](#WASI) for performing operations such as reading files etc. Read more about WASI and why it is not currently implemented [here](#WASI). As a temporary solution cb compiles to a web application which can be served on a web server. Detailed instruction for running the cb web application can be found [below](#Running%20a%20program).
-## Running a program
-The `-r` flag (`$ cb program.cb -r`) uses your browser to run the cb program. cb will generate the necessary javascript glue in a file called `index.html`. Start your compiled web application by running `$ cb -s` which starts a webserver for your program and opens it in a new tab.
+cb compiles to webassembly and will use the [WASI api](https://wasi.dev/) for performing operations such as reading files, networking etc. WASI is not [currently implemented](#WASI) and as a temporary solution cb compiles to a web application which can be run in a browser. `$ cb program.cb -r` starts your program in a new browser tab. cb will generate the necessary javascript glue in a file called `index.html` and automatically serve the program on a web server.
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of [API's](https://en.wikipedia.org/wiki/API) to perform certain tasks in webassembly outside of a browser context. For example reading files, using [sockets](https://github.com/WebAssembly/wasi-sockets) or using [webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). The benefit of WASI and Webassembly is cross-compatilibity at near native performance. However, WASI is still in it's early days. When the time comes, cb will compile to webassembly code using this API instead of relying on a browser.
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of [API's](https://en.wikipedia.org/wiki/API) to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). The benefit of WASI and Webassembly is cross-compatilibity at near native performance. WASI is still in it's early days but when the day comes cb won't rely on a browser.
 # Game Development
 ## Graphics programming
-cb natively support webgl.
-
+cb natively support webgl with the module `graphics`. Include it using `load graphics`.
 > [!NOTE]
-> cb was intendet to support webgpu instead. However, [webgpu](https://en.wikipedia.org/wiki/WebGPU) adoption is slow. The idea was to make the painful parts of webgpu easier. For example, not having to redeclare types, and not having to memorise numbers instead of enums.
-## Networking, input handling and audio
-bla bla javascript glue bla bla
+> cb was intended to support webgpu but [webgpu](https://en.wikipedia.org/wiki/WebGPU) adoption is slow. The idea was to make a language with great interoperability with the webgpu api, making the painful parts of webgpu easier.
+## Networking, input and audio
+cb has modules to handle inputs (keyboard/mouse/controller), networking and audio. The modules to load are `network`, `input` and `audio`. Import them using the `load` keyword. `load audio` for example. cb is currently using javascript for this functionality.
 > [!NOTE]
 > cb was intended to use WASI instead of relying on javascript and browsers for this functionality. When the WASI api is mature enough, cb will compile to a single webassembly file which can be ran with a webassembly runtime such as [wasmtime](https://wasmtime.dev/).
-# Types
+# Datatypes
 ```
 int
 float
@@ -31,9 +34,23 @@ byte
 bool
 enum
 ```
-The `int` and `float` datatype correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64` respectively). A `byte` can always coerce to an `int` since the int is bigger. The `bool` and `enum` datatypes work as in any other programming language.
-## Datastructures
-cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array. The length is still known at compilw time.
+The `int` and `float` datatype correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). The `bool` and `enum` datatypes work as in any other programming language.
+# Datastructures
+cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array. An array must have a known size at compile time and a slice doesn't need to.
+> [!NOTE]
+> Strings in cb are slices of bytes. That is `slice_byte string = "string text"`
+
+> [!NOTE]
+> Also note that strings without a known size need to have error handling for the possibility of out of bounds. ``
+### Structs
+A struct is a collection of attributes with a name. For example:
+```
+struct file
+  slice_byte content
+  slice_byte path
+  mut bool   empty = true
+```
+The attributes can have a default value as shown with the attribute `empty` in the example. All attributes are immutable by default. cb will make sure all attributes are set when a struct is instantiated, otherwise it will throw a compiler error.
 # Lsp
 Remember what you dislike about zls.
 # Compiler
@@ -41,16 +58,12 @@ Helpful and friendly errors. Include values when relevant. Don't let the convent
 ## Command line interface
 The errors from either the compiler or parser will have color end text formatting with Ansi escape codes. as well as file, line and column number in a clickable link. An illustration of the location of the error woth underlining of the specific part of the line with the error is also shown. Runtime errors should idealy be formatted in a nice way, however the stacktrace could make that difficult.
 
-### Command line flags
-The avaliable command line flags are
-```
-$ cb program.cb       Compile
-$ cb program.cb -r    Run
-$ cb program.cb -t    Test
-$ cb -s
-```
 # Parser
 indentation parsing from python.
+# Import/Include
+Import code or a module by using the `load` keyword `load graphics`. By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as graph`. The lack of strings means that you're loading an module built into cb. To load a local file you put the relative path to the file inside quotation marks `load "localfile.cb"`. cb will only allow importing files in in the current directory or any subdirectory. cb will never load files in a parent directory. This is to make codebases easier to understand.
+## Downloading code from the internet
+You are free to download the code in any way of your chosing. Using `$ git submodule` is a good idea.
 # Comptime
 Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrowed from zig.
 
@@ -64,14 +77,14 @@ function() catch error
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors. Generally, you should use `catch` and `switch` if you want to handle errors properly.
 
 # Error handling
-cb handles errors like values. To declare a function that can return an error you use the `!` operator. `!uint function(int number)` `my_error!uint function(int number)`. The syntax for catching errors is the following:
+cb handles errors like values. To declare a function that can return an error you use the `!` operator. `!int function(int number)` `my_error!int function(int number)`. The syntax for catching errors is the following:
 ```
-x = function("1234567890") catch error
+x = function(1234) catch error
   ...
 ```
 And with a switch statement:
 ```
-x = function("1234567890") catch error switch error
+x = function(1234) catch error switch error
   my_error.type1 => Do something.
   my_error.type2 =>
     Do something on
@@ -81,7 +94,7 @@ x = function("1234567890") catch error switch error
 ```
 Which can be simplified with some syntax sugar:
 ```
-x = function("1234567890") switch error
+x = function(1234) switch error
   my_error.type1 => Do something.
   ...
   _ => Default case.
@@ -92,12 +105,12 @@ The reason for this syntax sugar is that you're going to be switching on errors 
 You declare an error as en `enum`:
 ```
 enum my_error
-  stupitidy
-  notgood
-  abort
+  file_not_found
+  out_of_memory
+  too_fast
 ```
 # Tests
-cb has the keyword `test` for implementing tests in programs. Write `test` and the start of a line and write the boolean statement you want to test: `test x + y > 1`. If said test fails cb will show you the values of the variables
+Write `test` and the start of a line and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails cb will show you the values of the variables:
 ```
 testing filename.cb...
   5 | passed!
@@ -106,20 +119,19 @@ testing filename.cb...
     x + y > 1 is false because 0 + 1 > 1 is false
   20 | passed!
 ```
-cb tests sequentially and doesn't stop upon failure. More complicated tests can benefit from being separated into it's own file.
+cb runs tests sequentially and doesn't stop upon failure.
+> [!TIP]
+> Try moving more complicated tests into their own file.
 # Slices with known size
-Slices can Either have a known size or unknown size at compile time. The benefit of slices with known size is that the bounds check is performed at compile time, which means that you can omit error handling when indexing or slicing. The benefit of slices with unkown size is the ability to define functions with a variable sized argument `i64 parse_i64(slice_i8 text)`. All slices have a len property which is the size of the slice. The cb compiler will keep track of which slices are compile time known in size and not.
-# Strings
-Strings are handled as arrays or slices of bytes. That is `array20_i8` or `slice_i8`.
-
-# Arrays
-Arrays are statically sized lists of values. This means that both the type it contains and the array itself needs to have a known size at compile time. The array is simply stored as a pointer to the first element and a length.
+Slices can either have a known size or unknown size at compile time. The benefit of slices with known size is that the bounds check is performed at compile time, which means that you can omit error handling when indexing or slicing. The benefit of slices with unkown size is the ability to define functions with a variable sized argument `i64 parse_i64(slice_i8 *text)`. All slices have a len property which is the size of the slice. The cb compiler will keep track of which slices are compile time known in size and which are not.
+# Coersion
+cb will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to a `int`, an `array` can always be coerced to a `slice`. For example, passing an array to a function that takes 
 
 # No main function
 There are no main functions in cb. Just write your code in the top level.
 
 # Command line arguments
-to access command line arguments in cb you use the builtin constant `argv `.
+to access command line arguments in cb you use the builtin constant `args`.
 
 # Loops
 cb has one loop keyword. This loops forever:
@@ -142,9 +154,7 @@ loop
   break if ...
 ```
 # Mutability
-Everything is immutable by default. Make something mutable with the `mut` keyword: `mut int x = 5`;
-# Types
-cb is a statically typed language. You always have to give a variable a type.
+Everything is immutable by default. Make something mutable with the `mut` keyword: `mut int x = 5`
 # Indexing
 Index a slice, list or array with the syntax `array[1]`. Please note that cb is one indexed. Cry about it. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: cb is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
 ### Why one-indexed?
@@ -171,6 +181,8 @@ cb handles memory management through a borrow checker [similar to rust](https://
 - You cannot have a immutable pointer while having a mutable pointer to a value
 - You cannot have a mutable pointer to an immutable value
 - ...
+# Comments
+Comments start with a capital letter and end with `.`, `:`, `!` or `?` and a newline.
 # TODO
 - [ ] Understand Webassembly
 - [ ] Understand Webgl
