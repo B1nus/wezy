@@ -100,8 +100,9 @@ x = function(1234) switch error
   ...
   _ => Default case.
 ```
-The reason for this syntax sugar is that you're going to be switching on errors a lot in cb. The compiler checks that you have covered all possibilites in your switch statement.
-
+You're going to be switching on errors a lot in cb so this syntax sugar will be useful.
+> [!NOTE]
+> The compiler checks that you have covered all possibilites in your switch statement.
 ## Declaring an error
 You declare an error as en `enum`:
 ```
