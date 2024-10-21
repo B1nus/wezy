@@ -179,7 +179,7 @@ cb handles memory management through a borrow checker [similar to rust](https://
 - You cannot have a mutable pointer to an immutable value
 - ...
 # Comments
-Comments start with a capital letter and end with `.` `:` `!` or `?` and a newline.
+Comments start with a capital letter and end with one of: `.` `:` `!` `?` and a newline.
 # Boolean expressions
 Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` could be `(x and y) or z` or `x and (y or z)`.
 # TODO
