@@ -32,6 +32,8 @@ cb natively supports websockets for easy multiplayer implementations. The builti
 bla bla
 ## Input handling
 bla bla
+# Types
+There are the integeres `u8, u16, u32, u64, i16, i8, i16, i32, i64`, floats, `f32, f64`, arrays `array10_u8`, slices `slice_u8` and of course booleans `true, false`. There are also errors, which is just an enum.
 # Lsp
 Remember what you dislike about zls.
 # Compiler
@@ -97,6 +99,15 @@ x = function("1234567890") switch error
   _ => Default case.
 ```
 The reason for this syntax sugar is that you're going to be switching on errors a lot in cb. The compiler checks that you have covered all possibilites in your switch statement.
+
+## Declaring an error
+You declare an error as en `enum`:
+```
+enum my_error
+  stupitidy
+  notgood
+  abort
+```
 # Tests
 cb has the keyword `test` for implementing tests in programs. Write `test` and the start of a line and write the boolean statement you want to test: `test x + y > 1`. If said test fails cb will show you the values of the variables
 ```
