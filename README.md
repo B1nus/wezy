@@ -22,7 +22,7 @@ cb has a module called `graphics` for interfacing with [webgl](https://en.wikipe
 > [!NOTE]
 > cb was intended to support webgpu but [webgpu](https://en.wikipedia.org/wiki/WebGPU) adoption is slow. The idea was to make a language with great interoperability with the webgpu api, making the painful parts of webgpu easier.
 ## Networking, input and audio
-cb has modules the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality.
+cb has the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality.
 > [!NOTE]
 > cb was intended to use WASI instead of relying on javascript and browsers. When the WASI api is mature enough, cb will compile to a single webassembly file which can be executed with a webassembly runtime such as [wasmtime](https://wasmtime.dev/).
 # Datatypes
