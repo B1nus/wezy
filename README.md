@@ -179,8 +179,11 @@ cb handles memory management through a borrow checker [similar to rust](https://
 - ...
 # Comments
 Comments start with a capital letter and end with `.`, `:`, `!` or `?` and a newline.
+# Boolean expressions
+Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` could be `(x and y) or z` or `x and (y or z)`.
 # TODO
 - [ ] Understand Webassembly
 - [ ] Understand Webgl
 - [ ] Redesign cb to be a sensible abstraction on top of webgl and Webassembly
 - [ ] Finalise borrow checker rules
+- [ ] Formal grammar specification
