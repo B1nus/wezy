@@ -117,14 +117,15 @@ enum my_error
 # Tests
 Use the keyword `test` and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails cb will show you the values of the variables:
 ```
-testing filename.cb...
+$ cb program.cb -t
+cb is testing program.cb...
   5 | passed!
   9 | passed!
-  13 | failed at file://filename.cb:13
+  13 | failed at program.cb:13
     x + y > 1 is false because 0 + 1 > 1 is false
   20 | passed!
 ```
-cb runs tests sequentially and doesn't stop upon failure.
+cb runs tests sequentially and doesn't exit upon failure. cb will also run any tests imported using the `load` keyword.
 > [!TIP]
 > Try moving more complicated tests into their own file.
 # Slices with known size
