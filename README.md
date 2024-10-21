@@ -35,7 +35,7 @@ enum
 ```
 The `int` and `float` datatypes correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). An `enum` can be thought of as a list of possible values a variable can have and a `bool` is a datatype with two values, `true` and `false`.
 # Datastructures
-cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array. An array must have a known size at compile time and a slice doesn't need to.
+cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array.
 > [!NOTE]
 > Strings in cb are slices of bytes. That is `slice_byte string = "string text"`
 
