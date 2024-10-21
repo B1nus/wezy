@@ -35,9 +35,7 @@ enum
 ```
 The `int` and `float` datatypes correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). An `enum` can be thought of as a list of possible values a variable can have and a `bool` is a datatype with two values, `true` and `false`.
 # Datastructures
-cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array.
-> [!NOTE]
-> Strings are slices of bytes
+cb provides three datastructures: `array`, `slice` and `struct`. Initialize an `array` with an array literal: `array integers = [1, 2, 3]` or `array string = "Hello World!"`. The types are interpreted as`array3_int` and `array12_byte` respectively. A slice is the same as an array, but it doesn't have a known size at compile time. 
 ### Structs
 A struct is a collection of attributes with a name. For example:
 ```
@@ -128,8 +126,8 @@ cb is testing program.cb...
 cb runs tests sequentially and doesn't exit upon failure. cb will also run any tests imported using the `load` keyword.
 > [!TIP]
 > Try moving more complicated tests into their own file.
-# Slices with known size
-Slices can either have a known size or unknown size at compile time. The benefit of slices with known size is that the bounds check is performed at compile time, which means that you can omit error handling when indexing or slicing. The benefit of slices with unkown size is the ability to define functions with a variable sized argument `i64 parse_i64(slice_i8 *text)`. All slices have a len property which is the size of the slice. The cb compiler will keep track of which slices are compile time known in size and which are not.
+# Excessive error catching
+The benefit of arrays with known sizes is that the bounds check is performed at compile time. This means that you can omit error handling when indexing or slicing arrays.
 # Coersion
 cb will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to an `int`. An `array` can always be coerced to a `slice`. For example, passing an array to a function that takes a slice as an argument is fine, since cb automatically coerces the array to a slice.
 # Mutability
