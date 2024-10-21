@@ -22,9 +22,9 @@ cb has a module called `graphics` for interfacing with [webgl](https://en.wikipe
 > [!NOTE]
 > cb was intended to support webgpu but [webgpu](https://en.wikipedia.org/wiki/WebGPU) adoption is slow. The idea was to make a language with great interoperability with the webgpu api, making the painful parts of webgpu easier.
 ## Networking, input and audio
-cb has modules to handle inputs (keyboard/mouse/controller), networking and audio. The modules to load are `network`, `input` and `audio`. Import them using the `load` keyword. `load audio` for example. cb is currently using javascript for this functionality.
+cb has modules the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality.
 > [!NOTE]
-> cb was intended to use WASI instead of relying on javascript and browsers for this functionality. When the WASI api is mature enough, cb will compile to a single webassembly file which can be ran with a webassembly runtime such as [wasmtime](https://wasmtime.dev/).
+> cb was intended to use WASI instead of relying on javascript and browsers. When the WASI api is mature enough, cb will compile to a single webassembly file which can be executed with a webassembly runtime such as [wasmtime](https://wasmtime.dev/).
 # Datatypes
 ```
 int
@@ -37,7 +37,7 @@ The `int` and `float` datatypes correspond to their respecitve types in [webasse
 # Datastructures
 cb provides three datastructures: `array`, `slice` and `struct`. To assign a string to a variable you would declare a slice of bytes `slice_byte hello = "Hello, World!"`. The reason for using a slice is to avoid having to type the length of the string manually as you would with an array.
 > [!NOTE]
-> Strings in are slices of bytes
+> Strings are slices of bytes
 ### Structs
 A struct is a collection of attributes with a name. For example:
 ```
