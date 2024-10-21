@@ -49,7 +49,12 @@ struct file
   slice_byte path
   mut bool   empty = true
 ```
-The attributes can have a default value as shown with the attribute `empty` in the example. All attributes are immutable by default. cb will make sure all attributes are set when a struct is instantiated, otherwise it will throw a compiler error.
+The attributes can have a default value as shown with the attribute `empty`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. cb will make sure all attributes are set when a struct is instantiated at compile time, otherwise it will throw an error. Instantiate a struct with the syntax
+```
+file myfile = file
+  content = "Hello World!"
+  path = "./hello_world.txt"
+```
 # Lsp
 Remember what you dislike about zls.
 # Compiler
