@@ -112,7 +112,7 @@ enum my_error
   too_fast
 ```
 # Tests
-Write `test` and the start of a line and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails cb will show you the values of the variables:
+Use the keyword `test` and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails cb will show you the values of the variables:
 ```
 testing filename.cb...
   5 | passed!
