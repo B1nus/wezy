@@ -25,19 +25,19 @@ cb has a module called `graphics` for interfacing with [webgl](https://en.wikipe
 cb has the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality.
 > [!NOTE]
 > cb was intended to use WASI instead of relying on javascript and browsers. When the WASI api is mature enough, cb will compile to a single webassembly file which can be executed with a webassembly runtime such as [wasmtime](https://wasmtime.dev/).
-# Datatypes
+Hmm type declaration is only for functions...
+# Types
 ```
 int
 float
 byte
 bool
-enum
+array
+slice
 ```
-The `int` and `float` datatypes correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). An `enum` can be thought of as a list of possible values a variable can have and a `bool` is a datatype with two values, `true` and `false`.
-# Datastructures
-cb provides three datastructures: `array`, `slice` and `struct`. Initialize an `array` with an array literal: `array integers = [1, 2, 3]` or `array string = "Hello World!"`. The types are interpreted as`array3_int` and `array12_byte` respectively. A slice is the same as an array, but it doesn't have a known size at compile time. 
-### Structs
-A struct is a collection of attributes with a name. For example:
+In cb you never write the type of a variable. However, cb is still statically typed. This is possible because each literal corresponds to exactly one type. The only time you need to explicitly write types is when declaring functions. The `int` and `float` datatypes correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). A number without a decimal point is infered to be an integer `i = 69` and a number with a decimal point is infered to be a float `f = 3.141`. A `bool` is a datatype with two values, `true` and `false`. An array is a list of values with a known size. An array literal can either be a list of values `[1, 2, 3]` or a string `"Hello world!"` which is just an array of bytes. The `slice` type is the same as an array, but it has an unknown size at compile time and needs error handling for out of bounds. Create a dynamically sized list with `list = slice`
+# Struct and Enums
+cb provides the keywords `enum` and `struct` to empower its typesystem. Think of them as a way to define your own types. A struct is a collection of attributes with a name. For example:
 ```
 struct file
   slice_byte content
@@ -46,10 +46,18 @@ struct file
 ```
 The attributes can have a default value as shown with the attribute `empty`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. cb will make sure all attributes are set when a struct is instantiated at compile time, otherwise it will throw an error. Instantiate a struct with the syntax
 ```
-file myfile = file
+myfile = file
   content = "Hello World!"
   path = "./hello_world.txt"
 ```
+Enums, also called sumtypes is a way to define a variable which can be one of a set of variants. For example:
+```
+enum io_error
+  file_not_found
+  not_permitted
+  out_of_memory
+```
+Using enums for errors is something you'll come across a lot in cb. Here we define an enum called `io_error` which has three variants. Each of which correspond to one type of error that can occur. When you declare a variable to be the `io_error` type you can be sure that is one of `file_not_found`, `not_permitted` or `out_of_memory` and nothing else. You can use this `io_error` as an argument to a function, as a return type or as an error a function can return with the bang `!` operator.
 # Lsp
 Remember what you dislike about zls.
 # Compiler
@@ -129,7 +137,7 @@ cb runs tests sequentially and doesn't exit upon failure. cb will also run any t
 # Excessive error catching
 The benefit of arrays with known sizes is that the bounds check is performed at compile time. This means that you can omit error handling when indexing or slicing arrays.
 # Coersion
-cb will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to an `int`. An `array` can always be coerced to a `slice`. For example, passing an array to a function that takes a slice as an argument is fine, since cb automatically coerces the array to a slice.
+cb will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to an `int`. An `array` can always be coerced to a `slice`. For example, passing an array to a function that takes a slice as an argument is fine, since cb automatically coerces the array to a slice. The thing to watch out for is that itnegers also coerce into floats by default. This means that you can do arithmetic with floats and integers without any conversion. But it also means a loss in precision for large integers, it could be something to watch out for. 
 # Mutability
 Everything is immutable by default. Make something mutable with the `mut` keyword: `mut int x = 5`
 # Command line arguments
