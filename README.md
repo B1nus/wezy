@@ -1,5 +1,5 @@
 # cb
-“If I had asked people what they wanted they would have said a simple rust.”
+“If I had asked people what they wanted they would have said a simpler rust.”
 # Main goals of cb
 1. simplicity & friendliness
 2. explicit error handling
@@ -179,7 +179,7 @@ cb handles memory management through a borrow checker [similar to rust](https://
 # Comments
 Comments start with a capital letter and end with one of: `.` `:` `!` `?` and a newline.
 # Boolean expressions
-Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` could be `(x and y) or z` or `x and (y or z)`.
+Check for equality with `x = y`. When assigning a boolean to a variable use `:` instead of `=` to avoid confusion: `p: x = 5` instead of `p = x = 5`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
 # TODO
 - [ ] Understand Webassembly
 - [ ] Understand Webgl
