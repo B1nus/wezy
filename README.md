@@ -75,9 +75,7 @@ Import code or a module by using the `load` keyword `load graphics`. By default 
 ## Downloading code from the internet
 You are free to download the code in any way of your chosing. Using `$ git submodule` is a good idea.
 # Comptime
-Any expression that is known at compile time can be evaluated at compile time using the `comptime` keyword. This functionality is borrowed from zig.
-
-Any expressiom that would normaly require error handling that is compile time known can omit the error handling. The compiler will throw an error if the expression is evaluated to be an error.
+Force any expression to be evaluated at compile time using `comptime`. This functionality is borrowed from [zig](https://zig.guide/language-basics/comptime).
 # Try
 `try function()` is syntax sugar for the code block:
 ```
@@ -112,14 +110,8 @@ x = function(1234) switch error
 You're going to be switching on errors a lot in cb so this syntax sugar will be useful.
 > [!NOTE]
 > The compiler checks that you have covered all possibilites in your switch statement.
-## Declaring an error
-You declare an error as en `enum`:
-```
-enum my_error
-  file_not_found
-  out_of_memory
-  too_fast
-```
+# Explicit error handling
+cb requires you to explicitly handle all possible runtime errors. This include out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Using `comptime` can also be a way to avoid explicit error handling since any error in a an expression known at compile time becomes a compiler error instead.
 # Tests
 Use the keyword `test` and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails cb will show you the values of the variables:
 ```
@@ -166,8 +158,6 @@ loop
 Index a slice, list or array with the syntax `array[1]`. Please note that cb is one indexed. Cry about it. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: cb is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
 ### Why one-indexed?
 Are you seriously going to tell me that getting the 5th element by writing `array[4]` is intuitive? Or that getting the first 5 elements by typing `array[0..5 ]` is intuitive? Do you seriously, with a straight face, say that zero-indexing is the most intuitive for beginners. Zero-indexing has forced every programming course to warn newcommers that programming is zero indexed beacuse the beginner would rightfully assume it to be one-indexed like any sane language designed for humans. Give me one good reason for zero-indexing that is not because it is the convention. The only reason we still use it is because we're too lazy to change it.
-# Explicit error handling
-You always need to handle errors. No matter what the operation is. Indexing can return an error after a bounds check. An arithmetic expression can be undefined (not as in the `undefined` keyword but as in division by zero for example). An arithmetic operation can overflow etc... cb forces you to always handle these errors no matter what. To skip writing proper error handling, write `try` before the operation: `try a - b * 9` and declare your function as an error union `!void function()`. The only expection to the rule are compile time known expressions, this means that you do not have to implement error handling on indexing or slicing arrays, since the bounds check can be performed at compile time. If any such expression is invalid by for example division by zero or indexing out of bounds cb will throw a compiler error.
 # Runtime Errors
 Because of cb's (possibly excessive) error handling runtime errors are all the more rare. That is, if you actually implement proper error handling, if you use the `try` keyword everywhere and never handle the errors, cb will of course still have runtime errors. As long as you do not put the `try` keyword in the top level of your program, your cb program will not have any runtime errors.
 # Scope
