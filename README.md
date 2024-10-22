@@ -183,6 +183,7 @@ Check for equality with `x = y`. When assigning a boolean value you use `:` inst
 - [ ] Webgpu codelab
 - [ ] Figure out how to fix painful parts of working with webgpu
 - [ ] Figure out how to design cb to work well with webassembly
-- [ ] Figure out how to handle `=` in boolean assignments
+- [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
+- [ ] Figure out how to handle byte literal (Remove them? KISS?)
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
