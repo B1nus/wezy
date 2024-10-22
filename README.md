@@ -1,9 +1,9 @@
 # cb
 “If I had asked people what they wanted they would have said a simpler rust.”
 # Main goals of cb
-1. simplicity & friendliness
-2. explicit error handling
-3. memory safety
+- simplicity & friendliness
+- explicit error handling
+- memory safety
 # Usage
 ```
 $ cb program.cb       Compile
@@ -13,16 +13,14 @@ $ cb program.cb -t    Test
 # Webassembly
 cb compiles to webassembly and will use the [WASI api](https://wasi.dev/) for performing operations such as reading files, networking etc. WASI is not [currently implemented](#WASI) and as a temporary solution cb compiles to a web application which can be run in a browser. Use `$ cb program.cb -r` to start your program.
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). The benefit of WASI and Webassembly is cross-compatilibity at near native performance. WASI is still in its early days but when the day comes cb won't have to rely on a browser.
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). The benefit of WASI and Webassembly is cross-compatilibity at near native performance. WASI is still in its infancy but in the near future cb won't have to rely on a browser.
 # Game Development
 ## Graphics programming
-cb has a module called `graphics` for interfacing with [webgl](https://en.wikipedia.org/wiki/WebGL). Include it using `load graphics`.
-> [!NOTE]
-> cb was intended to support webgpu but [webgpu](https://en.wikipedia.org/wiki/WebGPU) adoption is slow. The idea was to make a language with great interoperability with the webgpu api, making the painful parts of webgpu easier.
+cb has a module called `graphics` for interfacing with [webgpu](https://en.wikipedia.org/wiki/WebGPU). Include it using `load graphics`.
 ## Networking, input and audio
 cb has the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality.
 > [!NOTE]
-> cb was intended to use WASI instead of relying on javascript and browsers. When the WASI api is mature enough, cb will compile to a single webassembly file which can be executed with a webassembly runtime such as [wasmtime](https://wasmtime.dev/).
+> cb was intended to use WASI instead of relying on javascript and browsers. When the WASI api is mature enough cb will compile to a single webassembly file which can be executed with a runtime such as [wasmtime](https://wasmtime.dev/).
 Hmm type declaration is only for functions...
 # Types
 ```
@@ -62,16 +60,16 @@ Remember what you dislike about zls.
 The cb compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
 ## Command line interface
 Errors should
-- Be friendly and easy yo udnerstand
+- Be friendly and easy to understand
 - Have the necessary informations (file, location, values, stack trace etc...)
 - Be pretty printed using ANSI
 - Show the part of code in question
 # Parser
 indentation parsing from python.
 # Import/Include
-Import code or a module by using the `load` keyword `load graphics`. By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as graph`. The lack of strings means that you're loading an module built into cb. To load a local file you put the relative path to the file inside quotation marks `load "localfile.cb"`. cb will only allow importing files in in the current directory or any subdirectory. cb will never load files in a parent directory. This is to make codebases easier to understand.
+Import code or a module by using the `load` keyword (`load graphics`). By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as webgpu`. The lack of quotation marks means that you're loading an module built into cb. To load a local file you put the relative path to the file inside quotation marks `load "localfile.cb"`. cb will only allow importing files in the current directory or subdirectories. cb will never load files in a parent directory. This is to make code easier to understand.
 ## Downloading code from the internet
-You are free to download the code in any way of your chosing. Using `$ git submodule` is a good idea.
+You are free to download the code in any way of your chosing, but using [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is a good idea.
 # Comptime
 Force any expression to be evaluated at compile time using `comptime`. This functionality is borrowed from [zig](https://zig.guide/language-basics/comptime).
 # Try
@@ -92,17 +90,17 @@ And with a switch statement:
 ```
 x = function(1234) catch error switch error
   .type1 => Do something.
-  .type2 =>
+  .type2 => Do something.
+  .type3 =>
     Do something on
     multiple lines.
-  .type3 => Do something.
+  .type4 => Do something.
   _ => Default case.
 ```
 Which can be simplified with some syntax sugar:
 ```
 x = function(1234) switch error
   .type1 => Do something.
-  ...
   _ => Default case.
 ```
 You're going to be switching on errors a lot in cb so this syntax sugar will be useful.
@@ -177,12 +175,14 @@ cb handles memory management through a borrow checker [similar to rust](https://
 - You cannot have a mutable pointer to an immutable value
 - ...
 # Comments
-Comments start with a capital letter and end with one of: `.` `:` `!` `?` and a newline.
+Comments start with a capital letter and end with one of `.` `:` `!` `?` and a newline.
 # Boolean expressions
-Check for equality with `x = y`. When assigning a boolean to a variable use `:` instead of `=` to avoid confusion: `p: x = 5` instead of `p = x = 5`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
+Check for equality with `x = y`. When assigning a boolean value you use `:` instead of `=` to avoid confusion: `p: x = 5` instead of `p = (x = 5)`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
 # TODO
-- [ ] Understand Webassembly
-- [ ] Understand Webgl
-- [ ] Redesign cb to be a sensible abstraction on top of webgl and Webassembly
+- [ ] Watlings
+- [ ] Webgpu codelab
+- [ ] Figure out how to fix painful parts of working with webgpu
+- [ ] Figure out how to design cb to work well with webassembly
+- [ ] Figure out how to handle `=` in boolean assignments
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
