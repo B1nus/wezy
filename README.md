@@ -157,7 +157,7 @@ Index a slice, list or array with the syntax `array[1]`. Please note that cb is 
 ### Why one-indexed?
 Are you seriously going to tell me that getting the 5th element by writing `array[4]` is intuitive? Or that getting the first 5 elements by typing `array[0..5 ]` is intuitive? Do you seriously, with a straight face, say that zero-indexing is the most intuitive for beginners. Zero-indexing has forced every programming course to warn newcommers that programming is zero indexed beacuse the beginner would rightfully assume it to be one-indexed like any sane language designed for humans. Give me one good reason for zero-indexing that is not because it is the convention. The only reason we still use it is because we're too lazy to change it.
 # Runtime Errors
-Because of cb's (possibly excessive) error handling runtime errors are all the more rare. That is, if you actually implement proper error handling, if you use the `try` keyword everywhere and never handle the errors, cb will of course still have runtime errors. As long as you do not put the `try` keyword in the top level of your program, your cb program will not have any runtime errors.
+Because of cb's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not put the `try` keyword in the top level of your program, your cb program will not have any runtime errors.
 # Scope
 Scope in cb is a bit wierd. There are only two scopes: Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. The reason for this is to make the borrow checker simple. This means that:
 ```
