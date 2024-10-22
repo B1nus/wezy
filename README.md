@@ -1,6 +1,4 @@
 # cb
-The simplicity of c with the memory safety of rust.
-
 “If I had asked people what they wanted they would have said a simple rust.”
 # Main goals of cb
 1. simplicity & friendliness
