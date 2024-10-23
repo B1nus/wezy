@@ -216,6 +216,9 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
 - [ ] Decide if you want unsigned integers
 - [ ] Decide if you want error unions as values outside of being a function return type (Errors become more friendly if they are left out)
+- [ ] Optional captures in if statements?
+- [ ] catch instead of orelse?
+- [ ] Figure out sensible syntax for handling errors such as overflow.
 - [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
