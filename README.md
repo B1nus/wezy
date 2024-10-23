@@ -91,7 +91,7 @@ function() catch error
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors and in a production environment you should use `catch` and `switch` to handle errors properly.
 
 # Catching Errors
-Declare a function that can return an error you use the `!` operator. `!i64 function(i64 num)` `my_error!i64 function(in64 num)`. The syntax for catching errors is the following:
+The syntax for catching errors is the following:
 ```
 x = function(1234) catch error
   ...
