@@ -206,6 +206,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
 - [x] Figure out how to handle byte literals (Remove them? KISS?)
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao)
+- [ ] Decide if you want unsigned integers
 - [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
