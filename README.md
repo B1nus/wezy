@@ -1,25 +1,27 @@
-# cb
+# crust
 “If I had asked people what they wanted they would have said a simpler rust.”
-# Main goals of cb
+# Main goals of crust
 - simplicity & friendliness
 - explicit error handling
 - memory safety
 # Usage
 ```
-$ cb program.cb       Compile
-$ cb program.cb -r    Run
-$ cb program.cb -t    Test
-$ cb program.cb -d    Debug
+$ crust program.crs       Compile
+$ crust program.crs -r    Run
+$ crust program.crs -t    Test
+$ crust program.crs -d    Debug
 ```
 # Webassembly
-cb compiles to webassembly and will use the [WASI api](https://wasi.dev/) for performing operations such as reading files, networking etc. WASI is not [currently implemented](#WASI) and as a temporary solution cb compiles to a web application which can be run in a browser. Use `$ cb program.cb -r` to start your program.
+crust compiles to a web application which can be executed using `$ crust program.crs -r`.
+> [!IMPORTANT]
+> This is a temporary and (in my opinion) disgusting solution. crust was intended to use [WASI](https://wasi.dev/) instead of relying on a browser but too many features we're missing from the API.
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy but in the near future cb won't have to rely on a browser.
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy but in the near future crust won't have to rely on a browser.
 # Game Development
 ## Graphics programming
-cb has a module called `graphics` which is a wrapper for [webgpu](https://en.wikipedia.org/wiki/WebGPU). Include it using `load graphics`.
+crust has a module called `graphics` for using [webgpu](https://en.wikipedia.org/wiki/WebGPU). Include it using `load graphics`.
 ## Networking, input and audio
-cb has the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality but will transition to using WASI as it matures.
+crust has the modules `network`, `input` and `audio` which you can import using the `load` keyword. crust is currently using javascript for this functionality but will transition to using WASI as it matures.
 # Types
 ```
 i64
@@ -29,19 +31,22 @@ i8
 f64
 f32
 bool
+range
 array
 slice
 ```
-You can always explicitly declare the type of a variable, but you don't need to. cb defaults to the `i64` and `f64` types of no epxlicit type is given, same goes for strings, which default `array_i8`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing).
+You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types of no epxlicit type is given, same goes for strings, which default `array_i8` and ranges which default to `i64` and `f64` respectively. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing).
+> [!NOTE]
+> cb will always be able to infer the type if there is only one possibility. cb also has some inferense rules which prioritise certain types over others.
 # Struct and Enums
-cb provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
+crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
 struct file
   slice_byte content
   slice_byte path
   mut bool empty = true
 ```
-The attributes can have default values as shown with `file.empty` which is equal to `true`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. cb will make sure all attributes are set when a struct is instantiated. Instantiate a struct with the syntax
+The attributes can have default values as shown with `file.empty` which is equal to `true`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. crust will make sure all attributes are set when a struct is instantiated. Instantiate a struct with the syntax
 ```
 myfile = file
   content = "Hello World!"
@@ -60,7 +65,7 @@ The operators `?` and `!` are ways to augment types. `?type` makes the type null
 # Lsp
 Remember what you dislike about zls.
 # Compiler
-The cb compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
+The crust compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
 ## Command line interface
 Errors should
 - Be friendly and easy to understand
@@ -72,70 +77,74 @@ Hmm... Built in debugger? I think yes!
 # Parser
 indentation parsing from python.
 # Import
-Import code by using the `load` keyword (For example `load graphics`). By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as webgpu`. Import code from a local file by giving the path to the file prepended with a `./` (For example `load ./localfile.cb`).
+Import code by using the `load` keyword (For example `load graphics`). By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as webgpu`. Import code from a local file by giving the path to the file prepended with a `./` (For example `load ./localfile.crs`).
 > [!NOTE]
-> cb will only allow loading code from files in the current directory or any subdirectories. cb will never load files from a parent directory.
+> crust will only allow loading code from files in the current directory or any subdirectories. crust will never load files from a parent directory.
 ## Downloading code from the internet
 You are free to download the code in any way of your chosing, but using [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is a good idea.
 # Comptime
 Force any expression to be evaluated at compile time using `comptime`. This functionality is borrowed from [zig](https://zig.guide/language-basics/comptime).
-# Try
+# Switch
+Switch statements are a way to separate a value into different cases which are handled separately. cb will make sure that all possible cases are covered. For example, switching on an `i8` might look like this
+```
+i8 c = 'H'
+switch c
+  'a'..'z' => print("lower case letter")
+  'A'..'Z' => print("upper case letter")
+  '0'..'9' => print("digit")
+  _ => print("other: %c")
+```
+# Catching Errors
+The syntax for catching errors is the following:
+```
+function(1234) catch error
+  ...
+```
+And with a switch statement
+```
+function(1234) catch error switch error
+  ...
+```
+The long winded `catch error switch error` can be simplified to just `switch error`
+```
+function(1234) switch error
+  ...
+```
+> [!NOTE]
+> The compiler checks that you have covered all possibilites in your switch statement.
+> # Try
 `try function()` is syntax sugar for the code block:
 ```
 function() catch error
   return error
 ```
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors and in a production environment you should use `catch` and `switch` to handle errors properly.
-
-# Catching Errors
-The syntax for catching errors is the following:
-```
-x = function(1234) catch error
-  ...
-```
-And with a switch statement
-```
-x = function(1234) catch error switch error
-  .type1 => Do something.
-  .type2 =>
-    Do something big
-    on multiple lines.
-  _ => Default case.
-```
-The `catch error switch error` can  be simplified to just `switch error`
-```
-x = function(1234) switch error
-  .type1 => Do something.
-  _ => Default case.
-```
-> [!NOTE]
-> The compiler checks that you have covered all possibilites in your switch statement.
 # Explicit error handling
-cb requires you to explicitly handle all possible runtime errors. This include out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Using `comptime` can also be a way to avoid explicit error handling since any error in a an expression known at compile time becomes a compiler error instead.
+crust requires you to explicitly handle all possible runtime errors. This include out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Using `comptime` can also be a way to avoid explicit error handling since any error in a an expression known at compile time becomes a compiler error instead.
 # Tests
-Use the keyword `test` and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails cb will show you the values of the variables:
+Use the keyword `test` and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails crust will show you the values of the variables:
 ```
-$ cb program.cb -t
-cb is testing program.cb...
+$ crust program.crs -t
+crust is testing program.crs...
   5 | passed!
   9 | passed!
-  13 | failed at program.cb:13
+  13 | failed at program.crs:13
     x + y > 1 is false because 0 + 1 > 1 is false
   20 | passed!
 ```
-cb runs tests sequentially and doesn't exit upon failure. cb will also run any tests imported using the `load` keyword.
+crust runs tests sequentially and doesn't exit upon failure. crust will also run any tests imported using the `load` keyword.
 > [!TIP]
 > Try moving more complicated tests into their own file.
 # Excessive error catching
 The benefit of arrays with known sizes is that the bounds check is performed at compile time. This means that you can omit error handling when indexing or slicing arrays.
 # Coersion
-cb will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to an `int`. An `array` can always be coerced to a `slice`. For example, passing an array to a function that takes a slice as an argument is fine, since cb automatically coerces the array to a slice. The thing to watch out for is that itnegers also coerce into floats by default. This means that you can do arithmetic with floats and integers without any conversion. But it also means a loss in precision for large integers, it could be something to watch out for. 
+crust will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to an `int`. An `array` can always be coerced to a `slice`. For example, passing an array to a function that takes a slice as an argument is fine, since crust automatically coerces the array to a slice. The thing to watch out for is that itnegers also coerce into floats by default. This means that you can do arithmetic with floats and integers without any conversion. But it also means a loss in precision for large integers, it could be something to watch out for. 
 # Mutability
 Everything is immutable by default. Make something mutable with the `mut` keyword: `mut int x = 5`
 # Command line arguments
-Access command line arguments in cb you use the builtin constant `args`.
+Access command line arguments in crust you use the builtin constant `args`.
 # Loops
-cb has one loop keyword. This loops forever:
+crust has one loop keyword. This loops forever:
 ```
 loop
   ...
@@ -155,13 +164,13 @@ loop
   break if ...
 ```
 # Indexing
-Index a slice, list or array with the syntax `array[1]`. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: cb is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
+Index a slice, list or array with the syntax `array[1]`. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: crust is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
 ### Why one-indexed?
 Let me answer that by asking you a question. What's more intuitive, getting the 5'th element in an array by typing `array[4]` or `array[5]`? I think the latter.
 # Runtime Errors
-Because of cb's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not put the `try` keyword in the top level of your program or return errors in the top level, your cb program cannot have any runtime errors.
+Because of crust's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not put the `try` keyword in the top level of your program or return errors in the top level, your crust program cannot have any runtime errors.
 # Scope
-Scope in cb is a bit wierd. There are only two scopes; Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. This means that the program
+Scope in crust is a bit wierd. There are only two scopes; Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. This means that the program
 ```
 if true
   x = 2
@@ -173,7 +182,7 @@ Pointers are made with an asterix `*variable`. Dereference the pointer by removi
 
 Pointers are immutable by default. Add the `mut` keyword to make the value behind the pointer mutable (`*mut variable`). This does not make the pointer mutable, only the value behind the pointer.
 # Memory Safety
-cb handles memory with a borrow checker. In contrast to [rust's borrow checker](https://rustc-dev-guide.rust-lang.org/borrow_check.html), cb does not have lifetimes and it only enforces simple set of rules:
+crust handles memory with a borrow checker. In contrast to [rust's borrow checker](https://rustc-dev-guide.rust-lang.org/borrow_check.html), crust does not have lifetimes and it only enforces simple set of rules:
 - You cannot use a moved value
 - You cannot have an immutable pointer while having a mutable pointer
 - You cannot have a mutable pointer to an immutable value
@@ -186,8 +195,9 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Watlings
 - [ ] Webgpu codelab
 - [ ] Figure out how to fix painful parts of working with webgpu
-- [ ] Figure out how to design cb to work well with webassembly
+- [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
 - [x] Figure out how to handle byte literal (Remove them? KISS?)
+- [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
