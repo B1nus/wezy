@@ -12,17 +12,17 @@ $ crust program.crs -t    Test
 $ crust program.crs -d    Debug
 ```
 # Installation
-Package managers or just an exacutable?
+> [!TODO]
 # Webassembly
 crust compiles to webassembly and uses [WASI](#WASI) for important functionality. Run your program with `$ crust program.crs -r`. 
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [using files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy and crust will introduce features such as a `graphics` module once they are introduced to WASI. 
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [using files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy and crust will introduce features once they are introduced to WASI. 
 # Game Development
 ## Graphics programming
 > [!NOTE]
 > crust will soon have a module called `graphics` for using [webgpu](https://en.wikipedia.org/wiki/WebGPU). crust is waiting for the [webgpu WASI API](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
 ## Networking, input and audio
-> [!IMPORTANT]
+> [!TODO]
 > Figure out the state of the modules `network`, `input` and `audio` in WASI.
 # Types
 ```
@@ -39,7 +39,7 @@ slice
 ```
 You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing.
 > [!NOTE]
-> crust will infer and coerce certain types and values. A smaller integer will implicitly coerce into a larger integer. Same goes for `f32` coercing into `f64` and arrays implicitly coercing into slices. Integers also implicitly coerce into floats to make expressions such as `1 + 1.5` valid. You don't need to write the length of an array in it's type when initialising it, `array_i32 nums = [1, -2, 5]` will be infered as `array3_i32 numse = [1, -2, 5]`.
+> crust will infer and coerce certain types and values. A smaller integer will implicitly coerce into a larger integer. Same goes for `f32` coercing into `f64` and arrays implicitly coercing into slices. Integers also implicitly coerce into floats to make expressions such as `1 + 1.5` valid. You don't need to write the length of an array in when initialising it `array_i32 nums = [1, -2, 5]` will be infered to be `array3_i32 nums = [1, -2, 5]`.
 # Struct and Enums
 crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
@@ -63,19 +63,19 @@ enum io_error
 ```
 Here we're using the enum `io_error` to define a few errors which can occur for some operation. When you come across a variable of the type `io_error` you can be sure it's one of the variants `file_not_found`, `not_permitted` or `out_of_memory`.
 # Optionals and Errors
-The operators `?` and `!` are ways to augment types. `?type` makes the type nullable, meaning that it can be of value `null`. `!type` means that it can be an error. To specify a certain error, write it to the left of the bang `error!type`.
+The operators `?` and `!` are ways to augment types. `?type` makes the type nullable, meaning that it can be of value `null`. `!type` means that it can be an error. To specify a certain error type, write it to the left of the bang `error!type`.
 # Lsp
 Remember what you dislike about zls.
 # Compiler
 The crust compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
 ## Command line interface
 Errors should
-- Be friendly and easy to understand (`Error: crust is one-indexed`)
-- Have the necessary informations (file, location, values, stack trace etc...)
+- Be friendly and easy to understand (`crust is one-indexed`)
+- Have the necessary information (file, location, values, stack trace etc...)
 - Be pretty printed using ANSI
 - Show the part of code in question
 # Debugging
-Hmm... Built in debugger? I think yes!
+> [!TODO]
 # Parser
 indentation parsing from python.
 # Import
@@ -168,7 +168,7 @@ loop
   break if ...
 ```
 # Methods
-To create a method in crust. Make the type the first argument to a function `bool contains(range_i64 *self, i64 num)`. This function would be called as a method on the `range_i64` type
+Methods in crust are just normal functions. For example `bool contains(range_i64 *self, i64 num)` would be called as a method:
 ```
 interval = 1..5
 if interval.is_in_range(4)
