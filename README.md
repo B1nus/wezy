@@ -224,6 +224,9 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Decide if you want @compileError in crust. I think it's a great idea which solves the u64 p64 i64 problem.
 - [ ] Optional captures in if statements?
 - [ ] Decide how to do array concatenation and repetition (at compile time of course) (this is also for string concatenation since string literals are just arrays)
+- [ ] Decide on creating and concatenating/repeating/other stuff with dynamicly sized slices.
+- [ ] Decide on creating dynamically sized slices. (`slice string = "Hello"`) Maybe? (`string += ", World!"`)
+- [ ] I'm starting to doubt some design decisions.
 - [ ] catch instead of orelse?
 - [ ] Figure out sensible syntax for handling errors such as overflow.
 - [ ] Finalise inferense and coercion rules
