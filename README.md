@@ -214,6 +214,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
 - [ ] Figure out how to warn for top-level `try`
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
+- [ ] Figure out reading and writing files in wasi (for the compiler to be able to be written in crust itself)
 - [ ] Decide if you want unsigned integers
 - [ ] Decide if you want error unions as values outside of being a function return type (Errors become more friendly if they are left out)
 - [ ] Optional captures in if statements?
