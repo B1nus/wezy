@@ -77,7 +77,7 @@ Errors should
 - Be pretty printed using ANSI
 - Show the part of code in question
 # Debugging
-> [!TODO]
+> [!TODO] Figure out how to make debugging as easy as possible.
 # Parser
 indentation parsing from python.
 # Import
@@ -210,9 +210,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
 - [x] Figure out how to handle byte literals (Remove them? KISS?)
-- [ ] Figure out the situation of networking, input and audio in WASI
 - [ ] Figure out how to make your own runtime
-- [ ] Figure out how to make debugging easier
 - [ ] Figure out how to format friendly, helpfull errors
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
 - [ ] Figure out how to warn for top-level `try`
