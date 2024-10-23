@@ -14,15 +14,12 @@ $ cb program.cb -d    Debug
 # Webassembly
 cb compiles to webassembly and will use the [WASI api](https://wasi.dev/) for performing operations such as reading files, networking etc. WASI is not [currently implemented](#WASI) and as a temporary solution cb compiles to a web application which can be run in a browser. Use `$ cb program.cb -r` to start your program.
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). The benefit of WASI and Webassembly is cross-compatilibity at near native performance. WASI is still in its infancy but in the near future cb won't have to rely on a browser.
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy but in the near future cb won't have to rely on a browser.
 # Game Development
 ## Graphics programming
-cb has a module called `graphics` for interfacing with [webgpu](https://en.wikipedia.org/wiki/WebGPU). Include it using `load graphics`.
+cb has a module called `graphics` which is a wrapper for [webgpu](https://en.wikipedia.org/wiki/WebGPU). Include it using `load graphics`.
 ## Networking, input and audio
-cb has the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality.
-> [!NOTE]
-> cb was intended to use WASI instead of relying on javascript and browsers. When the WASI api is mature enough cb will compile to a single webassembly file which can be executed with a runtime such as [wasmtime](https://wasmtime.dev/).
-Hmm type declaration is only for functions...
+cb has the modules `network`, `input` and `audio` which you can import using the `load` keyword. cb is currently using javascript for this functionality but will transition to using WASI as it matures.
 # Types
 ```
 i64
