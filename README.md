@@ -225,5 +225,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Figure out sensible syntax for handling errors such as overflow.
 - [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
+- [ ] Figure out how to get into the head space of a beginner programmer.
+- [ ] Get feedback about the friendliness of the language. (This is a priority for me as I remember how many hiccups I've had when learning other langauges)
 - [ ] Formal grammar specification
 - [ ] Rewrite the compiler in crust
