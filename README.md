@@ -11,17 +11,19 @@ $ crust program.crs -r    Run
 $ crust program.crs -t    Test
 $ crust program.crs -d    Debug
 ```
+# Installation
+Package managers or just an exacutable?
 # Webassembly
-crust compiles to a web application which can be executed using `$ crust program.crs -r`.
-> [!IMPORTANT]
-> This is a temporary and (in my opinion) disgusting solution. crust was intended to use [WASI](https://wasi.dev/) instead of relying on a browser but too many features we're missing from the API.
+crust compiles to webassembly and uses [WASI](#WASI) for important functionality. Run your program with `$ crust program.crs -r`. 
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [reading files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy but in the near future crust won't have to rely on a browser.
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [using files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy and crust will introduce features such as a `graphics` module once they are introduced to WASI. 
 # Game Development
 ## Graphics programming
-crust has a module called `graphics` for using [webgpu](https://en.wikipedia.org/wiki/WebGPU). Include it using `load graphics`.
+> [!NOTE]
+> crust will soon have a module called `graphics` for using [webgpu](https://en.wikipedia.org/wiki/WebGPU). crust is waiting for the [webgpu WASI API](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
 ## Networking, input and audio
-crust has the modules `network`, `input` and `audio` which you can import using the `load` keyword. crust is currently using javascript for this functionality but will transition to using WASI as it matures.
+> [!IMPORTANT]
+> Figure out the state of the modules `network`, `input` and `audio` in WASI.
 # Types
 ```
 i64
@@ -37,7 +39,7 @@ slice
 ```
 You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing.
 > [!NOTE]
-> crust will infer and coerce certain types and values. A smaller integer will implicitly coerce into a larger integer. Same goes for `f32` coercing into `f64` and arrays implicitly coercing into slices. Integers also implicitly coerce into floats to make expressions such as `1 + 1.5` valid.
+> crust will infer and coerce certain types and values. A smaller integer will implicitly coerce into a larger integer. Same goes for `f32` coercing into `f64` and arrays implicitly coercing into slices. Integers also implicitly coerce into floats to make expressions such as `1 + 1.5` valid. You don't need to write the length of an array in it's type when initialising it, `array_i32 nums = [1, -2, 5]` will be infered as `array3_i32 numse = [1, -2, 5]`.
 # Struct and Enums
 crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
@@ -205,6 +207,8 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
 - [x] Figure out how to handle byte literals (Remove them? KISS?)
+- [ ] Figure out the situation of networking, input and audio in WASI
+- [ ] Figure out how to make your own runtime
 - [ ] Figure out how to make debugging easier
 - [ ] Figure out how to format friendly, helpfull errors
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
@@ -214,3 +218,4 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
+- [ ] Rewrite the compiler in crust
