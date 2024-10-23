@@ -212,6 +212,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [x] Figure out how to handle byte literals (Remove them? KISS?)
 - [ ] Figure out how to make your own runtime
 - [ ] Figure out how to format friendly, helpfull errors
+- [ ] Figure out importing raw webassembly. (It should work, right?)
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
 - [ ] Figure out how to warn for top-level `try`
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
