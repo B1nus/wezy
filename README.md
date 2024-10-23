@@ -155,13 +155,13 @@ loop
   break if ...
 ```
 # Indexing
-Index a slice, list or array with the syntax `array[1]`. Please note that cb is one indexed. Cry about it. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: cb is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
+Index a slice, list or array with the syntax `array[1]`. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: cb is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
 ### Why one-indexed?
-Are you seriously going to tell me that getting the 5th element by writing `array[4]` is intuitive? Or that getting the first 5 elements by typing `array[0..5 ]` is intuitive? Do you seriously, with a straight face, say that zero-indexing is the most intuitive for beginners. Zero-indexing has forced every programming course to warn newcommers that programming is zero indexed beacuse the beginner would rightfully assume it to be one-indexed like any sane language designed for humans. Give me one good reason for zero-indexing that is not because it is the convention. The only reason we still use it is because we're too lazy to change it.
+Let me answer that by asking you a question. What's more intuitive, getting the 5'th element in an array by typing `array[4]` or `array[5]`? I think the latter.
 # Runtime Errors
-Because of cb's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not put the `try` keyword in the top level of your program, your cb program will not have any runtime errors.
+Because of cb's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not put the `try` keyword in the top level of your program or return errors in the top level, your cb program cannot have any runtime errors.
 # Scope
-Scope in cb is a bit wierd. There are only two scopes: Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. The reason for this is to make the borrow checker simple. This means that:
+Scope in cb is a bit wierd. There are only two scopes; Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. This means that the program
 ```
 if true
   x = 2
@@ -169,19 +169,19 @@ print(x)
 ```
 Will compile without any errors and print `2`.
 # Pointers
-Pointers are made with an asterix `*variable`. Dereference the pointer by removing the asterix `variable`. This is weird syntax compared to other languages however it less ambiguous. You can always be sure that an asterix before an identifier means it's a pointer and that nothing else can be a pointer. This also means that you cannot store a pointer in another variable. There is no pointer datatype. The only way to use a pointer is as a function argument. This is especially important to make the borrow checker simple.
+Pointers are made with an asterix `*variable`. Dereference the pointer by removing the asterix `variable`. You can always be sure that an asterix before an identifier means it's a pointer and that nothing else can be a pointer. Also note that you cannot store a pointer in a variable and that there is no pointer datatype. The only way to use a pointer is as a function argument. This is very important for making the borrow checker simple.
 
-The value pointers point to is immutable by default. Add the `mut` keyword to make the value behind the pointer mutable (`mut *variable`). This does not make the pointer mutable, only the value behind the pointer.
-# Memory management
-cb handles memory management through a borrow checker [similar to rust](https://rustc-dev-guide.rust-lang.org/borrow_check.html). But before you get scared and run away, please note that cb's borrow checkear is simplier than rusts. cb's borrow checker does not have lifetimes and it only enforces a simple set of rules:
-- You cannot use a moved variable
-- You cannot have an immutable pointer while having a mutable pointer to a value
+Pointers are immutable by default. Add the `mut` keyword to make the value behind the pointer mutable (`*mut variable`). This does not make the pointer mutable, only the value behind the pointer.
+# Memory Safety
+cb handles memory with a borrow checker. In contrast to [rust's borrow checker](https://rustc-dev-guide.rust-lang.org/borrow_check.html), cb does not have lifetimes and it only enforces simple set of rules:
+- You cannot use a moved value
+- You cannot have an immutable pointer while having a mutable pointer
 - You cannot have a mutable pointer to an immutable value
 - ...
 # Comments
 Comments start with a capital letter and end with one of `.` `:` `!` `?` and a newline.
 # Boolean expressions
-Check for equality with `x = y`. When assigning a boolean value you use `:` instead of `=` to avoid confusion: `p: x = 5` instead of `p = (x = 5)`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
+Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
 # TODO
 - [ ] Watlings
 - [ ] Webgpu codelab
