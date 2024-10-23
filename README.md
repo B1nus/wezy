@@ -138,9 +138,13 @@ crust is testing program.crs...
     x + y > 1 is false because 0 + 1 > 1 is false
   20 | passed!
 ```
-crust runs tests sequentially and doesn't exit upon failure. crust will also run any tests imported using the `load` keyword.
-> [!TIP]
-> Try moving more complicated tests into their own file.
+crust runs tests sequentially and doesn't exit upon failure. crust will also run any tests imported using the `load` keyword. Write more complicated tests inside of a code block and use the keyword `assert`:
+```
+test Addition.
+  x = 1
+  y = 2
+  assert x + y = 3
+```
 # Excessive error catching
 The benefit of arrays with known sizes is that the bounds check is performed at compile time. This means that you can omit error handling when indexing or slicing arrays.
 # Coersion
