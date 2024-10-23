@@ -203,6 +203,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 # TODO
 - [ ] Watlings
 - [ ] Webgpu codelab
+- [ ] Ziglings
 - [ ] Figure out how to fix painful parts of working with webgpu
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
