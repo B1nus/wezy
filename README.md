@@ -112,10 +112,10 @@ function(1234) switch error
 ```
 > [!NOTE]
 > The compiler checks that you have covered all possibilites in your switch statement.
-> # Try
-`try function()` is syntax sugar for the code block:
+# Try
+`try` is syntax sugar for the code block:
 ```
-function() catch error
+... catch error
   return error
 ```
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors and in a production environment you should use `catch` and `switch` to handle errors properly.
@@ -172,18 +172,18 @@ if interval.is_in_range(4)
 ```
 # Multiple Dispatch
 Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` can have the same name. Also note that these functions can be called as methods `4.sqrt()`.
-### Why one-indexed?
-Let me answer that by asking you a question. What's more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? I think the latter.
+# One-Indexed
+crust is one indexed. I know many programmers will ask the question why? Let me answer that by asking you a question. What's more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
 # Runtime Errors
-Because of crust's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not put the `try` keyword in the top level of your program or return errors in the top level, your crust program cannot have any runtime errors.
+Because of crust's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not return any errors in the top level of your program by using `try` or a literal `return error`, then your crust program cannot have any runtime errors.
 # Scope
-Scope in crust is a bit wierd. There are only two scopes; Function scope and Gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. This means that the program
+Scope in crust is a bit wierd. There are only two scopes: function scope and gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. This means that the program
 ```
 if true
   x = 2
 print(x)
 ```
-Will compile without any errors and print `2`.
+Will compile and print `2`.
 # Pointers
 Pointers are made with an asterix `*variable`. Dereference the pointer by removing the asterix `variable`. You can always be sure that an asterix before an identifier means it's a pointer and that nothing else can be a pointer. Also note that you cannot store a pointer in a variable and that there is no pointer datatype. The only way to use a pointer is as a function argument. This is very important for making the borrow checker simple.
 
@@ -204,7 +204,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Figure out how to fix painful parts of working with webgpu
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
-- [x] Figure out how to handle byte literal (Remove them? KISS?)
+- [x] Figure out how to handle byte literals (Remove them? KISS?)
 - [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
