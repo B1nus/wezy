@@ -174,6 +174,8 @@ This is equivalent to a while loop:
 loop
   break if ...
 ```
+# Labels
+[!TODO] Labels for comptime and loops
 # Methods
 Methods in crust are just normal functions. For example `bool contains(range_i64 *self, i64 num)` would be called as a method:
 ```
