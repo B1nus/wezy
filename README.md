@@ -11,8 +11,6 @@ $ crust program.crs -r    Run
 $ crust program.crs -t    Test
 $ crust program.crs -d    Debug
 ```
-# Influences
-Rust, C, Zig, Scratch, WASM.
 # Installation
 > [!TODO]
 # Webassembly
@@ -211,6 +209,8 @@ crust handles memory with a borrow checker. In contrast to [rust's borrow checke
 Comments start with a capital letter and end with one of `.` `:` `!` `?` and a newline.
 # Boolean expressions
 Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
+# Credit
+[Zig](https://ziglang.org/), [C](https://en.wikipedia.org/wiki/C_(programming_language)), [Rust](https://www.rust-lang.org/), [Scratch](https://scratch.mit.edu/), [WASM](https://webassembly.org/).
 # TODO
 - [ ] Watlings
 - [ ] Webgpu codelab
