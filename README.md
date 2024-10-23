@@ -224,3 +224,5 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
 - [ ] Rewrite the compiler in crust
+
+You cannot make a language where a programmer cannot make mistakes. However, you can make a programming language which helps programmers avoid making mistakes.
