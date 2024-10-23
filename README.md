@@ -217,6 +217,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Figure out reading and writing files in wasi (for the compiler to be able to be written in crust itself)
 - [ ] Decide if you want unsigned integers
 - [ ] Decide if you want error unions as values outside of being a function return type (Errors become more friendly if they are left out)
+- [ ] How would you structure your polynomial library in crust? Maybe there is room for improvement.
 - [ ] Optional captures in if statements?
 - [ ] catch instead of orelse?
 - [ ] Figure out sensible syntax for handling errors such as overflow.
