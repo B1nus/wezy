@@ -59,8 +59,7 @@ enum io_error
 ```
 Here we're using the enum `io_error` to define a few errors which can occur for some operation. When you come across a variable of the type `io_error` you can be sure it's one of the variants `file_not_found`, `not_permitted` or `out_of_memory`.
 # Optionals and Errors
-`?` and `!` are ways to augment types for the possibility of having another
-Hmmm...
+`?` and `!` are ways to augment types. `?type` makes the type nullable, meaning that it can be of value `null`. The `!` operator means that the type can be an error, writing an error, the error enum is written to the left of the bang `error!type`, but the error type can also be left out in order to catch any type of error.
 # Lsp
 Remember what you dislike about zls.
 # Compiler
@@ -89,32 +88,29 @@ Force any expression to be evaluated at compile time using `comptime`. This func
 function() catch error
   return error
 ```
-With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors. Generally, you should use `catch` and `switch` if you want to handle errors properly.
+With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors and in a production environment you should use `catch` and `switch` to handle errors properly.
 
-# Error handling
-cb handles errors like values. To declare a function that can return an error you use the `!` operator. `!int function(int number)` `my_error!int function(int number)`. The syntax for catching errors is the following:
+# Catching Errors
+Declare a function that can return an error you use the `!` operator. `!i64 function(i64 num)` `my_error!i64 function(in64 num)`. The syntax for catching errors is the following:
 ```
 x = function(1234) catch error
   ...
 ```
-And with a switch statement:
+And with a switch statement
 ```
 x = function(1234) catch error switch error
   .type1 => Do something.
-  .type2 => Do something.
-  .type3 =>
-    Do something on
-    multiple lines.
-  .type4 => Do something.
+  .type2 =>
+    Do something big
+    on multiple lines.
   _ => Default case.
 ```
-Which can be simplified with some syntax sugar:
+The `catch error switch error` can  be simplified to just `switch error`
 ```
 x = function(1234) switch error
   .type1 => Do something.
   _ => Default case.
 ```
-You're going to be switching on errors a lot in cb so this syntax sugar will be useful.
 > [!NOTE]
 > The compiler checks that you have covered all possibilites in your switch statement.
 # Explicit error handling
