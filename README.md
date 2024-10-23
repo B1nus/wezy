@@ -227,5 +227,6 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Finalise borrow checker rules
 - [ ] Figure out how to get into the head space of a beginner programmer.
 - [ ] Get feedback about the friendliness of the language. (This is a priority for me as I remember how many hiccups I've had when learning other langauges)
+- [ ] Decide if you want to associate crust more with scratch. I want crust to be as simple and understandable as scratch. I hope a can make a language which I would have loved as a child. I need more feedback from people in this demographic.
 - [ ] Formal grammar specification
 - [ ] Rewrite the compiler in crust
