@@ -121,6 +121,8 @@ function(1234) switch error
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors and in a production environment you should use `catch` and `switch` to handle errors properly.
 # Explicit error handling
 crust requires you to explicitly handle all possible runtime errors. This includes out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Using `comptime` can also be a way to avoid explicit error handling since any error in a an expression known at compile time becomes a compiler error instead.
+# Runtime Errors
+Because of crust's (possibly excessive) error handling, runtime errors can be completely avoided. As long as you do not use the `try` keyword in the top-level or your program crust cannot have any runtime errors.
 # Tests
 Use the keyword `test` and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails crust will show you the values of the variables:
 ```
@@ -174,8 +176,6 @@ if interval.is_in_range(4)
 Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` can have the same name. Also note that these functions can be called as methods `4.sqrt()`.
 # One-Indexed
 crust is one indexed. I know many programmers will wonder why I made this decision. Let me answer you by asking another question. What do you think is more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
-# Runtime Errors
-Because of crust's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not return any errors in the top level of your program by using `try` or a literal `return error`, then your crust program cannot have any runtime errors.
 # Scope
 Scope in crust is a bit wierd. There are only two scopes: function scope and gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. This means that the program
 ```
@@ -208,6 +208,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Figure out how to make debugging easier
 - [ ] Figure out how to format friendly, helpfull errors
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
+- [ ] Figure out how to warn for top-level `try`
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
 - [ ] Decide if you want unsigned integers
 - [ ] Finalise inferense and coercion rules
