@@ -24,36 +24,42 @@ cb has the modules `network`, `input` and `audio` which you can import using the
 Hmm type declaration is only for functions...
 # Types
 ```
-int
-float
-byte
+i64
+i32
+i16
+i8
+f64
+f32
 bool
 array
 slice
 ```
-In cb you never write the type of a variable. However, cb is still statically typed. This is possible because each literal corresponds to exactly one type. The only time you need to explicitly write types is when declaring functions. The `int` and `float` datatypes correspond to their respecitve types in [webassembly](https://webassembly.github.io/spec/core/syntax/types.html) (`i64` and `f64`). A number without a decimal point is infered to be an integer `i = 69` and a number with a decimal point is infered to be a float `f = 3.141`. A `bool` is a datatype with two values, `true` and `false`. An array is a list of values with a known size. An array literal can either be a list of values `[1, 2, 3]` or a string `"Hello world!"` which is just an array of bytes. The `slice` type is the same as an array, but it has an unknown size at compile time and needs error handling for out of bounds. Create a dynamically sized list with `list = slice`
+You can always explicitly declare the type of a variable, but you don't need to. cb defaults to the `i64` and `f64` types of no epxlicit type is given, same goes for strings, which default `array_i8`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing).
 # Struct and Enums
-cb provides the keywords `enum` and `struct` to empower its typesystem. Think of them as a way to define your own types. A struct is a collection of attributes with a name. For example:
+cb provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
 struct file
   slice_byte content
   slice_byte path
-  mut bool   empty = true
+  mut bool empty = true
 ```
-The attributes can have a default value as shown with the attribute `empty`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. cb will make sure all attributes are set when a struct is instantiated at compile time, otherwise it will throw an error. Instantiate a struct with the syntax
+The attributes can have default values as shown with `file.empty` which is equal to `true`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. cb will make sure all attributes are set when a struct is instantiated. Instantiate a struct with the syntax
 ```
 myfile = file
   content = "Hello World!"
   path = "./hello_world.txt"
 ```
-Enums, also called sumtypes is a way to define a variable which can be one of a set of variants. For example:
+Enums are a list of variants, of which variables can only take on of of said variants:
 ```
 enum io_error
   file_not_found
   not_permitted
   out_of_memory
 ```
-Using enums for errors is something you'll come across a lot in cb. Here we define an enum called `io_error` which has three variants. Each of which correspond to one type of error that can occur. When you declare a variable to be the `io_error` type you can be sure that is one of `file_not_found`, `not_permitted` or `out_of_memory` and nothing else. You can use this `io_error` as an argument to a function, as a return type or as an error a function can return with the bang `!` operator.
+Here we're using the enum `io_error` to define a few errors which can occur for some operation. When you come across a variable of the type `io_error` you can be sure it's one of the variants `file_not_found`, `not_permitted` or `out_of_memory`.
+# Optionals and Errors
+`?` and `!` are ways to augment types for the possibility of having another
+Hmmm...
 # Lsp
 Remember what you dislike about zls.
 # Compiler
@@ -64,10 +70,14 @@ Errors should
 - Have the necessary informations (file, location, values, stack trace etc...)
 - Be pretty printed using ANSI
 - Show the part of code in question
+# Debugging
+Hmm... Built in debugger? I think yes!
 # Parser
 indentation parsing from python.
-# Import/Include
-Import code or a module by using the `load` keyword (`load graphics`). By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as webgpu`. The lack of quotation marks means that you're loading an module built into cb. To load a local file you put the relative path to the file inside quotation marks `load "localfile.cb"`. cb will only allow importing files in the current directory or subdirectories. cb will never load files in a parent directory. This is to make code easier to understand.
+# Import
+Import code by using the `load` keyword (For example `load graphics`). By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as webgpu`. Import code from a local file by giving the path to the file prepended with a `./` (For example `load ./localfile.cb`).
+> [!NOTE]
+> cb will only allow loading code from files in the current directory or any subdirectories. cb will never load files from a parent directory.
 ## Downloading code from the internet
 You are free to download the code in any way of your chosing, but using [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is a good idea.
 # Comptime
@@ -184,6 +194,6 @@ Check for equality with `x = y`. When assigning a boolean value you use `:` inst
 - [ ] Figure out how to fix painful parts of working with webgpu
 - [ ] Figure out how to design cb to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
-- [ ] Figure out how to handle byte literal (Remove them? KISS?)
+- [x] Figure out how to handle byte literal (Remove them? KISS?)
 - [ ] Finalise borrow checker rules
 - [ ] Formal grammar specification
