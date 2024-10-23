@@ -9,6 +9,7 @@
 $ cb program.cb       Compile
 $ cb program.cb -r    Run
 $ cb program.cb -t    Test
+$ cb program.cb -d    Debug
 ```
 # Webassembly
 cb compiles to webassembly and will use the [WASI api](https://wasi.dev/) for performing operations such as reading files, networking etc. WASI is not [currently implemented](#WASI) and as a temporary solution cb compiles to a web application which can be run in a browser. Use `$ cb program.cb -r` to start your program.
