@@ -37,7 +37,7 @@ slice
 ```
 You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing.
 > [!NOTE]
-> crust will infer and coerce certain types and values. A smaller integer can and will implicitly coerce into a larger integer. Same goes for floats and same goes for arrays implicitly coercing into slices.
+> crust will infer and coerce certain types and values. A smaller integer can and will implicitly coerce into a larger integer. Same goes for floats and same goes for arrays implicitly coercing into slices. Integers also coerce into floats implitly, to make expressions such as `1 + 1.5` valid (This coercion is supported from webassembly, which is nice, I thought I would have to do it manually).
 # Struct and Enums
 crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
