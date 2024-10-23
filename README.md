@@ -35,9 +35,9 @@ range
 array
 slice
 ```
-You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types of no epxlicit type is given, same goes for strings, which default `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing).
+You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types of no epxlicit type is given, same goes for strings, which default `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing.
 > [!NOTE]
-> cb will always be able to infer the type if there is only one possibility. cb also has some inferense rules which prioritise certain types over others.
+> crust will infer and coerce certain types and values.
 # Struct and Enums
 crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
@@ -68,7 +68,7 @@ Remember what you dislike about zls.
 The crust compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
 ## Command line interface
 Errors should
-- Be friendly and easy to understand
+- Be friendly and easy to understand (`Error: crust is one-indexed`)
 - Have the necessary informations (file, location, values, stack trace etc...)
 - Be pretty printed using ANSI
 - Show the part of code in question
@@ -85,7 +85,7 @@ You are free to download the code in any way of your chosing, but using [git sub
 # Comptime
 Force any expression to be evaluated at compile time using `comptime`. This functionality is borrowed from [zig](https://zig.guide/language-basics/comptime).
 # Switch
-Switch statements are a way to separate a value into different cases which are handled separately. cb will make sure that all possible cases are covered. For example, switching on an `i8` might look like this
+Switch statements are a way to separate a value into different cases which are handled separately. crust will make sure that all possible cases are covered. For example, switching on an `i8` might look like this
 ```
 i8 c = 'H'
 switch c
@@ -120,7 +120,7 @@ function() catch error
 ```
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors and in a production environment you should use `catch` and `switch` to handle errors properly.
 # Explicit error handling
-crust requires you to explicitly handle all possible runtime errors. This include out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Using `comptime` can also be a way to avoid explicit error handling since any error in a an expression known at compile time becomes a compiler error instead.
+crust requires you to explicitly handle all possible runtime errors. This includes out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Using `comptime` can also be a way to avoid explicit error handling since any error in a an expression known at compile time becomes a compiler error instead.
 # Tests
 Use the keyword `test` and write the boolean statement you want to test. For example `test x + y > 1`. If said test fails crust will show you the values of the variables:
 ```
@@ -163,10 +163,17 @@ This is equivalent to a while loop:
 loop
   break if ...
 ```
-# Indexing
-Index a slice, list or array with the syntax `array[1]`. Arrays which are statically sized are bounds checked at compile time and don't need any error handling. However, slices or lists with unknown size require error handling. (Unless you're writing index 0 in which it's still a compiler error: `Error: crust is one-indexed.`). If you're not meaning to do proper error handling, then just use the `try` keyword like so `try slice[1]`. If you want proper error handling of out of bounds and such you'd use the `catch` or `switch` keyword as explained in their appropriet headers above.
+# Methods
+To create a method in crust. Make the type you want to add the method to the first argument of a function `bool contains(range_i64 *self, i64 num)`. This method would be called as
+```
+interval = 1..5
+if interval.is_in_range(4)
+  ...
+```
+# Multiple Dispatch
+Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` can have the same name. Also note that these functions can be called as methods `4.sqrt()`.
 ### Why one-indexed?
-Let me answer that by asking you a question. What's more intuitive, getting the 5'th element in an array by typing `array[4]` or `array[5]`? I think the latter.
+Let me answer that by asking you a question. What's more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? I think the latter.
 # Runtime Errors
 Because of crust's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not put the `try` keyword in the top level of your program or return errors in the top level, your crust program cannot have any runtime errors.
 # Scope
