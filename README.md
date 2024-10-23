@@ -35,7 +35,7 @@ range
 array
 slice
 ```
-You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types of no epxlicit type is given, same goes for strings, which default `array_i8` and ranges which default to `i64` and `f64` respectively. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing).
+You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types of no epxlicit type is given, same goes for strings, which default `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing).
 > [!NOTE]
 > cb will always be able to infer the type if there is only one possibility. cb also has some inferense rules which prioritise certain types over others.
 # Struct and Enums
