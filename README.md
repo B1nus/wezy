@@ -206,6 +206,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Watlings
 - [ ] Webgpu codelab
 - [ ] Ziglings
+- [ ] How you would structure your polynomial library using zig's comptime (I think I might be on to something. I love you zig)
 - [ ] Figure out how to fix painful parts of working with webgpu
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
