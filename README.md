@@ -164,7 +164,7 @@ loop
   break if ...
 ```
 # Methods
-To create a method in crust. Make the type you want to add the method to the first argument of a function `bool contains(range_i64 *self, i64 num)`. This method would be called as
+To create a method in crust. Make the type the first argument to a function `bool contains(range_i64 *self, i64 num)`. This function would be called as a method on the `range_i64` type
 ```
 interval = 1..5
 if interval.is_in_range(4)
