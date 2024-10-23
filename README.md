@@ -11,6 +11,8 @@ $ crust program.crs -r    Run
 $ crust program.crs -t    Test
 $ crust program.crs -d    Debug
 ```
+# Influences
+Rust, C, Zig, Scratch, WASM.
 # Installation
 > [!TODO]
 # Webassembly
