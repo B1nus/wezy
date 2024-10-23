@@ -59,7 +59,7 @@ enum io_error
 ```
 Here we're using the enum `io_error` to define a few errors which can occur for some operation. When you come across a variable of the type `io_error` you can be sure it's one of the variants `file_not_found`, `not_permitted` or `out_of_memory`.
 # Optionals and Errors
-`?` and `!` are ways to augment types. `?type` makes the type nullable, meaning that it can be of value `null`. The `!` operator means that the type can be an error, writing an error, the error enum is written to the left of the bang `error!type`, but the error type can also be left out in order to catch any type of error.
+The operators `?` and `!` are ways to augment types. `?type` makes the type nullable, meaning that it can be of value `null`. `!type` means that it can be an error. To specify a certain error, write it to the left of the bang `error!type`.
 # Lsp
 Remember what you dislike about zls.
 # Compiler
