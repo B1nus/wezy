@@ -77,7 +77,7 @@ Hmm... Built in debugger? I think yes!
 # Parser
 indentation parsing from python.
 # Import
-Import code by using the `load` keyword (For example `load graphics`). By default this code is imported at the top level, use the `as` keyword to give the code a namespace `load graphics as webgpu`. Import code from a local file by giving the path to the file prepended with a `./` (For example `load ./localfile.crs`).
+Import code by using the `load` keyword (For example `load graphics`). By default this code is imported at the top level (the preprocessor is literaly just pasting the source code of the imported file), use the `as` keyword to give the code a namespace `load graphics as webgpu`. Import code from a local file by giving the path to the file prepended with a `./` (For example `load ./localfile.crs`).
 > [!NOTE]
 > crust will only allow loading code from files in the current directory or any subdirectories. crust will never load files from a parent directory.
 ## Downloading code from the internet
