@@ -218,6 +218,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] Decide if you want unsigned integers
 - [ ] Decide if you want error unions as values outside of being a function return type (Errors become more friendly if they are left out)
 - [ ] How would you structure your polynomial library in crust? Maybe there is room for improvement.
+- [ ] Decide if you want @compileError in crust. I think it's a great idea which solves the u64 p64 i64 problem.
 - [ ] Optional captures in if statements?
 - [ ] catch instead of orelse?
 - [ ] Figure out sensible syntax for handling errors such as overflow.
