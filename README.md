@@ -52,7 +52,7 @@ myfile = file
   content = "Hello World!"
   path = "./hello_world.txt"
 ```
-Enums are a list of variants and variables of this enum can only take one one of those variants.
+Enums are a list of variants and variables can only take on one of those variants.
 ```
 enum io_error
   file_not_found
