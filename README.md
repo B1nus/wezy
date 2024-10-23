@@ -173,7 +173,7 @@ if interval.is_in_range(4)
 # Multiple Dispatch
 Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` can have the same name. Also note that these functions can be called as methods `4.sqrt()`.
 # One-Indexed
-crust is one indexed. I know many programmers will ask the question why? Let me answer that by asking you a question. What's more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
+crust is one indexed. I know many programmers will wonder why I made this decision. Let me answer you by asking another question. What do you think is more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
 # Runtime Errors
 Because of crust's (possibly excessive) error handling runtime errors are all the more rare. As long as you do not return any errors in the top level of your program by using `try` or a literal `return error`, then your crust program cannot have any runtime errors.
 # Scope
