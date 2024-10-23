@@ -223,6 +223,7 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 - [ ] How would you structure your polynomial library in crust? Maybe there is room for improvement.
 - [ ] Decide if you want @compileError in crust. I think it's a great idea which solves the u64 p64 i64 problem.
 - [ ] Optional captures in if statements?
+- [ ] Decide how to do array concatenation and repetition (at compile time of course) (this is also for string concatenation since string literals are just arrays)
 - [ ] catch instead of orelse?
 - [ ] Figure out sensible syntax for handling errors such as overflow.
 - [ ] Finalise inferense and coercion rules
