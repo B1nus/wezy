@@ -4,7 +4,10 @@
 - simplicity & friendliness
 - explicit error handling
 - memory safety
-# Usage
+# Web editor
+crust has an official web editor where you can write and run crust code. You can find it [here](github.io).
+# Command Line Usage
+crust also has a command line utility for compiling and running crust code. Use it in the following ways:
 ```
 $ crust program.crs       Compile
 $ crust program.crs -r    Run
@@ -20,7 +23,10 @@ The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's t
 # Game Development
 ## Graphics programming
 > [!NOTE]
-> crust will soon have a module called `graphics` for using [webgpu](https://en.wikipedia.org/wiki/WebGPU). crust is waiting for the [webgpu WASI API](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
+> crust will soon have a module called `graphics` for writing to the screen. For lower level control of the graphics you can use the module `gpu` which gives you full control over the [webgpu graphics backend](https://en.m.wikipedia.org/wiki/WebGPU). Please keep in mind that it's very overwhelming to use webgpu directly. Most users (including myself) will be better of using the `graphics` module for their projects.
+
+> [!WARNING]
+> These modules are not currently available since [webgpu isn't yet supported by WASI](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
 ## Networking, input and audio
 > [!TODO]
 > Figure out the state of the modules `network`, `input` and `audio` in WASI.
