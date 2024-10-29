@@ -218,9 +218,10 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 # Credit
 I want to give credit to all of the programming languages which I've looked at for guidence: [Zig](https://ziglang.org/), [C](https://en.wikipedia.org/wiki/C_(programming_language)), [Rust](https://www.rust-lang.org/), [Scratch](https://scratch.mit.edu/), [WASM](https://webassembly.org/). Thank you for all of the help, and sorry for stealing your features (Mostly zig's...). I also want to give credit to [Ziglings](https://codeberg.org/ziglings/exercises/src/branch/main) and [Watlings](https://github.com/EmNudge/watlings) which helped me learn zig and webassembly. I also want to give credit to this [codelab](https://codelabs.developers.google.com/your-first-webgpu-app) and [learn webgl](https://learnwebgl.brown37.net/) which is an amazing resourse for learning webgl. 
 # TODO
-- [ ] Watlings
+- [x] Watlings
 - [ ] Webgpu codelab
 - [ ] Ziglings
+- [ ] aoc in zig
 - [ ] How you would structure your polynomial library using zig's comptime (I think I might be on to something. I love you zig)
 - [ ] Figure out how to fix painful parts of working with webgpu
 - [ ] Figure out how to design crust to work well with webassembly
@@ -252,3 +253,6 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Decide if you want to associate crust more with scratch. I want crust to be as simple and understandable as scratch. I hope a can make a language which I would have loved as a child. I need more feedback from people in this demographic.
 - [ ] Formal grammar specification
 - [ ] Rewrite the compiler in crust
+- [ ] Errors for float operations (infinity, nan etc)
+
+What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
