@@ -178,7 +178,7 @@ loop 1..10 as i
 This is equivalent to a while loop:
 ```
 loop
-  break if ...
+  return if ...
 ```
 # Labels
 [!TODO] Labels for comptime and loops
@@ -224,6 +224,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] aoc in zig
 - [ ] How you would structure your polynomial library using zig's comptime (I think I might be on to something. I love you zig)
 - [ ] Figure out how to fix painful parts of working with webgpu
+- [ ] Design a simplified high level library for working with webgpu (the `graphics` module)
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
 - [x] Figure out how to handle byte literals (Remove them? KISS?)
@@ -242,7 +243,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Optional captures in if statements?
 - [ ] Decide how to do array concatenation and repetition (at compile time of course) (this is also for string concatenation since string literals are just arrays)
 - [ ] Decide on creating and concatenating/repeating/other stuff with dynamicly sized slices.
-- [ ] Decide on creating dynamically sized slices. (`slice string = "Hello"`) Maybe? (`string += ", World!"`)
+- [ ] Decide on creating dynamically sized slices. (`slice hello = "Hello"`) Maybe? (`string += ", World!"`)
 - [ ] I'm starting to doubt some design decisions. I'm starting to like zig more and more.
 - [ ] catch instead of orelse?
 - [ ] Figure out sensible syntax for handling errors such as overflow.
@@ -254,5 +255,8 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Formal grammar specification
 - [ ] Rewrite the compiler in crust
 - [ ] Errors for float operations (infinity, nan etc)
+- [ ] Replace break with return
+- [ ] if and loops have a return value?
+- [ ] Switch statements can take in values
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
