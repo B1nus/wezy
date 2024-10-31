@@ -4,6 +4,7 @@
 - simplicity & friendliness
 - explicit error handling
 - memory safety
+
 crust tries to stay as close to WebAssembly as possible, the goal is that a crust programmer should be able to understand how the crust program is translated into WebAssembly. The compiled WebAssembly code should also be "easy" to understand, the compiler should be very simple. Not like modern day compilers with all of their insane optimisations.
 # MVP (Minimum Viable Prooduct)
 - stdout/stdin
