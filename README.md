@@ -4,46 +4,52 @@
 - simplicity & friendliness
 - explicit error handling
 - memory safety
+# MVP (Minimum Viable Prooduct)
+- stdout/stdin
+- 
 # Web editor
 crust has an official web editor where you can write and run crust code. You can find it [here](github.io).
 # Command Line Usage
-crust also has a command line utility for compiling and running crust code. Use it in the following ways:
+crust has a command line utility for compiling and running crust code. Here are the commands provided by crust:
 ```
-$ crust program.crs       Compile
-$ crust program.crs -r    Run
+$ crust program.crs       Run
+$ crust program.crs -c    Compile to WebAssembly
+$ crust program.crs -w    Compile to a Web Application
 $ crust program.crs -t    Test
 $ crust program.crs -d    Debug
 ```
+> [!NOTE]
+> crust is compiled to webassembly, the specifics of running webassembly is shown [below](#Installation)
 # Installation
-> [!TODO]
-# Webassembly
-crust compiles to webassembly and uses [WASI](#WASI) for important functionality. Run your program with `$ crust program.crs -r`. 
+Install [crust.wasm](github.com/B1nus/crust/releases) and run it with your [favourite WebAssembly runtime](https://github.com/appcypher/awesome-wasm-runtimes). Here is an example of how to do that with [wasmtime](https://wasmtime.dev/): `$ wasmtime --dir=. crust.wasm`. This command runs the crust command line utility with access to the current directory. The: `--dir=.` is needed because WebAssembly is sandboxed by default and needs explicit permission to use the filesystem. Passing arguments to crust is as easy as writing them at the end: `$ wasmtime --dir=. crust.wasm program.crs -d`, this runs `program.crs` in debug mode.
 ## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [using files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction). WASI is still in its infancy and crust will introduce features once they are introduced to WASI. 
+The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [using files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
 # Game Development
 ## Graphics programming
 > [!NOTE]
-> crust will soon have a module called `graphics` for writing to the screen. For lower level control of the graphics you can use the module `gpu` which gives you full control over the [webgpu graphics backend](https://en.m.wikipedia.org/wiki/WebGPU). Please keep in mind that it's very overwhelming to use webgpu directly. Most users (including myself) will be better of using the `graphics` module for their projects.
+> crust will soon have a module called `graphics` for drawing to the screen. For lower level control of the graphics you can use the module `gpu` which gives you full control over the [webgpu graphics backend](https://en.m.wikipedia.org/wiki/WebGPU). Please keep in mind that it's very overwhelming to use webgpu directly. Most users (including myself) will be better of using the `graphics` module for their projects.
 
 > [!WARNING]
 > These modules are not currently available since [webgpu isn't yet supported by WASI](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
 ## Networking, input and audio
+The modules `input` and `network` have functions for taking input and networking respectively.
 > [!TODO]
-> Figure out the state of the modules `network`, `input` and `audio` in WASI.
+> Figure out the state of `audio` in wasi.
 # Types
 ```
-i64
-i32
-i16
 i8
-f64
+i16
+i32
+i64
 f32
+f64
 bool
 range
 array
 slice
+list
 ```
-You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. Create a dynamically sized slice with `slice_i32 dynamic_slice = list(i32)` (`i32` can be any type of your choosing). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing.
+You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. The `list` type is the same as a slice but with a dynamic size (heap allocated). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing, they are all converted to `i32` under the hood.
 > [!NOTE]
 > crust will infer and coerce certain types and values. A smaller integer will implicitly coerce into a larger integer `i8 + i16 = i16`. Same goes for `f32` coercing into `f64` and arrays implicitly coercing into slices. Integers also implicitly coerce into floats to make expressions such as `1 + 1.5` valid. You don't need to write the length of an array in when initialising it `array_i32 nums = [1, -2, 5]` will be infered to be `array3_i32 nums = [1, -2, 5]`.
 > [!NOTE]
@@ -87,9 +93,9 @@ Errors should
 # Parser
 indentation parsing from python.
 # Import
-Import code by using the `load` keyword (For example `load graphics`). By default this code is imported at the top level (the preprocessor is literaly just pasting the source code of the imported file), use the `as` keyword to give the code a namespace `load graphics as webgpu`. Import code from a local file by giving the path to the file prepended with a `./` (For example `load ./localfile.crs`).
+Import code by using the `copy` keyword (For example `copy graphics`). By default this code is imported at the top level of your file. Use the `as` keyword to give the imported code a namespace `copy graphics as gfx`. Import code from a local file by giving the path to the file prepended with a `./` (For example `copy ./local_file.crs`).
 > [!NOTE]
-> crust will only allow loading code from files in the current directory or any subdirectories. crust will never load files from a parent directory.
+> crust will only allow loading code from files in the current directory or any subdirectories. crust will never load files from a parent directory. crust can never access files outside of the sandboxed environment as enforced by your WebAssembly runtime.
 ## Downloading code from the internet
 You are free to download the code in any way of your chosing, but using [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is a good idea.
 # Comptime
@@ -242,21 +248,23 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Decide if you want @compileError in crust. I think it's a great idea which solves the u64 p64 i64 problem.
 - [ ] Optional captures in if statements?
 - [ ] Decide how to do array concatenation and repetition (at compile time of course) (this is also for string concatenation since string literals are just arrays)
-- [ ] Decide on creating and concatenating/repeating/other stuff with dynamicly sized slices.
-- [ ] Decide on creating dynamically sized slices. (`slice hello = "Hello"`) Maybe? (`string += ", World!"`)
-- [ ] I'm starting to doubt some design decisions. I'm starting to like zig more and more.
-- [ ] catch instead of orelse?
+- [ ] Decide how lists should work. (operations `+ *`) (creation `list numbers = [1, 2, 3]`)
+- [ ] Decide how to handle null (catch?) (As a normal error with just one type?)
 - [ ] Figure out sensible syntax for handling errors such as overflow.
 - [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
-- [ ] Figure out how to get into the head space of a beginner programmer.
+- [ ] Get feedback from beginners.
 - [ ] Get feedback about the friendliness of the language. (This is a priority for me as I remember how many hiccups I've had when learning other langauges)
-- [ ] Decide if you want to associate crust more with scratch. I want crust to be as simple and understandable as scratch. I hope a can make a language which I would have loved as a child. I need more feedback from people in this demographic.
+- [ ] Decide if you want to associate crust more with scratch. I want crust to be as simple and understandable as scratch. I hope a can make a language which I would have loved as a child. I need more feedback from people to achieve this.
 - [ ] Formal grammar specification
-- [ ] Rewrite the compiler in crust
+- [ ] Write the compiler in crust
 - [ ] Errors for float operations (infinity, nan etc)
 - [ ] Replace break with return
-- [ ] if and loops have a return value?
+- [ ] Decide if loops and if and switch statements should have values
+- [ ] Decide how to handle switch statements return values (zig can be annoying with the type being returned)
 - [ ] Switch statements can take in values
+- [ ] Functions should not be able to take mutable variables from the outside. onyl immutable ones. (now they can be used as closures no problem) (also, it's just good to be able to see in the function declaration if it's mutating anything)
+- [ ] typesystem? (more like rust? traits? more like go? interfaces?)
+- [ ] MVP
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
