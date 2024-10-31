@@ -11,6 +11,8 @@ crust tries to stay as close to WebAssembly as possible, the goal is that a crus
 - i32, i64, f32, f64
 - borrowchecker
 - catch/switch
+- errorunions
+- enums
 - functions
 - return
 # Web editor
