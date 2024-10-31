@@ -4,9 +4,14 @@
 - simplicity & friendliness
 - explicit error handling
 - memory safety
+crust tries to stay as close to WebAssembly as possible, the goal is that a crust programmer should be able to understand how the crust program is translated into WebAssembly. The compiled WebAssembly code should also be "easy" to understand, the compiler should be very simple. Not like modern day compilers with all of their insane optimisations.
 # MVP (Minimum Viable Prooduct)
 - stdout/stdin
-- 
+- i32, i64, f32, f64
+- borrowchecker
+- catch/switch
+- functions
+- return
 # Web editor
 crust has an official web editor where you can write and run crust code. You can find it [here](github.io).
 # Command Line Usage
@@ -52,6 +57,7 @@ list
 You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. The `list` type is the same as a slice but with a dynamic size (heap allocated). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing, they are all converted to `i32` under the hood.
 > [!NOTE]
 > crust will infer and coerce certain types and values. A smaller integer will implicitly coerce into a larger integer `i8 + i16 = i16`. Same goes for `f32` coercing into `f64` and arrays implicitly coercing into slices. Integers also implicitly coerce into floats to make expressions such as `1 + 1.5` valid. You don't need to write the length of an array in when initialising it `array_i32 nums = [1, -2, 5]` will be infered to be `array3_i32 nums = [1, -2, 5]`.
+
 > [!NOTE]
 > Ranges are inclusive.
 # Struct and Enums
@@ -226,18 +232,18 @@ I want to give credit to all of the programming languages which I've looked at f
 # TODO
 - [x] Watlings
 - [ ] Webgpu codelab
+- [ ] Learn webgl
+- [ ] Writing an interpreter in go
+- [ ] Crafting Interpreters
 - [ ] Ziglings
 - [ ] aoc in zig
-- [ ] How you would structure your polynomial library using zig's comptime (I think I might be on to something. I love you zig)
-- [ ] Figure out how to fix painful parts of working with webgpu
-- [ ] Design a simplified high level library for working with webgpu (the `graphics` module)
+- [ ] Fix painful parts of working with webgpu (less unnecessary repetition of types)
+- [ ] Simplified high level module for working with webgpu (the `graphics` module)
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
 - [x] Figure out how to handle byte literals (Remove them? KISS?)
-- [ ] Figure out how to make your own runtime
-- [ ] How should test failures be formatted? Should the value be printed?
-- [ ] Figure out how to format friendly, helpfull errors
-- [ ] Figure out importing raw webassembly. (It should work, right?)
+- [ ] Test output format
+- [ ] Friendly errors
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
 - [ ] Figure out how to warn for top-level `try`
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
@@ -263,7 +269,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Decide if loops and if and switch statements should have values
 - [ ] Decide how to handle switch statements return values (zig can be annoying with the type being returned)
 - [ ] Switch statements can take in values
-- [ ] Functions should not be able to take mutable variables from the outside. onyl immutable ones. (now they can be used as closures no problem) (also, it's just good to be able to see in the function declaration if it's mutating anything)
+- [ ] Functions should not be able to take mutable variables from the outside. only immutable ones. (now they can be used as closures no problem) (also, it's just good to be able to see in the function declaration if it's mutating anything)
 - [ ] typesystem? (more like rust? traits? more like go? interfaces?)
 - [ ] MVP
 
