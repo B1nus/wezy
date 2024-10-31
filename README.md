@@ -274,6 +274,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Switch statements can take in values
 - [ ] Functions should not be able to take mutable variables from the outside. only immutable ones. (now they can be used as closures no problem) (also, it's just good to be able to see in the function declaration if it's mutating anything)
 - [ ] typesystem? (more like rust? traits? more like go? interfaces?)
+- [ ] hashmaps?
 - [ ] MVP
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
