@@ -244,7 +244,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Simplified high level module for working with webgpu (the `graphics` module)
 - [ ] Figure out how to design crust to work well with webassembly
 - [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
-- [x] Figure out how to handle byte literals (Remove them? KISS?)
+- [ ] Decide if unsigned integers are needed.
 - [ ] Test output format
 - [ ] Friendly errors
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
