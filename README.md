@@ -15,6 +15,7 @@ crust tries to stay as close to WebAssembly as possible, the goal is that a crus
 - enums
 - functions
 - return
+- only ascii (if c < 0 error)
 # Web editor
 crust has an official web editor where you can write and run crust code. You can find it [here](github.io).
 # Command Line Usage
@@ -276,5 +277,6 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] typesystem? (more like rust? traits? more like go? interfaces?)
 - [ ] hashmaps?
 - [ ] MVP
+- [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
