@@ -278,7 +278,17 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] hashmaps?
 - [ ] MVP
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
-- [ ] Implicit conversion from i8 to i64 or i8 to f64/f32 in call expressions.
+- [ ] Implicit conversion from any number to another in call expressions, or anywhere really. This is only for undestructive convertions I.E. i8 to i64, i32 to f64 etc...
 - [ ] Remove multiple dispatch?
+
+Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
+`numbers = [1, 2, 3, 4]` is assumed to be an array. `mut numbers = [1, 2, 3, 4]` is also assumed to be an array. If you want a list, you have to do `mut list numbers = [1, 2, 3, 4]`. `list numbers = [1, 2, 3, 4]` does not make any sense, and the compiler should complain. **Okay, I think I need to rework arrays and lists, this is incredibly confusing.**. How about letting the compiler check if it is an array or list? I.E. if it changes size or not? The user wouldn't have to worry about it and everything could be considered a list. That would mean `number = [1, 2, 3, 4]` is and array, `mut numbers = [1, 2, 3, 4]` is also an array. And:
+```
+mut numbers = [1, 2, 3, 4]
+numbers.push(5)
+```
+is a dynamically allocated list. This is nice, but also hides complexity which could be bad. It also makes the compiler a whole lot harder to make. You're still goind to need both `array` and `list` for function declarations so the complexity isn't even that hidden. and that introduces to problem of a immutable list again, which doesn't make any sense.
+
+In the same way numbers are implicitly converted. lists are implicitly converted to arrays in call expresisons and other places since the conversion is non-destructive and convenient.
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
