@@ -278,5 +278,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] hashmaps?
 - [ ] MVP
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
+- [ ] Implicit conversion from i8 to i64 or i8 to f64/f32 in call expressions.
+- [ ] Remove multiple dispatch?
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
