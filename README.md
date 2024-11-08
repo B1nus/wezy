@@ -280,6 +280,8 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
 - [ ] Implicit conversion from any number to another in call expressions, or anywhere really. This is only for undestructive convertions I.E. i8 to i64, i32 to f64 etc...
 - [ ] Remove multiple dispatch?
+- [ ] Pointer assignment in struct fields?
+- [ ] No more scope? (In the same way as go letting pointers to locally constructed variables live longer than their scope, This make so much sense to me, and it really does moake sense from a hardware standpoint, there is no reason this should be impossible)
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 `numbers = [1, 2, 3, 4]` is assumed to be an array. `mut numbers = [1, 2, 3, 4]` is also assumed to be an array. If you want a list, you have to do `mut list numbers = [1, 2, 3, 4]`. `list numbers = [1, 2, 3, 4]` does not make any sense, and the compiler should complain. **Okay, I think I need to rework arrays and lists, this is incredibly confusing.**. How about letting the compiler check if it is an array or list? I.E. if it changes size or not? The user wouldn't have to worry about it and everything could be considered a list. That would mean `number = [1, 2, 3, 4]` is and array, `mut numbers = [1, 2, 3, 4]` is also an array. And:
