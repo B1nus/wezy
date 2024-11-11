@@ -16,6 +16,8 @@ crust tries to stay as close to WebAssembly as possible, the goal is that a crus
 - functions
 - return
 - only ascii (if c < 0 error)
+### Next up
+1. graphics module
 # Web editor
 crust has an official web editor where you can write and run crust code. You can find it [here](github.io).
 # Command Line Usage
