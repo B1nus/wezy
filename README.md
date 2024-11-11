@@ -45,6 +45,7 @@ The modules `input` and `network` have functions for taking input and networking
 > [!TODO]
 > Figure out the state of `audio` in wasi.
 # Types
+Let's cheat. [Wit](https://component-model.bytecodealliance.org/design/wit.html#built-in-types) has the solutions to your problems.
 ```
 i8
 i16
