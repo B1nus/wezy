@@ -254,6 +254,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
 - [ ] Figure out how to warn for top-level `try`
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
+- [ ] Efficient swap algorithm with [xor](https://en.wikipedia.org/wiki/XOR_swap_algorithm).
 - [ ] Figure out reading and writing files in wasi (for the compiler to be able to be written in crust itself)
 - [ ] Decide if you want unsigned integers
 - [ ] Decide if you want error unions as values outside of being a function return type (Errors become more friendly if they are left out)
