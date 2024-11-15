@@ -57,9 +57,8 @@ f32
 f64
 bool
 range
-array
-slice
 list
+map
 ```
 You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. The `list` type is the same as a slice but with a dynamic size (heap allocated). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing, they are all converted to `i32` under the hood.
 > [!NOTE]
@@ -287,6 +286,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Pointer assignment in struct fields?
 - [ ] No more scope? (In the same way as go letting pointers to locally constructed variables live longer than their scope, This make so much sense to me, and it really does moake sense from a hardware standpoint, there is no reason this should be impossible)
 - [ ] Flag datastructure? Comes in handy sometimes.
+- [ ] How exactly should list "slices" work. for example removing from a list slice.
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 `numbers = [1, 2, 3, 4]` is assumed to be an array. `mut numbers = [1, 2, 3, 4]` is also assumed to be an array. If you want a list, you have to do `mut list numbers = [1, 2, 3, 4]`. `list numbers = [1, 2, 3, 4]` does not make any sense, and the compiler should complain. **Okay, I think I need to rework arrays and lists, this is incredibly confusing.**. How about letting the compiler check if it is an array or list? I.E. if it changes size or not? The user wouldn't have to worry about it and everything could be considered a list. That would mean `number = [1, 2, 3, 4]` is and array, `mut numbers = [1, 2, 3, 4]` is also an array. And:
