@@ -61,7 +61,6 @@ map
 - Arbitrary sized integers `i29`, `i512`.
 - Hexadecimal `0x0045`, Binary `0b1000101` and decimal `69`.
 - One-indexed and inclusive `1..5` are the numbers `1`, `2`, `3`, `4`, and `5`.
-- Parse `NumParseError!T parse_number(T comptime, list_i8 text, i64 base=10)`
 - crust can always infer a type. For example: `5` is a `i64`, `0.0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`.
 - crust will implicitly coerce types. `5 + 5.5` is an `f64`, ``
 - ranged indexing returns anothes list. Removing items from this removes items from the original list. Use copy to get a copy of the list.
@@ -123,8 +122,6 @@ Import code by using the `copy` keyword (For example `copy graphics`). By defaul
 > crust will only allow loading code from files in the current directory or any subdirectories. crust will never load files from a parent directory. crust can never access files outside of the sandboxed environment as enforced by your WebAssembly runtime.
 ## Downloading code from the internet
 You are free to download the code in any way of your chosing, but using [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is a good idea.
-# Comptime
-Force any expression to be evaluated at compile time using `comptime`. This functionality is borrowed from [zig](https://zig.guide/language-basics/comptime).
 # Switch
 Switch statements are a way to separate a value into different cases which are handled separately. crust will make sure that all possible cases are covered. For example, switching on an `i8` might look like this
 ```
@@ -161,7 +158,7 @@ function(1234) switch error
 ```
 With the `try` keyword you are propagating the error to another function. This is a quick and dirty way to handle errors and in a production environment you should use `catch` and `switch` to handle errors properly.
 # Explicit error handling
-crust requires you to explicitly handle all possible runtime errors. This includes out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Using `comptime` can also be a way to avoid explicit error handling since any error in a an expression known at compile time becomes a compiler error instead.
+crust requires you to explicitly handle all possible runtime errors. This includes out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Compiletime known expressions don't need error handling, since the errors will be shown while compiling.
 # Runtime Errors
 Because of crust's (possibly excessive) error handling, runtime errors can be completely avoided. As long as you do not use the `try` keyword in the top-level or your program crust cannot have any runtime errors.
 # Tests
@@ -211,8 +208,6 @@ This is equivalent to a while loop:
 loop
   return if ...
 ```
-# Labels
-[!TODO] Labels for comptime and loops
 # Methods
 Methods in crust are just normal functions. For example `bool contains(range_i64 *self, i64 num)` would be called as a method:
 ```
@@ -290,8 +285,10 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Decide how to handle switch statements return values (zig can be annoying with the type being returned)
 - [ ] Switch statements can take in values
 - [ ] Functions should not be able to take mutable variables from the outside. only immutable ones. (now they can be used as closures no problem) (also, it's just good to be able to see in the function declaration if it's mutating anything)
-- [ ] interfaces/traits? (Maybe it's too complicated)
-- [ ] remove comptime? (It's too complicated)
+- [x] interfaces/traits? (Maybe it's too complicated)
+- [x] remove comptime? (It's too complicated)
+- [ ] Come up with a simpler version of comptime/traits if it is needed. (Decide after making the language).
+- [ ] labels (must have for loops)
 - [x] hashmaps?
 - [ ] MVP
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
