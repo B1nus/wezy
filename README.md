@@ -6,13 +6,14 @@
 - memory safety
 
 crust tries to stay as close to WebAssembly as possible, the goal is that a crust programmer should be able to understand how the crust program is translated into WebAssembly. The compiled WebAssembly code should also be "easy" to understand, the compiler should be very simple. Not like modern day compilers with all of their insane optimisations.
+
+Be carefull about what abstractions you include. Try to keep them to a minimum for the sake of simplicity. When in doubt, take a look at what Scratch and Lua are doing.
 # MVP (Minimum Viable Prooduct)
 - stdout/stdin
-- i32, i64, f32, f64
+- i64, f64
 - borrowchecker
 - try/catch/switch
-- errorunions
-- enums
+- enums and the bang `!` operator
 - functions
 - return
 - only ascii (if c < 0 error)
@@ -49,24 +50,36 @@ The modules `input` and `network` have functions for taking input and networking
 # Types
 Let's cheat. [Wit](https://component-model.bytecodealliance.org/design/wit.html#built-in-types) has the solutions to your problems.
 ```
-i8
-i16
-i32
 i64
-f32
 f64
 bool
 range
+tuple
 list
 map
 ```
-You can always explicitly declare the type of a variable, but you don't need to. crust defaults to the `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. The `list` type is the same as a slice but with a dynamic size (heap allocated). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing, they are all converted to `i32` under the hood.
+- Arbitrary sized integers `i29`, `i512`.
+- Hexadecimal `0x0045`, Binary `0b1000101` and decimal `69`.
+- One-indexed and inclusive `1..5` are the numbers `1`, `2`, `3`, `4`, and `5`.
+- Parse `NumParseError!T parse_number(T comptime, list_i8 text, i64 base=10)`
+- crust can always infer a type. For example: `5` is a `i64`, `0.0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`.
+- crust will implicitly coerce types. `5 + 5.5` is an `f64`, ``
+- ranged indexing returns anothes list. Removing items from this removes items from the original list. Use copy to get a copy of the list.
+- `tuple` is used for multiple return/assign and loops.
+- iterators are just structs with the next method. nothing fancy.
+
+You can always explicitly declare the type of a variable, but you don't need to. crust defaults to `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. The `list` type is the same as a slice but with a dynamic size (heap allocated). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing, they are all converted to `i32` under the hood.
 > [!NOTE]
 > crust will infer and coerce certain types and values. A smaller integer will implicitly coerce into a larger integer `i8 + i16 = i16`. Same goes for `f32` coercing into `f64` and arrays implicitly coercing into slices. Integers also implicitly coerce into floats to make expressions such as `1 + 1.5` valid. You don't need to write the length of an array in when initialising it `array_i32 nums = [1, -2, 5]` will be infered to be `array3_i32 nums = [1, -2, 5]`.
 
 > [!NOTE]
 > Ranges are inclusive.
-# Struct and Enums
+# User Defined types
+```
+struct
+enum
+flag
+```
 crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
 struct file
@@ -234,7 +247,7 @@ Comments start with a capital letter and end with one of `.` `:` `!` `?` and a n
 # Boolean expressions
 Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
 # Credit
-I want to give credit to all of the programming languages which I've looked at for guidence: [Zig](https://ziglang.org/), [C](https://en.wikipedia.org/wiki/C_(programming_language)), [Rust](https://www.rust-lang.org/), [Scratch](https://scratch.mit.edu/), [WASM](https://webassembly.org/). Thank you for all of the help, and sorry for stealing your features (Mostly zig's...). I also want to give credit to [Ziglings](https://codeberg.org/ziglings/exercises/src/branch/main) and [Watlings](https://github.com/EmNudge/watlings) which helped me learn zig and webassembly. I also want to give credit to this [codelab](https://codelabs.developers.google.com/your-first-webgpu-app) and [learn webgl](https://learnwebgl.brown37.net/) which is an amazing resourse for learning webgl. 
+I want to give credit to all of the programming languages which I've looked at for guidence: [Zig](https://ziglang.org/), [C](https://en.wikipedia.org/wiki/C_(programming_language)), [Rust](https://www.rust-lang.org/), [Scratch](https://scratch.mit.edu/), [WASM](https://webassembly.org/). Thank you for all of the help, and sorry for stealing your features (Mostly zig's...). I also want to give credit to [Ziglings](https://codeberg.org/ziglings/exercises/src/branch/main) and [Watlings](https://github.com/EmNudge/watlings) which helped me learn zig and webassembly. I also want to give credit to this [codelab](https://codelabs.developers.google.com/your-first-webgpu-app) and [learn webgl](https://learnwebgl.brown37.net/) which is an amazing resourse. 
 # TODO
 - [x] Watlings
 - [ ] Webgpu codelab
@@ -278,16 +291,18 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Switch statements can take in values
 - [ ] Functions should not be able to take mutable variables from the outside. only immutable ones. (now they can be used as closures no problem) (also, it's just good to be able to see in the function declaration if it's mutating anything)
 - [ ] typesystem? (more like rust? traits? more like go? interfaces?)
-- [ ] hashmaps?
+- [x] hashmaps?
 - [ ] MVP
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
-- [ ] Implicit conversion from any number to another in call expressions, or anywhere really. This is only for undestructive convertions I.E. i8 to i64, i32 to f64 etc...
+- [ ] Implicit conversion from any number to another in call expressions, or anywhere really. This is only for non-destructive I.E. i8 to i64, i32 to f64 etc...
 - [ ] Remove multiple dispatch?
 - [ ] Pointer assignment in struct fields?
 - [ ] No more scope? (In the same way as go letting pointers to locally constructed variables live longer than their scope, This make so much sense to me, and it really does moake sense from a hardware standpoint, there is no reason this should be impossible)
 - [ ] Flag datastructure? Comes in handy sometimes.
 - [ ] How exactly should list "slices" work. for example removing from a list slice.
-- [ ] integers of any size?
+- [x] integers of any size?
+- [ ] Multiple assign/return syntax
+- [ ] List slicing.
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 `numbers = [1, 2, 3, 4]` is assumed to be an array. `mut numbers = [1, 2, 3, 4]` is also assumed to be an array. If you want a list, you have to do `mut list numbers = [1, 2, 3, 4]`. `list numbers = [1, 2, 3, 4]` does not make any sense, and the compiler should complain. **Okay, I think I need to rework arrays and lists, this is incredibly confusing.**. How about letting the compiler check if it is an array or list? I.E. if it changes size or not? The user wouldn't have to worry about it and everything could be considered a list. That would mean `number = [1, 2, 3, 4]` is and array, `mut numbers = [1, 2, 3, 4]` is also an array. And:
@@ -296,7 +311,5 @@ mut numbers = [1, 2, 3, 4]
 numbers.push(5)
 ```
 is a dynamically allocated list. This is nice, but also hides complexity which could be bad. It also makes the compiler a whole lot harder to make. You're still goind to need both `array` and `list` for function declarations so the complexity isn't even that hidden. and that introduces to problem of a immutable list again, which doesn't make any sense.
-
-In the same way numbers are implicitly converted. lists are implicitly converted to arrays in call expresisons and other places since the conversion is non-destructive and convenient.
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
