@@ -97,8 +97,6 @@ Errors should
 - Have the necessary information (file, location, values, stack trace etc...)
 - Be pretty printed using ANSI
 - Show the part of code in question
-# Debugging
-> [!TODO] Figure out how to make debugging as easy as possible.
 # Parser
 indentation parsing from python.
 # Import
@@ -302,6 +300,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] List slicing.
 - [ ] Implicit type conversion with multiple dispatch
 - [ ] Lsp (Remember what you dislike about zls)
+- [ ] Debugger (Maybe not so important if we have good runtime errors)
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 
