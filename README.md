@@ -257,7 +257,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [x] Watlings
 - [ ] Webgpu codelab
 - [ ] Learn webgl
-- [ ] Writing an interpreter in go
+- [x] Writing an interpreter in go
 - [ ] Crafting Interpreters
 - [ ] Ziglings
 - [ ] aoc in zig
@@ -268,6 +268,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Decide if unsigned integers are needed.
 - [ ] Test output format
 - [ ] Friendly errors
+- [ ] Default argument values
 - [ ] Decide if you want scope or not (even webassembly has local variables lmao) (Maybe loops should have scope) (If statements don't need scope though, right?)
 - [ ] Figure out how to warn for top-level `try`
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
@@ -321,4 +322,4 @@ numbers.push(5)
 ```
 is a dynamically allocated list. This is nice, but also hides complexity which could be bad. It also makes the compiler a whole lot harder to make. You're still goind to need both `array` and `list` for function declarations so the complexity isn't even that hidden. and that introduces to problem of a immutable list again, which doesn't make any sense.
 
-What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and with a representation close to it's bytecode. crust aims to have few abstractions as possible while still being capable of expression complex logic in a natural way.
+What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and closely mimicing webassembly. crust aims to have few abstractions as possible while still being capable of expressing complex logic in a natural way.
