@@ -260,8 +260,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Multiple return and Multiple assign (This is also supported in webassembly already lmao)
 - [ ] Efficient swap algorithm with [xor](https://en.wikipedia.org/wiki/XOR_swap_algorithm).
 - [ ] Figure out reading and writing files in wasi (for the compiler to be able to be written in crust itself)
-- [ ] Decide if you want unsigned integers
-- [ ] Decide if you want error unions as values outside of being a function return type (Errors become more friendly if they are left out)
+- [x] Decide if you want unsigned integers
 - [ ] How would you structure your polynomial library in crust? Maybe there is room for improvement.
 - [ ] Decide if you want @compileError in crust. I think it's a great idea which solves the u64 p64 i64 problem.
 - [ ] Optional captures in if statements?
@@ -301,6 +300,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Implicit type conversion with multiple dispatch
 - [ ] Lsp (Remember what you dislike about zls)
 - [ ] Debugger (Maybe not so important if we have good runtime errors)
+- [ ] Errors can not be assigned to a variable.
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 
