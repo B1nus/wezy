@@ -54,7 +54,6 @@ i64
 f64
 bool
 range
-tuple
 list
 map
 ```
@@ -64,7 +63,6 @@ map
 - crust can always infer a type. For example: `5` is a `i64`, `0.0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`.
 - crust will implicitly coerce types. `5 + 5.5` is an `f64`, ``
 - ranged indexing returns anothes list. Removing items from this removes items from the original list. Use copy to get a copy of the list.
-- `tuple` is used for multiple return/assign and loops.
 - iterators are just structs with the next method. nothing fancy.
 
 You can always explicitly declare the type of a variable, but you don't need to. crust defaults to `i64` and `f64` types if no epxlicit type is given, same goes for strings which default to `array_i8` and ranges which default to `range_i64` and `range_f64`. Arrays can be written as either a list of values `[1, 2, 3]` or a string `"Hello world!"` (which is just an array of `i8`). The `slice` type is the same as an array but with an unknown size at compile time. The `list` type is the same as a slice but with a dynamic size (heap allocated). Indexing is done with either a range of integers or just an integer, `slice = array[1..5]` and `element = array[3]`. Please note that any size of integer is allowed for indexing, they are all converted to `i32` under the hood.
@@ -77,7 +75,6 @@ You can always explicitly declare the type of a variable, but you don't need to.
 ```
 struct
 enum
-flag
 ```
 crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
@@ -309,7 +306,6 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Remove multiple dispatch?
 - [ ] Pointer assignment in struct fields?
 - [ ] No more scope? (In the same way as go letting pointers to locally constructed variables live longer than their scope, This make so much sense to me, and it really does moake sense from a hardware standpoint, there is no reason this should be impossible)
-- [x] Flag datastructure? Comes in handy sometimes.
 - [ ] How exactly should list "slices" work. for example removing from a list slice.
 - [x] integers of any size?
 - [ ] Multiple assign/return syntax
