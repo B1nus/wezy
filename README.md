@@ -290,7 +290,8 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Decide how to handle switch statements return values (zig can be annoying with the type being returned)
 - [ ] Switch statements can take in values
 - [ ] Functions should not be able to take mutable variables from the outside. only immutable ones. (now they can be used as closures no problem) (also, it's just good to be able to see in the function declaration if it's mutating anything)
-- [ ] typesystem? (more like rust? traits? more like go? interfaces?)
+- [ ] interfaces/traits? (Maybe it's too complicated)
+- [ ] remove comptime? (It's too complicated)
 - [x] hashmaps?
 - [ ] MVP
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
@@ -298,7 +299,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Remove multiple dispatch?
 - [ ] Pointer assignment in struct fields?
 - [ ] No more scope? (In the same way as go letting pointers to locally constructed variables live longer than their scope, This make so much sense to me, and it really does moake sense from a hardware standpoint, there is no reason this should be impossible)
-- [ ] Flag datastructure? Comes in handy sometimes.
+- [x] Flag datastructure? Comes in handy sometimes.
 - [ ] How exactly should list "slices" work. for example removing from a list slice.
 - [x] integers of any size?
 - [ ] Multiple assign/return syntax
