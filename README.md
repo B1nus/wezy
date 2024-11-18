@@ -56,14 +56,11 @@ list
 map
 ```
 - Arbitrary sized integers `i29`, `i512`.
-- Hexadecimal `0x0045`, Binary `0b1000101` and decimal `69`.
+- Hexadecimal `0x0045`, Binary `0b1000101` and decimal `69` integer literals.
 - One-indexed and inclusive `1..5` are the numbers `1`, `2`, `3`, `4`, and `5`.
 - crust can always infer a type. For example: `5` is a `i64`, `0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`.
 - ranged indexing returns anothes list. Removing items from this removes items from the original list. Use copy to get a copy of the list.
 - iterators are just structs with the next method. nothing fancy.
-
-> [!NOTE]
-> Ranges are inclusive.
 # User Defined types
 ```
 struct
@@ -72,11 +69,11 @@ enum
 crust provides ways to define your own types using the keywords `enum` and `struct`. Here we define a `struct` called `file`:
 ```
 struct file
-  slice_byte content
-  slice_byte path
-  mut bool empty = true
+  list_i8 content
+  list_i8 path
+  mut empty = true
 ```
-The attributes can have default values as shown with `file.empty` which is equal to `true`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. crust will make sure all attributes are set when a struct is instantiated. Instantiate a struct with the syntax
+The attributes can have default values as shown with `file.empty` which is equal to `true`, this also let's us avoid writing the type as `bool`. All attributes are immutable by default and the keyword `mut` is used to make an attribute mutable. crust will make sure all attributes are set when a struct is instantiated. Instantiate a struct with the syntax
 ```
 myfile = file
   content = "Hello World!"
@@ -89,11 +86,9 @@ enum io_error
   not_permitted
   out_of_memory
 ```
-Here we're using the enum `io_error` to define a few errors which can occur for some operation. When you come across a variable of the type `io_error` you can be sure it's one of the variants `file_not_found`, `not_permitted` or `out_of_memory`.
+Here we're using the enum to define `io_error` which is a list of errors which can occur when using files. When you come across a variable of type `io_error` you can be sure it's one of the variants `file_not_found`, `not_permitted` or `out_of_memory`.
 # Optionals and Errors
 The operators `?` and `!` are ways to augment types. `?type` makes the type nullable, meaning that it can be of value `null`. `!type` means that it can be an error. To specify a certain error type, write it to the left of the bang `error!type`.
-# Lsp
-Remember what you dislike about zls.
 # Compiler
 The crust compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
 ## Command line interface
@@ -120,7 +115,7 @@ switch c
   'a'..'z' => print("lower case letter")
   'A'..'Z' => print("upper case letter")
   '0'..'9' => print("digit")
-  _ => print("other: %c")
+  _ => print("other: " + format(c))
 ```
 # Catching Errors
 The syntax for catching errors is the following:
@@ -217,7 +212,7 @@ if interval.contains(4)
 # Multiple Dispatch
 Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` could have the same name. Also note that these functions can be called as methods `4.sqrt()`.
 # Builtin functions
-Builtin functions such as `parse` do not play by the normal rules of crust. This is because they are [generic](https://en.wikipedia.org/wiki/Generic_function).
+Builtin functions such as `parse` and `format` do not play by the normal rules of crust. This is because they are [generic](https://en.wikipedia.org/wiki/Generic_function).
 # One-Indexed
 crust is one indexed. I know many programmers will wonder why I made this decision. Let me answer you by asking another question. What do you think is more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
 # Scope
@@ -306,6 +301,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Multiple assign/return syntax
 - [ ] List slicing.
 - [ ] Implicit type conversion with multiple dispatch
+- [ ] Lsp (Remember what you dislike about zls)
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 
