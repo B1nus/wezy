@@ -215,14 +215,16 @@ outer: loop
 ```
 This syntax will probably change.
 # Methods
-Methods in crust are just normal functions. For example `bool contains(range_i64 *self, i64 num)` would be called as a method:
+Methods in crust are normal functions. For example `bool contains(range_i64 *self, i64 num)` could be called as a method:
 ```
 interval = 1..5
-if interval.is_in_range(4)
+if interval.contains(4)
   ...
 ```
 # Multiple Dispatch
-Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` can have the same name. Also note that these functions can be called as methods `4.sqrt()`.
+Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` could have the same name. Also note that these functions can be called as methods `4.sqrt()`.
+# Builtin functions
+Builtin functions such as `parse` do not play by the normal rules of crust. This is because they are [generic](https://en.wikipedia.org/wiki/Generic_function).
 # One-Indexed
 crust is one indexed. I know many programmers will wonder why I made this decision. Let me answer you by asking another question. What do you think is more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
 # Scope
