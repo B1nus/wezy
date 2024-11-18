@@ -34,15 +34,13 @@ $ crust program.crs -d    Debug
 > crust is compiled to webassembly, the specifics of running webassembly is shown [below](#Installation)
 # Installation
 Install [crust.wasm](github.com/B1nus/crust/releases) and run it with your [favourite WebAssembly runtime](https://github.com/appcypher/awesome-wasm-runtimes). Here is an example of how to do that with [wasmtime](https://wasmtime.dev/): `$ wasmtime --dir=. crust.wasm`. This command runs the crust command line utility with access to the current directory. The: `--dir=.` is needed because WebAssembly is sandboxed by default and needs explicit permission to use the filesystem. Passing arguments to crust is as easy as writing them at the end: `$ wasmtime --dir=. crust.wasm program.crs -d`, this runs `program.crs` in debug mode.
-## WASI
-The Webassembly System Interface ([WASI](https://wasi.dev/)) is a set of API's to perform certain tasks in webassembly outside of a browser context. For example [using files](https://github.com/WebAssembly/wasi-filesystem?tab=readme-ov-file#goals), [using sockets](https://github.com/WebAssembly/wasi-sockets) or [using webgpu](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
 # Game Development
 ## Graphics programming
 > [!NOTE]
 > crust will soon have a module called `graphics` for drawing to the screen. For lower level control of the graphics you can use the module `gpu` which gives you full control over the [webgpu graphics backend](https://en.m.wikipedia.org/wiki/WebGPU). Please keep in mind that it's very overwhelming to use webgpu directly. Most users (including myself) will be better of using the `graphics` module for their projects.
 
 > [!WARNING]
-> These modules are not currently available since [webgpu isn't yet supported by WASI](https://github.com/WebAssembly/wasi-webgpu?tab=readme-ov-file#introduction).
+> These modules are currently unavailable since webgpu isn't supported by [WASI](https://wasi.dev/).
 ## Networking, input and audio
 The modules `input` and `network` have functions for taking input and networking respectively.
 > [!TODO]
