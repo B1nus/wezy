@@ -60,8 +60,7 @@ map
 - Arbitrary sized integers `i29`, `i512`.
 - Hexadecimal `0x0045`, Binary `0b1000101` and decimal `69`.
 - One-indexed and inclusive `1..5` are the numbers `1`, `2`, `3`, `4`, and `5`.
-- crust can always infer a type. For example: `5` is a `i64`, `0.0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`.
-- crust will implicitly coerce types. `5 + 5.5` is an `f64`, ``
+- crust can always infer a type. For example: `5` is a `i64`, `0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`.
 - ranged indexing returns anothes list. Removing items from this removes items from the original list. Use copy to get a copy of the list.
 - iterators are just structs with the next method. nothing fancy.
 
@@ -153,7 +152,7 @@ With the `try` keyword you are propagating the error to another function. This i
 # Explicit error handling
 crust requires you to explicitly handle all possible runtime errors. This includes out of bounds, division by zero, integer overflow etc. Use the `try` keyword to avoid proper error handling for the time being. Compiletime known expressions don't need error handling, since the errors will be shown while compiling.
 # Runtime Errors
-Because of crust's (possibly excessive) error handling, runtime errors can be completely avoided. As long as you do not use the `try` keyword in the top-level or your program crust cannot have any runtime errors.
+Because of crust's (possibly excessive) error handling, runtime errors can be completely avoided. As long as you do not use the `try` keyword in the top-level or your program crust cannot have any runtime errors. Well, except for out of memory errors, they still crash your program.
 # Tests
 Use the keyword `assert` and write the boolean statement you want to test. For example `assert x + y > 1`. Write more complicated tests inside of a `test` block:
 ```
@@ -284,10 +283,9 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Get feedback about the friendliness of the language. (This is a priority for me as I remember how many hiccups I've had when learning other langauges)
 - [ ] Decide if you want to associate crust more with scratch. I want crust to be as simple and understandable as scratch. I hope a can make a language which I would have loved as a child. I need more feedback from people to achieve this.
 - [ ] Formal grammar specification
-- [ ] Keywords list
+- [ ] Keywords
 - [ ] Write the compiler in crust
 - [ ] Errors for float operations (infinity, nan etc)
-- [ ] Replace break with return
 - [ ] Decide if loops and if and switch statements should have values
 - [ ] Decide how to handle switch statements return values (zig can be annoying with the type being returned)
 - [ ] Switch statements can take in values
@@ -298,6 +296,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [x] labels (must have)
 - [ ] Label syntax
 - [x] hashmaps?
+- [ ] map literals.
 - [ ] MVP
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
 - [ ] Implicit conversion from any number to another in call expressions, or anywhere really. This is only for non-destructive I.E. i8 to i64, i32 to f64 etc...
@@ -308,6 +307,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [x] integers of any size?
 - [ ] Multiple assign/return syntax
 - [ ] List slicing.
+- [ ] Implicit type conversion with multiple dispatch
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 
