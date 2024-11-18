@@ -206,8 +206,17 @@ loop 1..10 as i
 This is equivalent to a while loop:
 ```
 loop
-  return if ...
+  break if ...
 ```
+## Lables
+Loops can have labels in order to differentiate in nested loop:
+```
+outer: loop
+  inner: loop
+    break :outer if ...
+...
+```
+This syntax will probably change.
 # Methods
 Methods in crust are just normal functions. For example `bool contains(range_i64 *self, i64 num)` would be called as a method:
 ```
@@ -278,6 +287,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Get feedback about the friendliness of the language. (This is a priority for me as I remember how many hiccups I've had when learning other langauges)
 - [ ] Decide if you want to associate crust more with scratch. I want crust to be as simple and understandable as scratch. I hope a can make a language which I would have loved as a child. I need more feedback from people to achieve this.
 - [ ] Formal grammar specification
+- [ ] Keywords list
 - [ ] Write the compiler in crust
 - [ ] Errors for float operations (infinity, nan etc)
 - [ ] Replace break with return
@@ -288,7 +298,8 @@ I want to give credit to all of the programming languages which I've looked at f
 - [x] interfaces/traits? (Maybe it's too complicated)
 - [x] remove comptime? (It's too complicated)
 - [ ] Come up with a simpler version of comptime/traits if it is needed. (Decide after making the language).
-- [ ] labels (must have for loops)
+- [x] labels (must have)
+- [ ] Label syntax
 - [x] hashmaps?
 - [ ] MVP
 - [ ] panic? todo? unreachable? (Purposfully removes certainty that your program can't crash) (Never use in std, the user should have full control of when to panic)
