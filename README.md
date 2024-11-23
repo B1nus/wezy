@@ -106,6 +106,9 @@ Import code by using the `copy` keyword (For example `copy graphics`). By defaul
 > crust will only allow loading code from files in the current directory or any subdirectories. crust will never load files from a parent directory. crust can never access files outside of the sandboxed environment as enforced by your WebAssembly runtime.
 ## Downloading code from the internet
 You are free to download the code in any way of your chosing, but using [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is a good idea.
+
+**Why no package manager?**
+crust hopes to include everything needed in tha language itself. The hope is that a user rarely needs to reach for a third party library.
 # Switch
 Switch statements are a way to separate a value into different cases which are handled separately. crust will make sure that all possible cases are covered. For example, switching on an `i8` might look like this
 ```
