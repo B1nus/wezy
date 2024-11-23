@@ -167,33 +167,34 @@ crust runs tests sequentially and doesn't exit upon failure. crust will also run
 # Excessive error catching
 The benefit of arrays with known sizes is that the bounds check is performed at compile time. This means that you can omit error handling when indexing or slicing arrays.
 # Coersion
-crust will coerce some datatypes and datastructures automatically. A `byte` can always be coerced to an `int`. An `array` can always be coerced to a `slice`. For example, passing an array to a function that takes a slice as an argument is fine, since crust automatically coerces the array to a slice. The thing to watch out for is that itnegers also coerce into floats by default. This means that you can do arithmetic with floats and integers without any conversion. But it also means a loss in precision for large integers, it could be something to watch out for. 
+crust will coerce some datatypes and datastructures automatically. A `i8` can always be coerced to an `i64`. The thing to watch out for is that integers also coerce into `f64`. This means that you can do arithmetic with floats and integers without any conversion. But it also means a loss in precision for large integers. There is also a performance penalty.
 # Mutability
-Everything is immutable by default. Make something mutable with the `mut` keyword: `mut int x = 5`
+Everything is immutable by default. Make something mutable with the `mut` keyword `mut x = 5`
 # Command line arguments
-Access command line arguments in crust you use the builtin constant `args`.
+Access command line arguments with the builtin constant `args`
 # Loops
 crust has one loop keyword. This loops forever:
 ```
 loop
   ...
 ```
-These are for loops:
-```
-loop list as num
-  ...
-```
+This loops over all numbers from 1 to 10
 ```
 loop 1..10 as i
   ...
 ```
-This is equivalent to a while loop:
+This loops over all items in a list
+```
+loop list as num
+  ...
+```
+This is a while loop
 ```
 loop
   break if ...
 ```
 ## Lables
-Loops can have labels in order to differentiate in nested loop:
+Loops can have labels in order to differentiate in nested loops:
 ```
 outer: loop
   inner: loop
@@ -209,21 +210,21 @@ if interval.contains(4)
   ...
 ```
 # Multiple Dispatch
-Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` could have the same name. Also note that these functions can be called as methods `4.sqrt()`.
+Two functions can have the same name as long as the have different type declarations. This is why `f64 sqrt(f64 self)` and `i64 sqrt(i64 self)` can have the same name. Also note that these functions can be called as methods `4.sqrt()`.
 # Builtin functions
 Builtin functions such as `parse` and `format` do not play by the normal rules of crust. This is because they are [generic](https://en.wikipedia.org/wiki/Generic_function).
 # One-Indexed
-crust is one indexed. I know many programmers will wonder why I made this decision. Let me answer you by asking another question. What do you think is more intuitive, getting the 5th element in an array by typing `array[4]` or `array[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
+crust is one indexed. I know many programmers will wonder why I made this decision. Let me answer you by asking another question. What do you think is more intuitive, getting the 5th element in an array by typing `list[4]` or `list[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
 # Scope
-Scope in crust is a bit wierd. There are only two scopes: function scope and gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though. This means that the program
+Scope in crust is a bit wierd. There are only two scopes: function scope and gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though.
 ```
 if true
   x = 2
 print(x)
 ```
-Will compile and print `2`.
+This program compiles and prints `2`.
 # Pointers
-Pointers are made with an asterix `*variable`. Dereference the pointer by removing the asterix `variable`. You can always be sure that an asterix before an identifier means it's a pointer and that nothing else can be a pointer. Also note that you cannot store a pointer in a variable and that there is no pointer datatype. The only way to use a pointer is as a function argument. This is very important for making the borrow checker simple.
+Pointers are made with an asterix `*variable`. Dereference the pointer by removing the asterix `variable`. You can always be sure that an asterix before an identifier means it's a pointer. Also note that you cannot store a pointer in a variable and that there is no pointer datatype. The only way to use a pointer is as a function argument. This is very important for making the borrow checker simple.
 
 Pointers are immutable by default. Add the `mut` keyword to make the value behind the pointer mutable (`*mut variable`). This does not make the pointer mutable, only the value behind the pointer.
 # Memory Safety
@@ -235,7 +236,7 @@ crust handles memory with a borrow checker. In contrast to [rust's borrow checke
 # Comments
 Comments start with a capital letter and end with one of `.` `:` `!` `?` and a newline.
 # Boolean expressions
-Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as both `(x and y) or z` and `x and (y or z)`.
+Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as `(x and y) or z` or `x and (y or z)`.
 # Bitwise manipulations
 **Hmmm...** operators or builtin functions.
 # Credit
@@ -251,8 +252,8 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Fix painful parts of working with webgpu (less unnecessary repetition of types)
 - [ ] Simplified high level module for working with webgpu (the `graphics` module)
 - [ ] Figure out how to design crust to work well with webassembly
-- [ ] Figure out how to handle `=` in boolean assignments (Remove them? KISS?)
-- [ ] Decide if unsigned integers are needed.
+- [ ] Figure out how to handle `=` in boolean assignments
+- [x] Decide if unsigned integers are needed.
 - [ ] Test output format
 - [ ] Friendly errors
 - [ ] Default argument values
