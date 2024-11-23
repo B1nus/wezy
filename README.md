@@ -256,7 +256,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Learn webgl
 - [x] Writing an interpreter in go
 - [ ] Crafting Interpreters
-- [ ] Ziglings
+- [x] Ziglings
 - [ ] aoc in zig
 - [ ] Fix painful parts of working with webgpu (less unnecessary repetition of types)
 - [ ] Simplified high level module for working with webgpu (the `graphics` module)
