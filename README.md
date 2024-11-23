@@ -23,7 +23,7 @@ Be carefull about what abstractions you include. Try to keep them to a minimum f
 - expressions
 - only ascii (if c < 0 error)
 # Web editor
-crust has an official web editor where you can write and run crust code. You can find it [here](github.io).
+crust has an official web editor where you can write and run crust code. You can find it [here]([github.io](https://pages.github.com/)).
 # Command Line Usage
 crust has a command line utility for compiling and running crust code. Here are the commands provided by crust:
 ```
