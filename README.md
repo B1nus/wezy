@@ -322,7 +322,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] combine print and write into one? (multiple dispatch)
 - [ ] combine format with write/print? (multiple dispatch)
 - [ ] Labled switch with continue/break with values? [(Performant and cool)](https://github.com/ziglang/zig/pull/21367)
-- [ ] [Data oriented programming](https://www.youtube.com/watch?v=rX0ItVEVjHc&t=0s) [Andre Kelley (creator of zig)](https://www.youtube.com/watch?v=IroPQ150F6c). Me likey.
+- [ ] [Data oriented programming](https://www.youtube.com/watch?v=rX0ItVEVjHc&t=0s) [Andre Kelley (creator of zig)](https://www.youtube.com/watch?v=IroPQ150F6c) [Handles are the better pointers](https://floooh.github.io/2018/06/17/handles-vs-pointers.html). Me likey.
 - [ ] [Wit has a nice collection of types](https://component-model.bytecodealliance.org/design/wit.html#built-in-types). Try to understand wit a bit more.
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
