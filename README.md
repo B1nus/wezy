@@ -289,6 +289,8 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Formal grammar specification
 - [ ] Keywords
 - [ ] Write the compiler in crust
+- [ ] Compile to website
+- [ ] Write the web editor in crust
 - [ ] Errors for float operations (infinity, nan etc)
 - [ ] Decide if loops and if and switch statements should have values
 - [ ] Decide how to handle switch statements return values (zig can be annoying with the type being returned)
