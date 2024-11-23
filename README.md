@@ -275,9 +275,10 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] How would you structure your polynomial library in crust? Maybe there is room for improvement.
 - [ ] Decide if you want @compileError in crust. I think it's a great idea which solves the u64 p64 i64 problem.
 - [ ] Optional captures in if statements?
-- [ ] Decide how lists should work. (operations `+ *`) (creation `list numbers = [1, 2, 3]`)
-- [ ] Decide how to handle null (catch?) (As a normal error with just one type?)
+- [ ] Decide how lists should work. (operations `+ *`) (creation `numbers = [1, 2, 3]`)
+- [ ] Decide how to handle null as a normal error with just one type.
 - [ ] Figure out sensible syntax for handling errors such as overflow.
+- [ ] Decide if overflow/indexing error handling should be manditory. (Has big consequences for the language)
 - [ ] Finalise inferense and coercion rules
 - [ ] Finalise borrow checker rules
 - [ ] Get feedback from beginners.
