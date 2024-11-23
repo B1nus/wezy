@@ -5,6 +5,8 @@
 - explicit error handling
 - memory safety
 
+crust's philosophy is that optimisation is the programmers responisiblity, not the compilers. The compiler is a tool. A predictable program which does what you expect it to. I want programmers to be able to predict what crust code will look like in webassembly and use this understanding to their advantage. I don't want the compiler to be a black box full of magic.
+
 crust tries to stay as close to WebAssembly as possible, the goal is that a crust programmer should be able to understand how the crust program is translated into WebAssembly. The compiled WebAssembly code should also be "easy" to understand, the compiler should be very simple. Not like modern day compilers with all of their insane optimisations.
 
 Be carefull about what abstractions you include. Try to keep them to a minimum for the sake of simplicity. When in doubt, take a look at what Scratch and Lua are doing. Usually, they do it in the most simple way possible. Only having list and not arrays and slices was good for example, that is inspired by scratch. We should also try to avoid concepts such as interfaces or comptime, which is way too complicated for my goals.
