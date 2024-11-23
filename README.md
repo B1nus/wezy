@@ -39,7 +39,7 @@ Install [crust.wasm](github.com/B1nus/crust/releases) and run it with your [favo
 ```
 print("Hello, World!")
 ```
-Save this to a file and run it using the *crust.wasm* file and a wasm runtime.
+Save this to a file and run it using the [*crust.wasm*](github.com/B1nus/crust/releases) file and a wasm runtime.
 # Game Development
 ## Graphics programming
 > [!NOTE]
