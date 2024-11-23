@@ -35,6 +35,11 @@ $ crust program.crs -d    Debug
 > crust is compiled to webassembly, the specifics of running webassembly is shown [below](#Installation)
 # Installation
 Install [crust.wasm](github.com/B1nus/crust/releases) and run it with your [favourite WebAssembly runtime](https://github.com/appcypher/awesome-wasm-runtimes). Here is an example of how to do that with [wasmtime](https://wasmtime.dev/): `$ wasmtime --dir=. crust.wasm`. This command runs the crust command line utility with access to the current directory. The: `--dir=.` is needed because WebAssembly is sandboxed by default and needs explicit permission to use the filesystem. Passing arguments to crust is as easy as writing them at the end: `$ wasmtime --dir=. crust.wasm program.crs -d`, this runs `program.crs` in debug mode.
+# Hello World
+```
+print("Hello, World!")
+```
+Save this to a file and run it using the *crust.wasm* file and a wasm runtime.
 # Game Development
 ## Graphics programming
 > [!NOTE]
@@ -58,8 +63,9 @@ map
 ```
 - Arbitrary sized integers `i29`, `i512`.
 - Hexadecimal `0x0045`, Binary `0b1000101` and decimal `69` integer literals.
+- byte literals `'a'`.
 - One-indexed and inclusive `1..5` are the numbers `1`, `2`, `3`, `4`, and `5`.
-- crust can always infer a type. For example: `5` is a `i64`, `0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`.
+- crust can always infer a type. For example: `5` is a `i64`, `0..0.5` is a `range_f64` and `"hello world!"` is a `list_i8`. This is true `['h','e','l','l','o'] = "hello"`.
 - ranged indexing returns anothes list. Removing items from this removes items from the original list. Use copy to get a copy of the list.
 - iterators are just structs with the next method. nothing fancy.
 # User Defined types
