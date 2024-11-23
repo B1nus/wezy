@@ -315,6 +315,8 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Sum types.
 - [ ] Remove Structs?
 - [ ] Remove Ranges?
+- [ ] combine print and write into one? (multiple dispatch)
+- [ ] combine format with write/print? (multiple dispatch)
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 
