@@ -100,7 +100,7 @@ The operators `?` and `!` are ways to augment types. `?type` makes the type null
 The crust compiler is a simple [one-pass compiler](https://en.wikipedia.org/wiki/One-pass_compiler).
 ## Command line interface
 Errors should
-- Be friendly and easy to understand (`crust is one-indexed`)
+- Be friendly and easy to understand (`crust is one-indexed`) (`crust can't find the file, did you give it permission?`)
 - Have the necessary information (file, location, values, stack trace etc...)
 - Be pretty printed using ANSI
 - Show the part of code in question
