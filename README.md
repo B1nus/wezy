@@ -1,5 +1,12 @@
-# crust
-A simpler version of rust.
+> [!NOTE]
+> Rethink the language, but from it's most fundamental parts. Scratch is the best reference language. Start with scratch's features as a base and build upon it. Everything should be as easy as in scratch (graphics, input, audio) they should not need you to import anything, not need you to study graphics, they should only require you to do the bare minimum. No namespaces, no nothing. for example `play("3am_vibes.mp3")` to play a sound and `draw("sus.png", 0, 0)` to draw an image to the screen, as simple as that. I love this, brings me back to my scratch days.
+> It's insane how simple scratch is compared to literally any other language, even gdscript is way more complicated. I love scratch, did I forget to say that? Well I love scratch.
+> This language is about making it as easy as scratch but with more control and better performance.
+> I want to go back to simplicity. please let me go back to simplicity, I can't control myself when introduced to complexity. You should see my rust code.
+> 
+
+# placeholder
+A powerful scratch.
 # Main goals of crust
 - simplicity & friendliness
 - error handling
