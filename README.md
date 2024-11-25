@@ -225,14 +225,6 @@ Two functions can have the same name as long as the have different type declarat
 Builtin functions such as `parse` and `format` do not play by the normal rules of crust. This is because they are [generic](https://en.wikipedia.org/wiki/Generic_function).
 # One-Indexed
 crust is one indexed. I know many programmers will wonder why I made this decision. Let me answer you by asking another question. What do you think is more intuitive, getting the 5th element in an array by typing `list[4]` or `list[5]`? What do you think is more intuitive for somebody new to programming? I would say it's the latter.
-# Scope
-Scope in crust is a bit wierd. There are only two scopes: function scope and gobal scope. This might take some getting used to for seasoned developers. Beginners will have an easier time though.
-```
-if true
-  x = 2
-print(x)
-```
-This program compiles and prints `2`.
 # Pointers
 Pointers are made with an asterix `*variable`. Dereference the pointer by removing the asterix `variable`. You can always be sure that an asterix before an identifier means it's a pointer. Also note that you cannot store a pointer in a variable and that there is no pointer datatype. The only way to use a pointer is as a function argument. This is very important for making the borrow checker simple.
 
