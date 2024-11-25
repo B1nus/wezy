@@ -249,6 +249,12 @@ Comments start with a capital letter and end with one of `.` `:` `!` `?` and a n
 Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 10`. Ambiguous boolean expressions are not allowed. `x and y or z` is ambiguous because it can be interpreted as `(x and y) or z` or `x and (y or z)`.
 # Bitwise manipulations
 **Hmmm...** operators or builtin functions.
+# Overflow error
+You do not need to handle all overflow errors, but crust makes it really easy to handle them when you need to. If an overflow occurs without error handling, it crashes.
+# Out of memory
+crust will crash, there is no way to handle these errors. In 99.99% of cases your program should crash if it is out of memory.
+# No hidden control flows
+The standard library should be implemented in the language itself, no magic.
 # Credit
 I want to give credit to all of the programming languages which I've looked at for guidence: [Zig](https://ziglang.org/), [C](https://en.wikipedia.org/wiki/C_(programming_language)), [Rust](https://www.rust-lang.org/), [Scratch](https://scratch.mit.edu/), [WASM](https://webassembly.org/). Thank you for all of the help, and sorry for stealing your features (Mostly zig's...). I also want to give credit to [Ziglings](https://codeberg.org/ziglings/exercises/src/branch/main) and [Watlings](https://github.com/EmNudge/watlings) which helped me learn zig and webassembly. I also want to give credit to this [codelab](https://codelabs.developers.google.com/your-first-webgpu-app) and [learn webgl](https://learnwebgl.brown37.net/) which is an amazing resourse. 
 # TODO
