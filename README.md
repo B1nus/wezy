@@ -1,13 +1,12 @@
 # crust
-“If I had asked people what they wanted they would have said a simpler rust.”
+A simpler version of rust.
 # Main goals of crust
 - simplicity & friendliness
-- explicit error handling
-- memory safety
+- error handling
+- no hidden control flows
+- no magic
 
 crust's philosophy is that optimisation is the programmers responisiblity, not the compilers. The compiler is a tool. A predictable program which does what you expect it to. I want programmers to be able to predict what crust code will look like in webassembly and use this understanding to their advantage. I don't want the compiler to be a black box full of magic.
-
-crust tries to stay as close to WebAssembly as possible, the goal is that a crust programmer should be able to understand how the crust program is translated into WebAssembly. The compiled WebAssembly code should also be "easy" to understand, the compiler should be very simple. Not like modern day compilers with all of their insane optimisations.
 
 Be carefull about what abstractions you include. Try to keep them to a minimum for the sake of simplicity. When in doubt, take a look at what Scratch and Lua are doing. Usually, they do it in the most simple way possible. Only having list and not arrays and slices was good for example, that is inspired by scratch. We should also try to avoid concepts such as interfaces or comptime, which is way too complicated for my goals.
 # MVP (Minimum Viable Product)
@@ -322,6 +321,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] Labled switch with continue/break with values? [(Performant and cool)](https://github.com/ziglang/zig/pull/21367)
 - [ ] [Data oriented programming](https://www.youtube.com/watch?v=rX0ItVEVjHc&t=0s) [Andre Kelley (creator of zig)](https://www.youtube.com/watch?v=IroPQ150F6c) [Handles are the better pointers](https://floooh.github.io/2018/06/17/handles-vs-pointers.html). Me likey.
 - [ ] [Wit has a nice collection of types](https://component-model.bytecodealliance.org/design/wit.html#built-in-types). Try to understand wit a bit more.
+- [ ] Easy way to publish crust projects. (here, wasm sanboxing is really important)
 
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 
