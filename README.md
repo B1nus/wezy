@@ -4,6 +4,7 @@
 > This language is about making it as easy as scratch but with more control and better performance.
 > I want to go back to simplicity. please let me go back to simplicity, I can't control myself when introduced to complexity. You should see my rust code.
 > 
+> Can't overanalyze code structure if there is nothing to analyze. I greatly need this. Lists and hashmaps and functions are literally all I need.
 
 # placeholder
 A powerful scratch.
