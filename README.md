@@ -6,13 +6,166 @@
 > 
 > Can't overanalyze code structure if there is nothing to analyze. I greatly need this. Lists and hashmaps and functions are literally all I need.
 
-# placeholder
-A powerful scratch.
-# Main goals of crust
+# Placeholder Name
+# Goals
 - simplicity & friendliness
-- error handling
-- no hidden control flows
 - no magic
+# Functions
+> [!NOTE]
+> Figure out the function syntax. It should align with the design goals of being simple, easy for beginners and consise.
+- Functions are strongly typed, meaning that you have to declare the input and output types.
+- They can return multiple values. Which you then have to use a multiple assign on.
+- all arguments are mutable. (They are just pointers under the hood, immutability does not exist in this language)
+- cannot use variables from outside, only their arguments.
+# Types
+- We have 3 kinds of literals for numbers. Floats `1.0`, Integers `58` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
+- Integers can be of any size that's an exponent of 2. In other words `i8, i16, i32, i64, i128, i256, i512, i1024` etc...
+- floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
+# Control
+```
+if condition
+  statements
+else
+  statements
+
+loop (times)
+  statements
+
+loop
+  if condition
+    break
+```
+# Math
+```
++,-,/,*
+random(min, max)
+>,>=,<=,<
+and, or, not
+mod(x, y)
+rount(x)
+abs(x)
+sqrt(x)
+sin(x)
+cos(x)
+tan(x)
+arcsin(x)
+arccos(x)
+arctan(x)
+ln(x)
+exp(x)
+
+// Maybe not. (These are bitwise operations)
+xor(x,y)
+and(x,y)
+or(x,y)
+not(x)
+```
+# Lists
+```
+numbers = [1, 3, -3, 7]
+hellow_world = "Hello, World!"
+split = hello_world.split()
+
+add(item)
+delete(index)
+clear()
+insert(item, index)
+replace(old, new)
+index(item)
+length()
+contains(item)
+join(other)
+clone()
+repeat(times)
+split()
+```
+# Maps
+```
+ages = {"you":10, "me":69}
+
+set(key, value)
+delete(key)
+clear()
+value(key)
+keys()
+size()
+has(key)
+clone()
+```
+# Graphics
+```
+draw(path, x, y, rotation)
+resolution()
+```
+# Audio
+```
+play(path)
+volume()
+set_volume(vol)
+```
+# Input
+```
+mouse_position()
+mouse_pressed()
+key_pressed(key)
+```
+# Files
+```
+read(path)
+write(path, contents)
+parse(text, as_type)
+format(value)
+print(text)
+input()
+```
+# Debugging
+```
+show(any)
+hide(any)
+time()
+```
+# Netowrking
+TODO!
+> [!WARNING]
+> The user has to memorize if a function is standalone or a method. Either make the pattern obvious or make everything into either methods of normal functions.
+# Remember
+- Lists, and Maps are not allowed in arithmetic expressions. You cannot repeat a string like this `"hello"`. You can only use the repeat function. Why? Simplicity of course, now you won't have to ask yourself. Hmmm, is that a number or a list? And users won't have to learn two ways of doing things, only one. This is a general mantra of this language, keep things simple with only one way to do a thing.
+- Don't add both attributes and methods, just make everything into methods. A way to decrease the number of abstraction a user has to learn. In other words, a way to make the language simpler.
+- Rotation is in degrees. that holds for sin, cos, tan, asin, acos, atan etc... (should I name asin as arcsin to avoid confusion for newcommers? I remeber being confused by that when I was little)
+- Every literal should have an assumed type, so that you don't force users to write the type explicitly, or well, maybe you should make them do that i dunno. It's probably annoying for newcommers.
+- One indexing. And if you add ranges, make them inclusive, I have no idea why othera languages don't make them inclusive, it makes life so much easier.
+
+# Compiler design
+- The builtin functions should be easy tu understand from source code. (no magic, the language is implemented in itself, no catch)
+- Easy to switch from browser to wasi as host
+- Load the files for the users and reuse.
+- Import functions for the users, only the functions they actually use.
+- Fast and tiny binaries. As simple as possible.
+
+# Website
+- written in the language itself (no css, (almost) no javascript)
+- lsp, treesitter and documentation built in. A user should not be missing anything.
+- easy way to post and interact with eachother.
+
+# Scratch Features I want to integrate somehow
+- Easy way to see all functions. (lsp?)
+- Hot reloading
+- Click to see value
+- Click to run function
+- Show/Hide variable
+
+# Features I'm not going to add
+- loops/if as values
+- errors as values
+- swizzling
+- iterators
+- nullable
+- switch
+- function overloading
+- user defined methods
+- attributes
+- strings, we already have lists.
+- f32.
 
 crust's philosophy is that optimisation is the programmers responisiblity, not the compilers. The compiler is a tool. A predictable program which does what you expect it to. I want programmers to be able to predict what crust code will look like in webassembly and use this understanding to their advantage. I don't want the compiler to be a black box full of magic.
 
