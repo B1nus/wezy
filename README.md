@@ -29,6 +29,10 @@ Funily enough, the language is quite low level. Even though it might not feel li
 - We have 3 kinds of literals for numbers. Floats `1.0`, Integers `58` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
 - Integers can be of any size that's an exponent of 2. In other words `i8, i16, i32, i64, i128, i256, i512 ...`. They can be as big as you want.
 - floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
+# `use`
+The `use` keyword imports code into your file. It can import local files `use stuff/functions.crs`. By default the contents are put in the top level of your file, name collisions are possible. You can give them a namespace with the `as` keyword: `use stuff/function.crs as funcs`.
+
+`Use` can be used to gain access to a lower level of the language. There is a builtin module called `webgpu` which is secretly what the `draw` function is using under the hood. There is a reason this is hidden however, the complexity insane. Most (including myself) are better of just using the `draw` function. There is also the `memory` module for access to `alloc`, `realloc` and `free`.
 # Control
 ```
 if condition
@@ -128,6 +132,7 @@ parse_f64(text)
 format(value)
 print(text)
 input()
+args()
 ```
 # Debugging
 ```
