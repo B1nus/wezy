@@ -7,9 +7,17 @@
 > Can't overanalyze code structure if there is nothing to analyze. I greatly need this. Lists and hashmaps and functions are literally all I need.
 
 # Placeholder Name
+Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce you to some lower level concepts such as floats and bitwise operations and introduce you to a devlopment environment similar to most other languages.
+
+Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C. Just like C, this language is simple. Yet mastering it can take years. The language is not optimised for performance, but because of it's simplicity it's still very fast.
 # Goals
 - simplicity & friendliness
 - no magic
+# Borrow Checker
+> [!NOTE]
+> Figure out the exactly what the borrow checker needs to check. The list should not be very long.
+>
+> The borrow checkers goal is not memory safety, just to free stuff that's not used. If a user has a reference to a list item and then removes that list item, the program simply crashes if it tries to use it. This language is not supposed to be used in security critical sutiations, so that convenience is well worth it.
 # Functions
 > [!NOTE]
 > Figure out the function syntax. It should align with the design goals of being simple, easy for beginners and consise.
@@ -19,7 +27,7 @@
 - cannot use variables from outside, only their arguments.
 # Types
 - We have 3 kinds of literals for numbers. Floats `1.0`, Integers `58` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
-- Integers can be of any size that's an exponent of 2. In other words `i8, i16, i32, i64, i128, i256, i512, i1024` etc...
+- Integers can be of any size that's an exponent of 2. In other words `i8, i16, i32, i64, i128, i256, i512 ...`. They can be as big as you want.
 - floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
 # Control
 ```
@@ -28,7 +36,7 @@ if condition
 else
   statements
 
-loop (times)
+loop 42
   statements
 
 loop
