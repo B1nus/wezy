@@ -9,7 +9,7 @@
 # Placeholder Name
 Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce you to some lower level concepts such as floats and bitwise operations and introduce you to a devlopment environment similar to most other languages.
 
-Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C. Just like C, this language is simple. Yet mastering it can take years. The language is not optimised for performance, but because of it's simplicity it's still very fast.
+Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C and just like C, this language is simple. But mastering it can take years. The language is not optimised for performance, but because of it's simplicity it's still very fast.
 # Goals
 - simplicity & friendliness
 - no magic
