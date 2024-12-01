@@ -149,7 +149,7 @@ show(any)
 hide(any)
 time()
 ```
-# Netowrking
+# Networking
 TODO!
 > [!WARNING]
 > The user has to memorize if a function is standalone or a method. Either make the pattern obvious or make everything into either methods of normal functions.
@@ -166,6 +166,10 @@ TODO!
 - Load the files for the users and reuse.
 - Import functions for the users, only the functions they actually use.
 - Fast and tiny binaries. As simple as possible.
+
+# Implementation details
+- bigger ints are just many `i64` in function arguments
+- mutable arguments are not a thing in wasm, so return the parameters and update the value after calling the function. wasm thankfully supports multiple return out of the box.
 
 # Website
 - written in the language itself (no css, (almost) no javascript)
