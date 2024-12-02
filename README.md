@@ -1,19 +1,13 @@
-> [!NOTE]
-> Rethink the language, but from it's most fundamental parts. Scratch is the best reference language. Start with scratch's features as a base and build upon it. Everything should be as easy as in scratch (graphics, input, audio) they should not need you to import anything, not need you to study graphics, they should only require you to do the bare minimum. No namespaces, no nothing. for example `play("3am_vibes.mp3")` to play a sound and `draw("sus.png", 0, 0)` to draw an image to the screen, as simple as that. I love this, brings me back to my scratch days.
-> It's insane how simple scratch is compared to literally any other language, even gdscript is way more complicated. I love scratch, did I forget to say that? Well I love scratch.
-> This language is about making it as easy as scratch but with more control and better performance.
-> I want to go back to simplicity. please let me go back to simplicity, I can't control myself when introduced to complexity. You should see my rust code.
-> 
-> Can't overanalyze code structure if there is nothing to analyze. I greatly need this. Lists and hashmaps and functions are literally all I need.
-
 # Placeholder Name
-Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce you to some lower level concepts such as floats and bitwise operations and introduce you to a devlopment environment similar to most other languages.
+Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce some lower level concepts such as floats and bitwise operations and introduce you to a development environment similar to most other languages.
 
-Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C and just like C, this language is simple. But mastering it can take years. The language is not optimised for performance, but because of it's simplicity it's still very fast.
+Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C. Unlike llvm I won't add any crazy optimisations, I want to keep the compiler simple and predictable. One of my goals is that a user should never be suprised when using this language.
 # Goals
 - simplicity & friendliness
 - no magic
 # Borrow Checker
+- Moving is never allowed
+- A value can not be used after it goes out of scope
 > [!NOTE]
 > Figure out the exactly what the borrow checker needs to check. The list should not be very long.
 >
@@ -27,15 +21,20 @@ Funily enough, the language is quite low level. Even though it might not feel li
 - cannot use variables from outside, only their arguments.
 # Types
 - We have 3 kinds of literals for numbers. Floats `1.0`, Integers `58` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
+- Integer literals can be in binary `0b01001011`, hexadecimal `0x4B` and decimal `75`.
 - Integers can be of any size that's an exponent of 2. In other words `i8, i16, i32, i64, i128, i256, i512 ...`. They can be as big as you want.
 - floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
 - Expansion of integers is implicit. (`i32 x = 'b'`)
-- Conversion to `f64` is implicit. (`f64 = 5`)
+- Conversion to `f64` is implicit. (`f64 x = 5`)
 - Divison always returns an `f64`. Use `ceil()`, `floor()` or `round()` to make it into an integer.
 - `f64` is choosen before an integer, a larger integer is choosen before the smaller integers. `5 + 5.0` is a `f64` and `5 + 'a'` is an `i64`.
 - No conversion functions. use type declarations `i8 x = 4`. To clarify: `x = 4` would give you an `ì64`
 > [!NOTE]
 > Please try to simplify these rules, they are unwieldy.
+# Comments
+Comments start with `//` and keep going until the ond of the line.
+# Boolean Expresssions
+Chained `0 < x <= 10`. Ambiguous expressions such as `x and y or z` are not allowed.
 # `use`
 The `use` keyword imports code into your file. It can import local files `use stuff/functions.crs`. By default the contents are put in the top level of your file, name collisions are possible. You can give them a namespace with the `as` keyword: `use stuff/function.crs as funcs`.
 
@@ -172,7 +171,7 @@ TODO!
 - mutable arguments are not a thing in wasm, so return the parameters and update the value after calling the function. wasm thankfully supports multiple return out of the box.
 
 # Website
-- written in the language itself (no css, (almost) no javascript)
+- written in the language itself
 - lsp, treesitter and documentation built in. A user should not be missing anything.
 - easy way to post and interact with eachother.
 
@@ -194,7 +193,8 @@ TODO!
 - user defined methods
 - attributes
 - strings, we already have lists.
-- f32.
+- f32
+- big_int
 
 crust's philosophy is that optimisation is the programmers responisiblity, not the compilers. The compiler is a tool. A predictable program which does what you expect it to. I want programmers to be able to predict what crust code will look like in webassembly and use this understanding to their advantage. I don't want the compiler to be a black box full of magic.
 
