@@ -88,8 +88,9 @@ numbers = [1, 3, -3, 7]
 hellow_world = "Hello, World!"
 split = hello_world.split()
 
-add(item)
-delete(index)
+push(item)
+pull()
+remove(index)
 clear()
 insert(item, index)
 replace(old, new)
