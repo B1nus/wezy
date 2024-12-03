@@ -169,6 +169,7 @@ TODO!
 # Implementation details
 - bigger ints are just many `i64` in function arguments
 - mutable arguments are not a thing in wasm, so return the parameters and update the value after calling the function. wasm thankfully supports multiple return out of the box.
+- Everything is utf-8 encoded.
 
 # Website
 - written in the language itself
