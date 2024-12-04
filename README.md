@@ -192,7 +192,11 @@ TODO!
 - nullable
 - switch
 - function overloading
-- user defined methods
+- methods
+- structs
+- enums
+- slices
+- generics
 - attributes
 - strings, we already have lists.
 - f32
