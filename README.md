@@ -172,6 +172,7 @@ TODO!
 - mutable arguments are not a thing in wasm, so return the parameters and update the value after calling the function. wasm thankfully supports multiple return out of the box.
 - Everything is utf-8 encoded.
 - Webgl for rendering.
+- No function name mangling.
 
 # MVP
 - compiles applications that use audio, graphics or input as a website.
