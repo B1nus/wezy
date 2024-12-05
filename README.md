@@ -121,7 +121,9 @@ clone()
 ```
 # Graphics
 ```
-draw(path, x, y, rotation)
+draw_image(path, x, y, rotation)
+draw_triangle(x1, y1, x2, y2, color)
+clear(color)
 resolution()
 ```
 # Audio
@@ -176,7 +178,7 @@ TODO!
 - mutable arguments are not a thing in wasm, so return the parameters and update the value after calling the function. wasm thankfully supports multiple return out of the box.
 - Everything is utf-8 encoded.
 - Webgl for rendering.
-- No function name mangling.
+- No function name mangling. "_start" cannot be a name in crust because it starts with an underscore
 
 # MVP
 - compiles applications that use audio, graphics or input as a website.
