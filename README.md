@@ -89,8 +89,8 @@ not(x)
 # Lists
 ```
 numbers = [1, 3, -3, 7]
-hellow_world = "Hello, World!"
-split = hello_world.split()
+hello_world = "Hello, World!"
+split = hello_world.split(' ')
 
 push(item)
 pull()
@@ -104,7 +104,7 @@ contains(item)
 join(other)
 clone()
 repeat(times)
-split()
+split(separator)
 ```
 # Maps
 ```
