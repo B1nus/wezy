@@ -176,6 +176,14 @@ TODO!
 # MVP
 - compiles applications that use audio, graphics or input as a website.
 - webgl for rendering with a javascript shim.
+> [!NOTE]
+> Should we compile everything to a single *index.html* file? Or should we split it up and embrase html, wasm, js and css and take advantage of them for making the website? It' smarter to use css, and html to style a website, but a beginner will have a very hard time with learning 4 languages at once. I'm torn. We either hide the complexity and lose convenience, or we embrace the complexity and make websites like real webdevs.
+
+> [!NOTE]
+> Teach people in a good way how to serve the website. I remember how confusing this was for me when I started out.
+
+> [!NOTE]
+> Maybe you can use the component system to make the transition between hosts smoother? (import the same functions names, but export them from either js or wasi)
 
 # Website
 - written in the language itself
@@ -228,8 +236,7 @@ crust has an official web editor where you can write and run crust code. You can
 crust has a command line utility for compiling and running crust code. Here are the commands provided by crust:
 ```
 $ crust program.crs       Run
-$ crust program.crs -c    Compile to WebAssembly
-$ crust program.crs -w    Compile to a Web Application
+$ crust program.crs -c    Compile to WebAssembly/WebApplication
 $ crust program.crs -t    Test
 $ crust program.crs -d    Debug
 ```
