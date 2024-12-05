@@ -9,6 +9,8 @@ Funily enough, the language is quite low level. Even though it might not feel li
 - only compile to website
 - only webgl
 - only wasm core
+- only f32
+- only i32
 # Borrow Checker
 - Moving is never allowed
 - A value can not be used after it goes out of scope
@@ -122,8 +124,10 @@ clone()
 # Graphics
 ```
 draw_image(path, x, y, rotation)
-draw_triangle(x1, y1, x2, y2, color)
-clear(color)
+draw_triangle(x1, y1, x2, y2, x3, y3, r, g, b, a)
+draw_triangle_image(path, x1. y1, x2, y2, x3, y3, uv_x1, uv_y1, uv_x2, uv_y2, uv_x3, uv_y3)
+
+clear_canvas(r, g, b, a)
 resolution()
 ```
 # Audio
