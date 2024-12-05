@@ -5,6 +5,10 @@ Funily enough, the language is quite low level. Even though it might not feel li
 # Goals
 - simplicity & friendliness
 - no magic
+# Mvp
+- only compile to website
+- only webgl
+- only wasm core
 # Borrow Checker
 - Moving is never allowed
 - A value can not be used after it goes out of scope
