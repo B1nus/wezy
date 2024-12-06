@@ -3,7 +3,7 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 
 Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C. Unlike llvm I won't add any crazy optimisations, I want to keep the compiler simple and predictable. One of my goals is that a user should never be suprised when using this language.
 
-I don't want users to be confused about what will happen when they run their code. This is why you can't pass list/map reference to a new variable. You are forced to use the `clone()` function and create a new list. . This is something I plan to keep consistent in my language.
+I don't want users to be confused about what will happen when they run their code. This is why you can't pass list/map reference to a new variable. You are forced to use the `clone()` function and create a new list. This is something I plan to keep consistent in my language.
 # Goals
 - simplicity & friendliness
 - no magic
@@ -19,12 +19,12 @@ I don't want users to be confused about what will happen when they run their cod
 > [!NOTE]
 > Figure out the exactly what the borrow checker needs to check. The list should not be very long.
 >
-> The borrow checkers goal is not memory safety, just to free stuff that's not used. If a user has a reference to a list item and then removes that list item, the program simply crashes if it tries to use it. This language is not supposed to be used in security critical sutiations, so that convenience is well worth it.
+> The borrow checkers goal in this language is not memory safety, just to free stuff that's not used. If a user has a reference to a list item and then removes that list item, the program simply crashes if it tries to use it. This language is not supposed to be used in security critical sutiations, so that convenience is well worth it.
 # Functions
 > [!NOTE]
 > Figure out the function syntax. It should align with the design goals of being simple, easy for beginners and consise.
 - Functions are strongly typed, meaning that you have to declare the input and output types.
-- They can return multiple values. Which you then have to use a multiple assign on.
+- They can return multiple values with a tuple. The caller uses tuple destructurin to get the values.
 - all arguments are mutable. (They are just pointers under the hood, immutability does not exist in this language)
 - cannot use variables from outside, only their arguments.
 # Types
@@ -92,9 +92,8 @@ not(x)
 ```
 # Lists
 ```
-numbers = [1, 3, -3, 7]
-hello_world = "Hello, World!"
-split = hello_world.split(' ')
+list1 = [1, 3, -3, 7]
+list2 = "Hello, World!"
 
 push(item)
 pull()
@@ -112,7 +111,7 @@ split(separator)
 ```
 # Maps
 ```
-ages = {"you":10, "me":69}
+map = {"you":10, "me":69}
 
 set(key, value)
 delete(key)
@@ -122,6 +121,17 @@ keys()
 size()
 has(key)
 clone()
+```
+# Tuples
+```
+tuple = (1, "Hello", '\n', 5.9)
+
+// Tuple destructuring
+(int, str, byte, float) = tuple
+
+get(i32 index) // Crashes if the index is not in range
+set(i32 index) // Crashes if the index is not in range
+i32 size()
 ```
 # Graphics
 ```
@@ -143,6 +153,9 @@ set_volume(vol)
 mouse_position()
 mouse_pressed()
 key_pressed(key)
+
+i64 nanoseconds_since_start()
+i64 seconds_since_2000()
 ```
 # Files
 ```
@@ -157,9 +170,8 @@ args()
 ```
 # Debugging
 ```
-show(any)
-hide(any)
-time()
+show(any variable1, any variable2, ... )
+hide(any variable1, any variable2, ... )
 ```
 # Networking
 TODO!
