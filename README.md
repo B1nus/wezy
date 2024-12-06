@@ -2,6 +2,8 @@
 Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce some lower level concepts such as floats and bitwise operations and introduce you to a development environment similar to most other languages.
 
 Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C. Unlike llvm I won't add any crazy optimisations, I want to keep the compiler simple and predictable. One of my goals is that a user should never be suprised when using this language.
+
+I don't want users to be confused about what will happen when they run their code. This is why you can't pass list/map reference to a new variable. You are forced to use the `clone()` function and create a new list. . This is something I plan to keep consistent in my language.
 # Goals
 - simplicity & friendliness
 - no magic
