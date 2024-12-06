@@ -66,23 +66,26 @@ loop
 # Math
 ```
 +,-,/,*
-random(min, max)
+i64 random_i64(i64 min, i64 max)
+f64 random_f64(f64 min, f64 max)
 >,>=,<=,<
 and, or, not
-mod(x, y)
-round(x)
-floor(x)
-ceil(x)
-abs(x)
-sqrt(x)
-sin(x)
-cos(x)
-tan(x)
-arcsin(x)
-arccos(x)
-arctan(x)
-ln(x)
-exp(x)
+i64 mod(i64 x, i64 y)
+i64 mod_f64(f64 x, f64 y)
+i64 round(f64 x) // Crashes if the input is infinity or nan.
+i64 floor(f64 x) // Crashes if the input is infinity or nan.
+i64 ceil(f64 x) // Crashes if the input is infinity or nan.
+i64 abs(i64 x)
+f64 abs_f64(f64 x)
+f64 sqrt(f64 x)
+f64 sin(f64 x)
+f64 cos(f64 x)
+f64 tan(f64 x) // Crashes if the cosine of the input is zero
+f64 arcsin(f64 x)
+f64 arccos(f64 x)
+f64 arctan(f64 x)
+f64 ln(f64 x) // Crashes if the input is equal to or less than zero
+f64 exp(f64 x)
 
 // Maybe not. (These are bitwise operations)
 xor(x,y)
