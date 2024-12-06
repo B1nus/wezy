@@ -1,0 +1,72 @@
+// The "any" type is known at compile time and the compiler makes sure it's correct
+// before compiling. It can be an integer, bool, float, list or map. lists and maps
+// are stored as references, but their hash and eql functions check their contents.
+// So it's not other languages where list = list is false even though their content
+// is the same.
+
+// lists [item, item, ... ],
+//       "A list of bytes",
+//       [[item, item, ... ], [item, item, ... ], ... ]
+push(any item)
+any get(i32 index) // Crashes if it does not exist.
+remove(i32 index)
+clear()
+insert(any item, i32 index)
+replace(i32 index, any value)
+i32 index(any item)
+i32 length()
+bool contains()
+list_any join(list_any other)
+clone()
+
+// maps {key: value, key: value, ... }
+map_any_to_any clone()
+remove(any key)
+clear()
+bool has(any key)
+any get(any key) // Crashes if the key doesn't exist.
+set(any key, any value)
+list_any keys()
+i32 size()
+
+// Reading and writing to files
+list_i8 read(list_i8 path)
+write(list_i8 path, list_i8 content)
+
+// Parsing and formatting values
+i64 parse_i64(list_i8 text)
+f64 parse_f64(list_i8 text)
+list_i8 format(any value)
+
+// Terminal
+print(list_i8 text)
+list_i8 input()
+
+// Command line arguments. (Does not include the file name)
+list_list_i8 args()
+
+// Sensing
+i32, i32 mouse_position()
+i64 time() // Time in nanoseconds
+bool mouse_pressed()
+bool w_key_pressed()
+bool a_key_pressed()
+bool enter_pressed()
+bool space_pressed()
+... etc
+
+// Audio
+play(list_i8 path)
+i32 get_volume()
+set_volume(i32 volume)
+
+// Drawing to the screen
+draw_image(list_i8 path, i32 x, i32 y, f32 rotation)
+draw_tinted_image(list_i8 path, i32 x, i32 y, f32 rotation, f32 r, f32 g, f32 b, f32 a)
+draw_triangle(i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, f32 r, f32 g, f32 b, f32 a)
+draw_triangle_with_image(list_i8 path, i32 x1, i32 y1, i32 x2, i32 y2, i32 x3, i32 y3, i32 uv_x1, i32 uv_y1, i32 uv_x2, i32 uv_y2, i32 uv_x3, i32 uv_y3)
+clear_canvas(f32 r, f32 g, f32 b, f32 a)
+i32, i32 resultion()
+
+show(any variable)
+hide(any variable)

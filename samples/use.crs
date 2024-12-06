@@ -1,0 +1,5 @@
+use "./functions.crs"
+
+a,b = div_mod(5,2)
+assert(a == 2)
+assert(b == 1)

@@ -1,0 +1,23 @@
+// Get the remainder and modulus at the same time
+i64 i64 div_mod(i64 a, i64 b)
+  return floor(a/b), mod(a,b)
+
+// Using a clever xor algorithm for swaping two i64's
+//
+// Notice that the parameters are mutable
+swap(i64 a, i64 b)
+  a = xor(a, b)
+  b = xor(b, a)
+  a = xor(a, b)
+
+test "14 div 3"
+  d,m = div_mod(14,3)
+  assert(d == 4)
+  assert(m == 2)
+
+test "swap"
+  a = 5
+  b = 6
+  swap(a,b)
+  assert(a == 6)
+  assert(b == 5)

@@ -1,0 +1,22 @@
+i32, list_i32, i32 function_moment(i32 a, i32, b)
+  list = format(a).join(format(b))
+  a = a
+  b = b
+  return a, list, b
+
+list_list_i8 split(list_i8 text, list_i8 separator)
+  out = []
+  similarity_count = 0
+  start = 1
+  loop text, 1.. as c, i
+    if (c == separator[similarity_count + 1])
+      similarity_count += 1
+    else
+      similarity_count = 0
+
+    if (similarity_count == separator.length())
+      similarity_count = 0
+      out.add_list(text[start..i - separator.length()])
+      start = i
+
+  return out
