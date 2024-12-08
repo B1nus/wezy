@@ -88,10 +88,11 @@ f64 ln(f64 x) // Crashes if the input is equal to or less than zero
 f64 exp(f64 x)
 
 // Maybe not. (These are bitwise operations)
-xor(x,y)
-and(x,y)
-or(x,y)
-not(x)
+xor(any x, any y)
+and(any x, any y)
+or(any x, any y)
+not(any x)
+shift(any x, i8 shift)
 ```
 # Lists
 ```
