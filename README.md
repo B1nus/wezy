@@ -201,6 +201,7 @@ TODO!
 - Everything is utf-8 encoded.
 - Webgl for rendering.
 - No function name mangling. "_start" cannot be a name in crust because it starts with an underscore
+- returning a list/map which is created in a function should work. Look at go for reference. There is no reason this should work from a low level perspective.
 
 # MVP
 - compiles applications that use audio, graphics or input as a website.
