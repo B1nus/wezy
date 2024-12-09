@@ -49,7 +49,7 @@ pub const Token = struct {
         float,
         invalid,
         comment,
-        // string, // FK, multiline strings.
+        string,
         // hexadicmal_integer,
         // binary_integer,
         // etc...
@@ -62,7 +62,7 @@ pub const Token = struct {
 
 pub fn main() !void {
     const path = std.os.argv[1];
-    const data = try std.fs.cwd().readFileAlloc(ally, std.mem.span(path), try std.math.powi(u32, 2, 31));
+    const data = try std.fs.cwd().readFileAlloc(ally, std.mem.span(path), 0xFFFFFFFF);
     var lines = std.mem.splitScalar(u8, data, '\n');
     var indent_stack = std.ArrayList(u32).init(ally);
     try indent_stack.append(0);
@@ -93,9 +93,10 @@ pub fn main() !void {
         }
 
         const line = std.mem.trimRight(u8, line_[indent..], "\n\r\t ");
-        var token = next_token(line, 0);
+        var token = next_token(line, 0, State.start);
         var index: u32 = token.end + 1;
         while (token.tag != Token.Tag.newline) {
+            if (token)
             try tokens.append(token);
             token = next_token(line, index);
             index = token.end + 1;
@@ -120,11 +121,11 @@ const State = enum {
     integer,
     identifier,
     invalid,
-    // string, // FK, Multiline string.
+    string,
 };
 
 // Returns a newline token when done. Can only handle ascii currently but is planned to support utf-8 soon.
-pub fn next_token(line: []const u8, index_: u32) Token {
+pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
     var index = index_;
     var token = Token{ .start = index, .end = index, .tag = undefined };
     state: switch (State.start) {
