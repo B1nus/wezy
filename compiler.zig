@@ -42,9 +42,13 @@ pub const Token = struct {
         // I want to try this out, it might be a total failure. but there is only one way to find out.
         // double_equal,
 
-        // Different contents
+        // No content
+        eof,
+        // No interesting content
         indentation,
         dedentation,
+
+        // Different contents
         integer,
         float,
         invalid,
@@ -61,49 +65,51 @@ pub const Token = struct {
 // Super simple compiler. Compiles line by line directly into Webassembly. A onepass compiler.
 
 pub fn main() !void {
-    const path = std.os.argv[1];
-    const data = try std.fs.cwd().readFileAlloc(ally, std.mem.span(path), 0xFFFFFFFF);
-    var lines = std.mem.splitScalar(u8, data, '\n');
+    const path = std.mem.span(std.os.argv[1]);
+    const file = try std.fs.cwd().openFile(path, .{});
+    const data = try file.readToEndAllocOptions(ally, 0xFFFFFFFF, null, 8, 0);
+    std.debug.print("{s}\n", .{data});
+    std.debug.print("{d}\n", .{data[data.len]});
     var indent_stack = std.ArrayList(u32).init(ally);
     try indent_stack.append(0);
-    var errors = std.ArrayList(Error).init(ally);
+    // var errors = std.ArrayList(Error).init(ally);
 
-    var line_number: u32 = 0;
-    while (lines.next()) |line_| : (line_number += 1) {
-        // The tokens on this line
-        var tokens = std.ArrayList(Token).init(ally);
-        defer tokens.deinit();
-
-        // Indentation Logic
-        std.debug.print("indentation for \"{s}\"", .{line_});
-        const indent = indentation(line_);
-        std.debug.print(" is {d}\n", .{indent});
-        if (indent > indent_stack.getLast()) {
-            try tokens.append(Token{ .start = indent_stack.getLast(), .end = indent, .tag = Token.Tag.indentation });
-            try indent_stack.append(indent);
-        } else {
-            while (indent < indent_stack.getLast()) {
-                _ = indent_stack.pop();
-                try tokens.append(Token{ .start = 0, .end = 0, .tag = Token.Tag.dedentation });
-            }
-            if (indent != indent_stack.getLast()) {
-                try errors.append(Error{ .line = line_number, .start = 0, .end = indent - 1, .tag = Error.Tag.IncorrectIndentation });
-                try indent_stack.append(indent);
-            }
-        }
-
-        const line = std.mem.trimRight(u8, line_[indent..], "\n\r\t ");
-        var token = next_token(line, 0, State.start);
-        var index: u32 = token.end + 1;
-        while (token.tag != Token.Tag.newline) {
-            if (token)
-            try tokens.append(token);
-            token = next_token(line, index);
-            index = token.end + 1;
-        }
-        std.debug.print("The line gives these tokens: ", .{});
-        print_tokens_pretty(tokens.items);
-    }
+    // var line_number: u32 = 0;
+    // while (lines.next()) |line_| : (line_number += 1) {
+    //     // The tokens on this line
+    //     var tokens = std.ArrayList(Token).init(ally);
+    //     defer tokens.deinit();
+    //
+    //     // Indentation Logic
+    //     std.debug.print("indentation for \"{s}\"", .{line_});
+    //     const indent = indentation(line_);
+    //     std.debug.print(" is {d}\n", .{indent});
+    //     if (indent > indent_stack.getLast()) {
+    //         try tokens.append(Token{ .start = indent_stack.getLast(), .end = indent, .tag = Token.Tag.indentation });
+    //         try indent_stack.append(indent);
+    //     } else {
+    //         while (indent < indent_stack.getLast()) {
+    //             _ = indent_stack.pop();
+    //             try tokens.append(Token{ .start = 0, .end = 0, .tag = Token.Tag.dedentation });
+    //         }
+    //         if (indent != indent_stack.getLast()) {
+    //             try errors.append(Error{ .line = line_number, .start = 0, .end = indent - 1, .tag = Error.Tag.IncorrectIndentation });
+    //             try indent_stack.append(indent);
+    //         }
+    //     }
+    //
+    //     const line = std.mem.trimRight(u8, line_[indent..], "\n\r\t ");
+    //     var token = next_token(line, 0, State.start);
+    //     var index: u32 = token.end + 1;
+    //     while (token.tag != Token.Tag.newline) {
+    //         if (token)
+    //         try tokens.append(token);
+    //         token = next_token(line, index);
+    //         index = token.end + 1;
+    //     }
+    //     std.debug.print("The line gives these tokens: ", .{});
+    //     print_tokens_pretty(tokens.items);
+    // }
 }
 
 fn print_tokens_pretty(tokens: []Token) void {
@@ -122,12 +128,17 @@ const State = enum {
     identifier,
     invalid,
     string,
+    indentation,
 };
 
 // Returns a newline token when done. Can only handle ascii currently but is planned to support utf-8 soon.
-pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
+pub fn next_token(buffer: [:0]const u8, index_: u32, indentation_stack: std.ArrayList(u32)) Token {
     var index = index_;
     var token = Token{ .start = index, .end = index, .tag = undefined };
+    if (index_ == 0 or buffer[index_ - 1] == '\n') {
+        // TODO: Calculate indentation here.
+        unreachable;
+    }
     state: switch (State.start) {
         .start => {
             if (index >= line.len) {
@@ -135,7 +146,7 @@ pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
                 index = @intCast(line.len + 1); // Needs to match the index of the other cases.
             } else {
                 switch (line[index]) {
-                    ' ' => {
+                    ' ', '\t', '\r' => {
                         index += 1;
                         continue :state .start;
                     },
@@ -154,15 +165,31 @@ pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
                     '=' => token.tag = Token.Tag.equal,
                     '-' => continue :state .minus,
                     '/' => continue :state .slash,
+                    '\n' => token.tag = Token.Tag.newline,
+                    '\"' => continue :state .string,
                     else => continue :state .invalid,
                 }
                 index += 1; // Adding one to match with the other states. We always finish with the index pointing at the next byte.
             }
         },
+        .string => {
+            index += 1;
+            switch (line[index]) {
+                0 => {
+                    token.tag = invalid;
+
+                }
+            }
+            if (line[index] == 0) {
+                index -= 1;
+                continue :state .invalid;
+            } else if (line) {
+                
+            }
+        },
         // Notice the lack of capital letters.
         .identifier => {
             index += 1;
-            if (index == line.len) break :state;
             switch (line[index]) {
                 'a'...'z', '_', '0'...'9' => continue :state .identifier,
                 else => if (Token.keywords.get(line[token.start..index])) |keyword| {
@@ -175,7 +202,6 @@ pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
         },
         .minus => {
             index += 1;
-            if (index == line.len) break :state;
             switch (line[index]) {
                 '0'...'9' => continue :state .integer,
                 else => token.tag = .minus,
@@ -183,7 +209,6 @@ pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
         },
         .slash => {
             index += 1;
-            if (index == line.len) break :state;
             switch (line[index]) {
                 '/' => {
                     // The rest of this line is a comment
@@ -195,7 +220,6 @@ pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
         },
         .integer => {
             index += 1;
-            if (index == line.len) break :state;
             switch (line[index]) {
                 '0'...'9' => continue :state .integer,
                 '.' => continue :state .float,
@@ -204,7 +228,6 @@ pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
         },
         .float => {
             index += 1;
-            if (index == line.len) break :state;
             switch (line[index]) {
                 '0'...'9' => continue :state .float,
                 else => token.tag = Token.Tag.float,
@@ -213,7 +236,7 @@ pub fn next_token(line: []const u8, index_: u32, start_state: State) Token {
         .invalid => {
             token.tag = Token.Tag.invalid;
             index += 1;
-            if (index == line.len) break :state;
+            if (line[index] == 0 or line[index] == '\n') break :state; 
             continue :state .invalid;
         },
     }
