@@ -83,6 +83,9 @@ pub const Token = struct {
         float_type,
         integer,
         float,
+        // NOTE: Picking between byte and utf8 literal is done in parsing.
+        // Also note that errors in byte/utf8 literals are handled while parsing.
+        utf8,
         invalid,
         comment,
         string,
@@ -170,9 +173,8 @@ pub fn get_tokens(source: [:0]const u8, allocator: std.mem.Allocator) !struct { 
 
 fn print_tokens_pretty(tokens: []Token) void {
     for (tokens) |token| {
-        std.debug.print("{s}({d}..{d}) ", .{ @tagName(token.tag), token.start, token.end });
+        std.debug.print("{s}({d}..{d})\n", .{ @tagName(token.tag), token.start, token.end });
     }
-    std.debug.print("\n", .{});
 }
 
 const State = enum {
@@ -185,6 +187,7 @@ const State = enum {
     invalid,
     string,
     comment,
+    utf8,
 };
 
 // Returns a newline token when done. Can only handle ascii currently but is planned to support utf-8 soon.
@@ -223,18 +226,32 @@ pub fn next_token(buffer: [:0]const u8, index_: u32) Token {
                 '/' => continue :state .slash,
                 '\n' => token.tag = Token.Tag.newline,
                 '\"' => continue :state .string,
+                '\'' => continue :state .utf8,
+                // '{' => continue :state lbrace,
+                // '[' => continue :state lbracket,
                 // Don't forget about type literals [any] and {any:any} and {any} <-- a set.
                 else => continue :state .invalid,
             }
             index += 1; // Adding one to match with the other states. We always finish with the index pointing at the next byte.
+        },
+        .utf8 => {
+            index += 1;
+            switch (buffer[index]) {
+                0 => continue :state .invalid,
+                '\'' => {
+                    index += 1;
+                    token.tag = .utf8;
+                },
+                else => continue :state .utf8,
+            }
         },
         .string => {
             index += 1;
             switch (buffer[index]) {
                 0 => token.tag = .invalid,
                 '\"' => {
-                    token.start += 1;
-                    token.tag = Token.Tag.string;
+                    token.tag = .string;
+                    index += 1;
                 },
                 else => continue :state .string,
             }
@@ -248,7 +265,7 @@ pub fn next_token(buffer: [:0]const u8, index_: u32) Token {
                 } else if (Token.is_type(buffer[token.start..index])) |_type| {
                     token.tag = _type;
                 } else {
-                    token.tag = Token.Tag.identifier;
+                    token.tag = .identifier;
                 },
             }
         },
@@ -263,16 +280,21 @@ pub fn next_token(buffer: [:0]const u8, index_: u32) Token {
             index += 1;
             switch (buffer[index]) {
                 '/' => continue :state .comment,
-                else => token.tag = Token.Tag.slash,
+                else => token.tag = .slash,
             }
         },
         .comment => {
             index += 1;
             switch (buffer[index]) {
-                '\n', 0 => token.tag = Token.Tag.comment,
+                '\n', 0 => token.tag = .comment,
                 else => continue :state .comment,
             }
         },
+        // Should we add integer literals with types?
+        // Should we add undescores to improve readability for large integers and floats?
+        //
+        // TODO: hexadecimal integer literals
+        // TODO: binary integer literals
         .integer => {
             index += 1;
             switch (buffer[index]) {
@@ -281,11 +303,12 @@ pub fn next_token(buffer: [:0]const u8, index_: u32) Token {
                 else => token.tag = .integer,
             }
         },
+        // Note: a float starting with '.' is not valid. 0.0 is valid and .0 is not.
         .float => {
             index += 1;
             switch (buffer[index]) {
                 '0'...'9' => continue :state .float,
-                else => token.tag = Token.Tag.float,
+                else => token.tag = .float,
             }
         },
         .invalid => {
@@ -321,6 +344,8 @@ pub fn indentation(line: []const u8) u32 {
     }
     return 0;
 }
+
+// Test driven development is perfect here. I know the exact input and output just not how to get there.
 
 const assert = std.testing.expect;
 const t_ally = std.testing.allocator;
