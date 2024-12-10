@@ -30,7 +30,7 @@ pub const Token = struct {
     // I'd add it mostly to be able to make sets with my maps. Maybe it's better to just add
     // sets instead if I'm going to add a new abstraction anyway. I'm torn atm.
     pub fn is_type(literal: []const u8) ?Tag {
-        if (literal.len < 3) return null;
+        if (literal.len < 2) return null;
         switch (literal[0]) {
             'i' => {
                 const num = std.fmt.parseInt(u32, literal[1..], 10) catch {
@@ -67,8 +67,12 @@ pub const Token = struct {
         minus,
         equal,
         slash,
-        lparen,
-        rparen,
+        lparen, // (
+        rparen, // )
+        lbrace, // {
+        rbrace, // }
+        lbracket, // [
+        rbracket, // ]
         // I want to try this out, it might be a total failure. but there is only one way to find out.
         // double_equal,
 
@@ -97,7 +101,11 @@ pub const Token = struct {
     };
 };
 
-// Super simple compiler. Compiles line by line directly into Webassembly. A "onepass" compiler.
+// A pretty standard compiler. First we turn source into tokens, and then into an abstract syntax tree and then into bytecode.
+//
+// A lofty goal would be to make this into a onepass compiler. It's technically possible. But I don't quite know how
+// to achieve it. Hopefully, there is a way to make this compiler much simpler. But for now, I'm gonna make the
+// compiler the only way I know how.
 
 pub fn main() !void {
     const path = std.mem.span(std.os.argv[1]);
@@ -109,6 +117,96 @@ pub fn main() !void {
     // var wasm_functions = std.StringHashMap(u32).init(ally);
     // var wasm_locals = std.StringHashMap(u32).init(ally);
     // var wasm_code =
+}
+
+// TODO: Add js host imports
+// TODO: Add start function
+// TODO: Add lots of missing features
+pub fn compile(source: [:0]const u8, allocator: std.mem.Allocator) !struct { std.ArrayList(u8), std.ArrayList(Error) } {
+    const tokens, var errors = get_tokens(source, allocator);
+    const ast = parse(tokens, allocator, &errors);
+
+
+    var wasm_bytes = std.ArrayList(u8).init(allocator);
+    // Magic number and webassembly version 1
+    try wasm_bytes.appendSlice("\x00asm\x01\x00\x00\x00");
+    try errors.append(Error {.start=0,.end=0,.tag=.IncorrectDedentation});
+
+    return .{ wasm_bytes, errors };
+}
+
+pub const Wasm = struct {
+
+};
+
+pub const TokenIndex = u32;
+pub const NodeIndex = u32;
+
+// This is not an efficient way to store the ast. But it's the easiest way.
+pub const Node = union(enum) {
+    integer_literal: TokenIndex,
+    float_literal: TokenIndex,
+    integer_type: TokenIndex,
+    float_type: TokenIndex,
+    identifier: TokenIndex,
+    // list_literal: ListLiteral,
+};
+
+pub const Parameter = struct {
+    identifier: NodeIndex,
+    _type: NodeIndex,
+};
+
+pub const Function = struct {
+    params_start: NodeIndex,
+    params_amount: NodeIndex,
+    return_type: NodeIndex,
+};
+
+pub const Block = struct {
+    statements: std.ArrayList(Statement),
+};
+
+pub const TupleLiteral = struct {
+    literals_start: NodeIndex,
+    literals_amount: NodeIndex,
+};
+
+pub const TypleType = struct {
+    type_start: NodeIndex,
+    type_amount: NodeIndex,
+};
+
+pub const ArrayLiteral = struct {
+};
+
+pub const Ast = struct {
+    tokens: []Token,
+    lhs: std.ArrayList(u32),
+    rhs: std.ArrayList(u32),
+    token: std.ArrayList(u32),
+    tag: std.ArrayList(Tag),
+    extra_data: std.ArrayList(u32),
+
+    pub const Tag = enum {
+        function_decl, // lhs points to function_proto, rhs points to function body
+        function_proto,
+        function_body,
+        set_type, // {any}
+        map_type, // {any:any}
+        list_type, // [any]
+        integer_type, // i8, i16, i32, i64 etc..
+        float_type, // f32 or f64
+        integer, // integer literal
+        float, // float literal
+        function_call,
+    };
+};
+
+pub fn parse(tokens: []Token, allocator: std.mem.Allocator, errors: *std.ArrayList(Error)) !Ast {
+    return Ast {
+        .tokens = tokens,
+    };
 }
 
 pub fn get_tokens(source: [:0]const u8, allocator: std.mem.Allocator) !struct { std.ArrayList(Token), std.ArrayList(Error) } {
@@ -442,4 +540,10 @@ test "unexpected indentation" {
     try assert(errors.items[0].tag == .UnexpectedIndentation);
     try assert(errors.items[0].start == 0);
     try assert(errors.items[0].end == 1);
+}
+
+test "add i32 function" {
+    const wasm, const errors = try compile("i32 add(i32 x, i32 y)\n return x+y\nadd(4,-4)", t_ally);
+    try assert(std.mem.eql(u8, wasm.items[0..8], "\x00asm\x01\x00\x00\x00"));
+    try assert(errors.items.len == 0);
 }
