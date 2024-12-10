@@ -17,8 +17,11 @@ pub const Token = struct {
         keyword_integer_type, // Hmmm, should this be considered a keyword?
         plus,
         newline,
+        indentation,
+        dedentation,
         eof,
         invalid,
+        unexpected_indentation,
     };
 };
 
@@ -46,11 +49,25 @@ pub fn get_keyword(identifier: []const u8) ?Token.Tag {
     }
 }
 
-// Return all of the tokens from the next non-empty line along with indentation and errors.
-// This does not return the indentation or dedentation tokens. Thos must be handled by the caller.
-//
+// Return all tokens for a source file.
+pub fn tokenize(source: [:0]const u8, allocator: std.mem.Allocator) !std.ArrayList(Token) {
+    var tokens = std.ArrayList(Token).init(allocator);
+    var indent_stack = std.ArrayList(u32).init(allocator);
+    defer indent_stack.deinit();
+
+    try indent_stack.append(0);
+
+    while (indent_stack.items.len > 0) {
+        next_token_line()
+    }
+
+    return tokens;
+}
+
+// Return all of the tokens from the next non-empty line along with indentation
+// 
 // TODO: Add a check for the weird magic values on top of the utf8 files.
-pub fn next_token_line(source: [:0]const u8, offset: u32, tokens: *std.ArrayList(Token)) !u32 {
+pub fn next_token_line(source: [:0]const u8, offset: u32, indent_stack: *std.ArrayList(u32), tokens: *std.ArrayList(Token)) !void {
     var index = offset;
     var indent: u32 = 0;
 
@@ -70,6 +87,10 @@ pub fn next_token_line(source: [:0]const u8, offset: u32, tokens: *std.ArrayList
         try tokens.append(token);
         index = token.end + 1;
         token = next_token(source, index);
+    }
+
+    if (token.tag == .eof) {
+        
     }
 
     return indent;

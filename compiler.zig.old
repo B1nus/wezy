@@ -429,9 +429,6 @@ pub fn next_token(buffer: [:0]const u8, index_: u32) Token {
 // Single equals for comparisons. if x = 5
 // Utf-8 for everything. no exceptions.
 // No structs, use SoA. Manual (MultiArrayList)
-// Multiline strings
-// Sets {any}
-// Error message for single equals "crust uses a single equals sign for comparisons. Remove one equals sign here."
 
 // Indentation means ( in wat
 // Dedentation means ) in wat
