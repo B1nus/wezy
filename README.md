@@ -87,12 +87,11 @@ f64 arctan(f64 x)
 f64 ln(f64 x) // Crashes if the input is equal to or less than zero
 f64 exp(f64 x)
 
-// Maybe not. (These are bitwise operations)
-xor(any x, any y)
-and(any x, any y)
-or(any x, any y)
-not(any x)
-shift(any x, i8 shift)
+any xor(any x, any y)
+any and(any x, any y)
+any or(any x, any y)
+any not(any x)
+any shift(any x, i8 shift)
 ```
 # Lists
 ```
