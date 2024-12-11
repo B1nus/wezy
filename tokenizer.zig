@@ -22,6 +22,7 @@ pub const Token = struct {
         eof,
         invalid,
         unexpected_indentation,
+        invalid_dedentation,
     };
 };
 
@@ -56,16 +57,19 @@ pub fn tokenize(source: [:0]const u8, allocator: std.mem.Allocator) !std.ArrayLi
     defer indent_stack.deinit();
 
     try indent_stack.append(0);
+    var offset: u32 = 0;
 
-    while (indent_stack.items.len > 0) {
-        next_token_line()
+    while (true) {
+        try next_token_line(source, offset, &indent_stack, &tokens);
+        if (tokens.getLast().tag == .eof) break;
+        offset = tokens.getLast().end + 1;
     }
 
     return tokens;
 }
 
 // Return all of the tokens from the next non-empty line along with indentation
-// 
+//
 // TODO: Add a check for the weird magic values on top of the utf8 files.
 pub fn next_token_line(source: [:0]const u8, offset: u32, indent_stack: *std.ArrayList(u32), tokens: *std.ArrayList(Token)) !void {
     var index = offset;
@@ -76,12 +80,42 @@ pub fn next_token_line(source: [:0]const u8, offset: u32, indent_stack: *std.Arr
         index += 1;
     }
 
-    var token = next_token(source, index);
-
     // The line is empty. Skip to the next line.
-    if (token.tag == .newline) {
-        return next_token_line(source, index + 1, tokens);
+    if (source[index] == '\n') {
+        return next_token_line(source, index + 1, indent_stack, tokens);
     }
+
+    // Indentation token/dedentation tokens. This algorithm is my version of Pythons indentation parser. It's more or less the same as python's.
+    //
+    // Check that it is not the beginning of the file
+    if (index != indent) {
+        var top_of_stack = indent_stack.getLast();
+        if (indent == top_of_stack) {
+            try tokens.append(Token{ .pos = offset + index - indent - 1, .end = offset + index - indent - 1, .tag = .newline });
+        } else if (indent > top_of_stack) {
+            try indent_stack.append(indent);
+            try tokens.append(Token{ .pos = offset + top_of_stack, .end = offset + indent - 1, .tag = .indentation });
+        } else { // indent < top_of_stack
+            _ = indent_stack.pop();
+            while (indent < top_of_stack) {
+                const prev = top_of_stack;
+                top_of_stack = indent_stack.pop();
+                try tokens.append(Token{ .pos = offset + top_of_stack, .end = offset + prev - 1, .tag = .dedentation }); // A dedentation having a position doesn't really make sense. But whatever.
+            }
+            if (indent != top_of_stack) {
+                try indent_stack.append(indent);
+                try tokens.append(Token{ .pos = offset + top_of_stack, .end = offset + indent - 1, .tag = .invalid_dedentation });
+            }
+        }
+    } else {
+        // Don't indent the top-level. But if they do, try to add it to the indentation and move on.
+        if (indent != 0) {
+            try tokens.append(Token{ .pos = 0, .end = indent - 1, .tag = .unexpected_indentation });
+            try indent_stack.append(indent);
+        }
+    }
+
+    var token = next_token(source, index);
 
     while (token.tag != .eof and token.tag != .newline) {
         try tokens.append(token);
@@ -90,10 +124,8 @@ pub fn next_token_line(source: [:0]const u8, offset: u32, indent_stack: *std.Arr
     }
 
     if (token.tag == .eof) {
-        
+        try tokens.append(token);
     }
-
-    return indent;
 }
 
 pub const State = enum {
@@ -162,11 +194,10 @@ test "simple add function" {
         \\
         \\add(9,-8)
     ;
-    var tokens = std.ArrayList(Token).init(std.testing.allocator);
+    const tokens = try tokenize(source, std.testing.allocator);
     defer tokens.deinit();
-    var indent = try next_token_line(source, 0, &tokens);
-    try expect(indent == 0);
-    try expect(tokens.items.len == 9);
+
+    try expect(tokens.items.len == 22);
     try expect(tokens.items[0].tag == .keyword_integer_type);
     try expect(tokens.items[0].pos == 0);
     try expect(tokens.items[0].end == 2);
@@ -194,44 +225,44 @@ test "simple add function" {
     try expect(tokens.items[8].tag == .rparen);
     try expect(tokens.items[8].pos == 20);
     try expect(tokens.items[8].end == 20);
-    var next_offset = tokens.getLast().end + 1;
-    tokens.clearRetainingCapacity();
-    indent = try next_token_line(source, next_offset, &tokens);
-    try expect(indent == 2);
-    try expect(tokens.items[0].tag == .keyword_return);
-    try expect(tokens.items[0].pos == 24);
-    try expect(tokens.items[0].end == 29);
-    try expect(tokens.items[1].tag == .identifier);
-    try expect(tokens.items[1].pos == 31);
-    try expect(tokens.items[1].end == 31);
-    try expect(tokens.items[2].tag == .plus);
-    try expect(tokens.items[2].pos == 33);
-    try expect(tokens.items[2].end == 33);
-    try expect(tokens.items[3].tag == .identifier);
-    try expect(tokens.items[3].pos == 35);
-    try expect(tokens.items[3].end == 35);
-    next_offset = tokens.getLast().end + 1;
-    tokens.clearRetainingCapacity();
-    indent = try next_token_line(source, next_offset, &tokens);
-    try expect(indent == 0);
-    try expect(tokens.items[0].tag == .identifier);
-    try expect(tokens.items[0].pos == 38);
-    try expect(tokens.items[0].end == 40);
-    try expect(tokens.items[1].tag == .lparen);
-    try expect(tokens.items[1].pos == 41);
-    try expect(tokens.items[1].end == 41);
-    try expect(tokens.items[2].tag == .integer_literal);
-    try expect(tokens.items[2].pos == 42);
-    try expect(tokens.items[2].end == 42);
-    try expect(tokens.items[3].tag == .comma);
-    try expect(tokens.items[3].pos == 43);
-    try expect(tokens.items[3].end == 43);
-    try expect(tokens.items[4].tag == .integer_literal);
-    try expect(tokens.items[4].pos == 44);
-    try expect(tokens.items[4].end == 45);
-    try expect(tokens.items[5].tag == .rparen);
-    try expect(tokens.items[5].pos == 46);
-    try expect(tokens.items[5].end == 46);
+    try expect(tokens.items[9].tag == .indentation);
+    try expect(tokens.items[9].pos == 22);
+    try expect(tokens.items[9].end == 23);
+    try expect(tokens.items[10].tag == .keyword_return);
+    try expect(tokens.items[10].pos == 24);
+    try expect(tokens.items[10].end == 29);
+    try expect(tokens.items[11].tag == .identifier);
+    try expect(tokens.items[11].pos == 31);
+    try expect(tokens.items[11].end == 31);
+    try expect(tokens.items[12].tag == .plus);
+    try expect(tokens.items[12].pos == 33);
+    try expect(tokens.items[12].end == 33);
+    try expect(tokens.items[13].tag == .identifier);
+    try expect(tokens.items[13].pos == 35);
+    try expect(tokens.items[13].end == 35);
+    try expect(tokens.items[14].tag == .dedentation);
+    // Not testing dedentation position. because it doesn't matter.
+    try expect(tokens.items[15].tag == .identifier);
+    try expect(tokens.items[15].pos == 38);
+    try expect(tokens.items[15].end == 40);
+    try expect(tokens.items[16].tag == .lparen);
+    try expect(tokens.items[16].pos == 41);
+    try expect(tokens.items[16].end == 41);
+    try expect(tokens.items[17].tag == .integer_literal);
+    try expect(tokens.items[17].pos == 42);
+    try expect(tokens.items[17].end == 42);
+    try expect(tokens.items[18].tag == .comma);
+    try expect(tokens.items[18].pos == 43);
+    try expect(tokens.items[18].end == 43);
+    try expect(tokens.items[19].tag == .integer_literal);
+    try expect(tokens.items[19].pos == 44);
+    try expect(tokens.items[19].end == 45);
+    try expect(tokens.items[20].tag == .rparen);
+    try expect(tokens.items[20].pos == 46);
+    try expect(tokens.items[20].end == 46);
+    try expect(tokens.items[21].tag == .eof);
+    try expect(tokens.items[21].pos == 47);
+    try expect(tokens.items[21].end == 47);
 }
 
 test "get keyword" {
