@@ -1,5 +1,7 @@
 const std = @import("std");
-const ally = std.heap.page_allocator;
+// This is where we put everything together. We take an ast from parser.zig and turn it into webassembly bytecode.
+//
+// We handle errors not related to syntax, but the meaning of the code. For example type checks, and borrow checking.
 
 pub const Error = struct {
     start: u32,
