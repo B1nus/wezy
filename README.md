@@ -559,6 +559,9 @@ I want to give credit to all of the programming languages which I've looked at f
 - [ ] [Wit has a nice collection of types](https://component-model.bytecodealliance.org/design/wit.html#built-in-types). Try to understand wit a bit more.
 - [ ] Easy way to publish crust projects. (here, wasm sanboxing is really important)
 
+> [!NOTE]
+> Right now, the internals of the language are closed of, and specific to the compiler. What if we could make them available easily to the user without making things complicated? I have an idea for a dead simple meta programming system. It is a system where we simply expose the `Expression` and `Type` enum to the user. The user now has these building blocks available, they are no longer specific to builtin functions. Yes, it does make things more complicated. Maybe it's worth it? There's less magic this way, I love that zig gives you all the tools you need to recreate the std functions. There something very nice about that, it makes the language feel friendly. Also, when writing these variants you should not have to write the namespace, only the variant itself, in the same way zig let's you skip wraping you result and error types in Some and Ok which rust forces you to do. I love this about zig as well. I have not worked out all of the details, so there might be some cracks in this plan. I'll work on it more after making the mvp of the language.
+
 Functions cannot mutate variables from the outer scope. They can however use immutable variables from the outer scope. And they can of course mutate variables in the outer scope if given a pointer through a argument, however, they can never do it otherwise.
 
 What is crust? Friendly, as easy and concise as python, but with strict rules on error handling and closely mimicing webassembly. crust aims to have few abstractions as possible while still being capable of expressing complex logic in a natural way.
