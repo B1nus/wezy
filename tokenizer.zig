@@ -19,6 +19,7 @@ pub const Token = struct {
         newline,
         indentation,
         dedentation,
+        equal,
         eof,
         invalid,
         unexpected_indentation,
@@ -154,6 +155,7 @@ pub fn next_token(source: [:0]const u8, offset: u32) Token {
                 ')' => token.tag = .rparen,
                 ',' => token.tag = .comma,
                 '+' => token.tag = .plus,
+                '=' => token.tag = .equal,
                 '\n' => token.tag = .newline,
                 else => token.tag = .invalid,
             }
@@ -192,12 +194,12 @@ test "simple add function" {
         \\i32 add(i32 a, i32 b)
         \\  return a + b
         \\
-        \\add(9,-8)
+        \\z = add(9,-8)
     ;
     const tokens = try tokenize(source, std.testing.allocator);
     defer tokens.deinit();
 
-    try expect(tokens.items.len == 22);
+    try expect(tokens.items.len == 24);
     try expect(tokens.items[0].tag == .keyword_integer_type);
     try expect(tokens.items[0].pos == 0);
     try expect(tokens.items[0].end == 2);
@@ -244,25 +246,31 @@ test "simple add function" {
     // Not testing dedentation position. because it doesn't matter.
     try expect(tokens.items[15].tag == .identifier);
     try expect(tokens.items[15].pos == 38);
-    try expect(tokens.items[15].end == 40);
-    try expect(tokens.items[16].tag == .lparen);
-    try expect(tokens.items[16].pos == 41);
-    try expect(tokens.items[16].end == 41);
-    try expect(tokens.items[17].tag == .integer_literal);
+    try expect(tokens.items[15].end == 38);
+    try expect(tokens.items[16].tag == .equal);
+    try expect(tokens.items[16].pos == 40);
+    try expect(tokens.items[16].end == 40);
+    try expect(tokens.items[17].tag == .identifier);
     try expect(tokens.items[17].pos == 42);
-    try expect(tokens.items[17].end == 42);
-    try expect(tokens.items[18].tag == .comma);
-    try expect(tokens.items[18].pos == 43);
-    try expect(tokens.items[18].end == 43);
+    try expect(tokens.items[17].end == 44);
+    try expect(tokens.items[18].tag == .lparen);
+    try expect(tokens.items[18].pos == 45);
+    try expect(tokens.items[18].end == 45);
     try expect(tokens.items[19].tag == .integer_literal);
-    try expect(tokens.items[19].pos == 44);
-    try expect(tokens.items[19].end == 45);
-    try expect(tokens.items[20].tag == .rparen);
-    try expect(tokens.items[20].pos == 46);
-    try expect(tokens.items[20].end == 46);
-    try expect(tokens.items[21].tag == .eof);
-    try expect(tokens.items[21].pos == 47);
-    try expect(tokens.items[21].end == 47);
+    try expect(tokens.items[19].pos == 46);
+    try expect(tokens.items[19].end == 46);
+    try expect(tokens.items[20].tag == .comma);
+    try expect(tokens.items[20].pos == 47);
+    try expect(tokens.items[20].end == 47);
+    try expect(tokens.items[21].tag == .integer_literal);
+    try expect(tokens.items[21].pos == 48);
+    try expect(tokens.items[21].end == 49);
+    try expect(tokens.items[22].tag == .rparen);
+    try expect(tokens.items[22].pos == 50);
+    try expect(tokens.items[22].end == 50);
+    try expect(tokens.items[23].tag == .eof);
+    try expect(tokens.items[23].pos == 51);
+    try expect(tokens.items[23].end == 51);
 }
 
 test "get keyword" {
