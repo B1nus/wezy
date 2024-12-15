@@ -13,6 +13,9 @@ I don't want users to be confused about what will happen when they run their cod
 - only wasm core
 - only f32
 - only i32
+# Compiler Errors
+- Nodejs has a good example of BAD errors. This is what my error message ![looked like](https://github.com/user-attachments/assets/eb8bd225-18a2-42e2-8952-c6a8a433ecf8). When it could have just said `Could not find file '15.jsA'`
+ and nothing more. Avoid this always.
 # Borrow Checker
 - Moving is never allowed
 - A value can not be used after it goes out of scope
