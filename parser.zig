@@ -3,100 +3,99 @@ pub const tokenizer = @import("tokenizer.zig");
 
 pub const TokenIndex = u32;
 pub const SourceIndex = u32;
+pub const StatementIndex = u32;
+pub const ExpressionIndex = u32;
+pub const TypeExpressionIndex = u32;
 
-pub const ParserError = struct {
-    pos: SourceIndex,
-    end: SourceIndex,
-    tag: Tag,
-    pub const Tag = enum {
-        invalid_parameter, // "Parameters are formated with a type and a name: `do_something(i32 a, i32 b)`". (If none of the more specific errors apply, this one is used)
-        missing_equals_or_parenthesis, // "Use parenthesis to declare a function, use equals to declare a variable." (Anly applies in the top level where both functions and bindings are possible)
-        missing_equals, // "Write [insert specific example by just inserting an equals sign after the identifier]" (Applies ouside of the top level wher functions are impossible)
-        missing_expression, // Can't assign/bind/unary/binary without an expression.
-        invalid_expression, // invalid token combinations in any kind of expression.
-        unterminated_parenthesis, // A parenthesis must be closed on the same line. (before a indent/dedent/newline token, multiline strings don't count of course)
-        invalid_token,
-        unexpected_indentation,
-        invalid_return_type, // "[insert invalid type] is not a valid return type for [insert function declaration]"
+pub const Parser = struct {
+    source: [:0]const u8,
+    tokens: []tokenizer.Token,
+    offset: TokenIndex,
 
-        // To help people with common errors. The compiler shows an example of how to fix the error.
-        // Add more as you learn what errors users encounter.
-        //
-        // TODO: Figure out how to generate specific examples for the users code. In the same way rust does.
-        missing_parameter_type, // "Parameter's need a type, like this: [insert specific example with i32 as type].
-        missing_parameter_name, // "Give your parameter a name. [insert specific example with random names (a,b,c,d,e,f,g for example)]".
-        parameter_order, // "Write [insert specific example] instead.
-        parameter_order_and_colon, // "Write [insert specific example] instead.
-        parameter_colon, // "Write [insert specific example] instead."
-        double_equals, // "crust uses a single equals for comparison. Write [insert specific example] instead."
-        missing_comma, // "parameters are separated by commas."
-        multiple_return_types, // "Use a tuple to return multiple types: `[insert specific example of how they should write it]`".
-        multiple_assign, // "Use tuple destructuring: [insert specific example]"
-        multiple_bind, // "Use tuple desctructuring: [insert specific example]"
-        multiple_typed_bind, // "Use a tuple: [insert specific example]"
-        and_operator, // "Use the keyword 'and' instead: [insert specific example]"
-        or_operator, // "Use the keyword 'or' instead: [insert specific example]"
-        not_operator, // "Use the keyword 'not' instead: [insert specific example]"
-        bitwise_and_operator, // "Use the function 'bitwise_and()' instead: [insert specific example]"
-        bitwise_or_operator, // "Use the function 'bitwise_or()' instead: [insert specific example]"
-        bitwise_not_operator, // "Use the function 'bitwise_not()' instead: [insert specific example]"
-        expression_statement, // "Assign the expression to a variable: 'thing = [insert the statement expression]'"
+    // This is the ast.
+    expressions: std.ArrayList(Expression),
+    type_expressions: std.ArrayList(TypeExpression),
+    statements: std.ArrayList(Statement),
 
-        // Idea:
-        // If a user gets the same error more than once. Show a more detailed error. For example if a
-        // user is writing functions like in javascrtipt:
-        //
-        // function do_something(x, y)
-        //
-        // The first error will probably say something like "function is not a valid return type".
-        //
-        // Then if the user still has that same error again we instead show details about the syntax of functions.
+    pub const Error = struct {
+        pos: TokenIndex,
+        end: TokenIndex,
+        tag: Tag,
 
-        // TODO: crust explain #1234 for an in deepth explaination.
+        pub const Tag = enum {
+            invalid_parameter, // "Parameters are formated with a type and a name: `do_something(i32 a, i32 b)`". (If none of the more specific errors apply, this one is used)
+            missing_equals_or_parenthesis, // "Use parenthesis to declare a function, use equals to declare a variable." (Anly applies in the top level where both functions and bindings are possible)
+            missing_equals, // "Write [insert specific example by just inserting an equals sign after the identifier]" (Applies ouside of the top level wher functions are impossible)
+            missing_expression, // Can't assign/bind/unary/binary without an expression.
+            invalid_expression, // invalid token combinations in any kind of expression.
+            unterminated_parenthesis, // A parenthesis must be closed on the same line. (before a indent/dedent/newline token, multiline strings don't count of course)
+            invalid_token,
+            unexpected_indentation,
+            invalid_return_type, // "[insert invalid type] is not a valid return type for [insert function declaration]"
+
+            // To help people with common errors. The compiler shows an example of how to fix the error.
+            // Add more as you learn what errors users encounter.
+            //
+            // TODO: Figure out how to generate specific examples for the users code. In the same way rust does.
+            missing_parameter_type, // "Parameter's need a type, like this: [insert specific example with i32 as type].
+            missing_parameter_name, // "Give your parameter a name. [insert specific example with random names (a,b,c,d,e,f,g for example)]".
+            parameter_order, // "Write [insert specific example] instead.
+            parameter_order_and_colon, // "Write [insert specific example] instead.
+            parameter_colon, // "Write [insert specific example] instead."
+            double_equals, // "crust uses a single equals for comparison. Write [insert specific example] instead."
+            missing_comma, // "parameters are separated by commas."
+            multiple_return_types, // "Use a tuple to return multiple types: `[insert specific example of how they should write it]`".
+            multiple_assign, // "Use tuple destructuring: [insert specific example]"
+            multiple_bind, // "Use tuple desctructuring: [insert specific example]"
+            multiple_typed_bind, // "Use a tuple: [insert specific example]"
+            and_operator, // "Use the keyword 'and' instead: [insert specific example]"
+            or_operator, // "Use the keyword 'or' instead: [insert specific example]"
+            not_operator, // "Use the keyword 'not' instead: [insert specific example]"
+            bitwise_and_operator, // "Use the function 'bitwise_and()' instead: [insert specific example]"
+            bitwise_or_operator, // "Use the function 'bitwise_or()' instead: [insert specific example]"
+            bitwise_not_operator, // "Use the function 'bitwise_not()' instead: [insert specific example]"
+            expression_statement, // "Assign the expression to a variable: 'thing = [insert the statement expression]'"
+
+            // TODO: crust explain #13 for an in deepth explaination. Use @intFromEnum and @enumFromInt to access their indicies. Place the longer explainations in a new file called compiler_errors.zig
+        };
     };
 };
 
-// Decided to remove expression statements. Might cause some people trouble. I'm open to bringing them back if that's the case but it makes my life easier.
+// Size of an integer in bits.
+pub const IntegerSize = u32;
 
-pub const FunctionContentStatement = union(enum) {
-    statement: Statement,
-    @"return": Expression,
+pub const TypeExpression = union(enum) {
+    integer: IntegerSize,
+    // list: TypeExpressionIndex,
+    // set: TypeExpressionIndex,
+    // map: [2]TypeExpressionIndex,
+    // tuple: std.ArrayList(TypeExpressionIndex),
 };
 
-// Normal statement. Can be used anywhere.
+pub const Expression = union(enum) {
+    call: struct { []const u8, std.ArrayList(ExpressionIndex) },
+    integer: []const u8,
+    addition: [2]ExpressionIndex,
+};
+
 pub const Statement = union(enum) {
-    assignment: AssignmentStatement,
-    // if_statement: IfStatement,
-    // loop_statement: LoopStatement,
-};
-
-// Top level statements can have functions.
-pub const TopLevelStatement = union(enum) {
+    // Only allow in top level:
     function: FunctionStatement,
-    // if_statement: IfStatement,
-    // loop_statement: LoopStatement,
-    statement: Statement,
-    // use: UseStatement,
+    use: UseStatement,
+    
+    // Only allow in function bodies:
+    @"return": ExpressionIndex,
+    
+    // Only allow in loops
+    @"continue", // TODO: LABEL
+    @"break", // TODO: LABEL
 
-    pub fn deinit(self: TopLevelStatement) void {
-        if (self == TopLevelStatement.function) {
-            self.function.contents.deinit();
-            self.function.parameters.deinit();
-        }
-    }
-};
-
-pub const Program = struct {
-    contents: std.ArrayList(TopLevelStatement),
-    errors: std.ArrayList(ParserError),
-
-    pub fn deinit(self: Program) void {
-        for (self.contents.items) |top_level_statement| {
-            top_level_statement.deinit();
-        }
-        self.contents.deinit();
-        self.errors.deinit();
-    }
+    // Allowed everywhere.
+    assignment: AssignmentStatement, // This contains both assignments and bindings. The first occurence of an ident i a binding. Explicit type allows for shadowing. This might be confusing to newcommer.
+    loop: std.ArrayList(StatementIndex),
+    @"if": std.ArrayList(StatementIndex),
+    if_else: [2]std.ArrayList(StatementIndex),
+    // expression: Expression, // I don't want this. but it might help some users.
 };
 
 // Expressions for types, that is i32, f64, (f64, i32), [i32], {i64}, {i64:i32} etc...
