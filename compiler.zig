@@ -3,6 +3,13 @@ const std = @import("std");
 //
 // We handle errors not related to syntax, but the meaning of the code. For example type checks, and borrow checking.
 
+// CLI:
+// crust file.crs # Run file.crs
+// crust compile file.crs # Compile to index.html
+// crust unpack index.html # Unpack index.html into index.html, index.js, index.css and index.wasm. Store in a folder called ./unpacked/
+// crust explain 13 # Explain compiler error 13
+// crust test file.crs # Run all tests in file.crs and imported files
+
 pub const Error = struct {
     start: u32,
     end: u32,
