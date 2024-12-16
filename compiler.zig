@@ -10,6 +10,8 @@ const std = @import("std");
 // crust explain 13 # Explain compiler error 13
 // crust test file.crs # Run all tests in file.crs and imported files
 
+// When wasm 2.0 is available you can add names to the variables. Since there are no name clashes. you can just use the crust name without mangling.
+
 pub const Error = struct {
     start: u32,
     end: u32,
