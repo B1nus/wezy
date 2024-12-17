@@ -13,6 +13,7 @@ pub const Token = struct {
         lparen,
         rparen,
         comma,
+        keyword_loop,
         keyword_return,
         keyword_integer_type, // Hmmm, should this be considered a keyword?
         plus,
@@ -30,6 +31,7 @@ pub const Token = struct {
 
 pub const keywords = std.StaticStringMap(Token.Tag).initComptime(.{
     .{ "return", .keyword_return },
+    .{ "loop", .keyword_loop },
 });
 
 pub fn get_keyword(identifier: []const u8) ?Token.Tag {

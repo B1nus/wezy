@@ -1,0 +1,454 @@
+pub const std = @import("std");
+pub const tokenizer = @import("tokenizer.zig");
+pub const Token = tokenizer.Token;
+
+pub const TokenIndex = u32;
+pub const SourceIndex = u32;
+pub const StatementIndex = u32;
+pub const ExpressionIndex = u32;
+pub const TypeExpressionIndex = u32;
+
+pub const Parser = struct {
+    source: [:0]const u8,
+    tokens: []Token,
+    offset: TokenIndex,
+
+    // This is the ast.
+    expressions: std.ArrayList(Expression),
+    type_expressions: std.ArrayList(TypeExpression),
+    statements: std.ArrayList(Statement),
+    functions: std.StringHashMap(FunctionStatement),
+
+    // Accumulated errors
+    errors: std.ArrayList(Error),
+
+    allocator: std.mem.Allocator,
+
+    pub const Error = struct {
+        pos: TokenIndex,
+        end: TokenIndex,
+        tag: Tag,
+
+        pub const Tag = enum {
+            invalid_parameter, // "Parameters are formated with a type and a name: `do_something(i32 a, i32 b)`". (If none of the more specific errors apply, this one is used)
+            missing_equals_or_parenthesis, // "Use parenthesis to declare a function, use equals to declare a variable." (Anly applies in the top level where both functions and bindings are possible)
+            missing_equals, // "Write [insert specific example by just inserting an equals sign after the identifier]" (Applies ouside of the top level wher functions are impossible)
+            missing_expression, // Can't assign/bind/unary/binary without an expression.
+            invalid_expression, // invalid token combinations in any kind of expression.
+            unterminated_parenthesis, // A parenthesis must be closed on the same line. (before a indent/dedent/newline token, multiline strings don't count of course)
+            invalid_token,
+            unexpected_indentation,
+            invalid_return_type, // "[insert invalid type] is not a valid return type for a function"
+
+            // To help people with common errors. The compiler shows an example of how to fix the error.
+            // Add more as you learn what errors users encounter.
+            //
+            // TODO: Figure out how to generate specific examples for the users code. In the same way rust does.
+            missing_parameter_type, // "Parameter's need a type, like this: [insert specific example with i32 as type].
+            missing_parameter_name, // "Give your parameter a name. [insert specific example with random names (a,b,c,d,e,f,g for example)]".
+            parameter_order, // "Write [insert specific example] instead.
+            parameter_order_and_colon, // "Write [insert specific example] instead.
+            parameter_colon, // "Write [insert specific example] instead."
+            double_equals, // "crust uses a single equals for comparison. Write [insert specific example] instead."
+            missing_comma, // "parameters are separated by commas."
+            multiple_return_types, // "Use a tuple to return multiple types: `[insert specific example of how they should write it]`".
+            multiple_assign, // "Use tuple destructuring: [insert specific example]"
+            multiple_bind, // "Use tuple desctructuring: [insert specific example]"
+            multiple_typed_bind, // "Use a tuple: [insert specific example]"
+            and_operator, // "Use the keyword 'and' instead: [insert specific example]"
+            or_operator, // "Use the keyword 'or' instead: [insert specific example]"
+            not_operator, // "Use the keyword 'not' instead: [insert specific example]"
+            ambiguous_boolean, // "Add parenthesis to clarify: [insert example of parenthesis]"
+            bitwise_and_operator, // "Use the function 'bitwise_and()' instead: [insert specific example]"
+            bitwise_or_operator, // "Use the function 'bitwise_or()' instead: [insert specific example]"
+            bitwise_not_operator, // "Use the function 'bitwise_not()' instead: [insert specific example]"
+            expression_statement, // "Assign the expression to a variable: 'thing = [insert the statement expression]'"
+
+            // TODO: crust explain #13 for an in deepth explaination. Use @intFromEnum and @enumFromInt to access their indicies. Place the longer explainations in a new file called compiler_errors.zig
+
+            // The less operators, and syntax features I add. The more helpfull my errors can be.
+            //
+            // Simple language => Good errors.
+        };
+    };
+
+    pub fn init(source: [:0]const u8, tokens: []Token, allocator: std.mem.Allocator) !Parser {
+        return Parser{
+            .source = source,
+            .tokens = tokens,
+            .offset = 0,
+            .statements = std.ArrayList(Statement).init(allocator),
+            .expressions = std.ArrayList(Expression).init(allocator),
+            .type_expressions = std.ArrayList(TypeExpression).init(allocator),
+            .functions = std.StringHashMap(FunctionDeclaration).init(allocator),
+            .errors = std.ArrayList(Error).init(allocator),
+            .allocator = allocator,
+        };
+    }
+
+    pub fn deinit(parser: *Parser) void {
+        parser.statements.deinit();
+        parser.expressions.deinit();
+        parser.type_expressions.deinit();
+        parser.errors.deinit();
+    }
+
+    // Step forward one token and return it's value.
+    pub fn next_token(parser: *Parser) Token {
+        parser.offset += 1;
+        return parser.current_token();
+    }
+
+    pub fn current_token(parser: *Parser) Token {
+        return parser.tokens[parser.offset];
+    }
+
+    pub fn parse(parser: *Parser) !?std.ArrayList(Error) {
+        const State = enum {
+            start,
+            identifier,
+            typed,
+            function,
+            assignment,
+        };
+        state: switch (State.start) {
+            .start => {
+                switch (parser.current_token().tag) {
+                    .identifier => continue :state .identifier,
+                    .keyword_integer_type => continue :state .typed,
+                    else => unreachable,
+                }
+            },
+            .typed => {
+                switch (parser.next_token().tag) {
+                    .identifier => {
+                        switch (parser.next_token().tag) {
+                            .equal => continue :state .assignment,
+                            .lparen => continue :state .function,
+                            else => unreachable,
+                        }
+                    },
+                    else => unreachable,
+                }
+            },
+            .identifier => unreachable,
+            .function => {
+                const identifier = parser.source[parser.tokens[parser.offset - 1].pos..parser.tokens[parser.offset - 1].end + 1];
+                const parameters = try parser.parse_parameters();
+                const body = try parser.parse_block();
+                const function = FunctionStatement { .parameters = parameters, .identifier = identifier };
+                parser.append_statement(Statement { .function = function });
+            },
+        }
+    }
+
+    // Parse function parameters. Errors assume that the user was trying to write a function.
+    //
+    // returns the parameters and appends the type_expressions to the parsers type_expression list.
+    //
+    // The offset ends up at the potential indentation after the ending parenthesis.
+    fn parse_parameters(parser: *Parser) !std.StringHashMap(TypeExpressionIndex) {
+        var parameters = std.StringHashMap(TypeExpressionIndex).init(parser.type_expressions.allocator);
+        while (parser.next_token().tag == .keyword_integer_type) {
+            const integer_size = std.fmt.parseInt(IntegerSize, parser.source[parser.current_token().pos + 1..parser.current_token().end + 1], 10) catch { unreachable; };
+            const type_index = try parser.append_type_expression(TypeExpression { .integer = integer_size });
+            if (parser.next_token().tag == .identifier) {
+                const identifier = parser.source[parser.current_token().pos..parser.current_token().end + 1];
+                if (parameters.fetchPut(identifier, type_index)) |_| {
+                    // Tried to use the same parameter name
+                    unreachable;
+                }
+            } else { unreachable; }
+
+            if (parser.next_token().tag == .comma) { _ = parser.next_token(); }
+        }
+        if (parser.next_token().tag != .rparen) {
+            unreachable;
+        }
+        // It must have an indented function body or no body at all. An empty body is allowed, no pass keyword is required.
+        if (parser.next_token().tag != .newline or parser.next_token().tag != .indentation) {
+            unreachable;
+        }
+        return parameters;
+    }
+
+    // Parse a type. Errors assume that the user is trying to write a type expression.
+    //
+    // Appends type_expressions to the parsers type_expressions list. Return the type expressions index.
+    // fn parse_type(parser: *Parser) !TypeExpressionIndex {}
+
+    // Parse an expression. Errors assume that the user was trying to write an expression.
+    //
+    // Appends expressions to the parsers expressions list. Return the expressions index.
+    // fn parse_expression(parser: *Parser) !ExpressionIndex {}
+
+    // Parse a block. Errors assume that the user was trying to write a code block. A block is a list of statements started by the indent token and ended by the dedent token.
+    //
+    // Appends expressions, statements and type_expressions to the parsers lists and return the index of the block statement
+    fn parse_block(parser: *Parser) !StatementIndex {
+        // Starts with an indentation. Ends with a dedentation. Can contain blocks inside. But let's not worry about that right now. If you stumble upon a new indentation. just panic.
+        var dedentation = false;
+        const block_index = parser.append_statement(Statement{ .block = BlockStatement{ .start = undefined, .end = undefined } });
+        parser.statements.items[block_index].block.start = block_index + 1;
+        while (!dedentation) {
+            parser.statements.items[block_index].block.end = try parser.append_statement(try parser.parse_statement());
+            dedentation = parser.current_token().tag == .dedentation or parser.current_token().tag == .eof;
+        }
+        return block_index;
+    }
+
+    fn parse_statement(parser: *Parser) !StatementIndex {
+        // TODO: Error handling for differentating between erronious calls and erroniou function declarations might need the type.
+        // var type: ?TypeExpression = null;
+        switch (parser.current_token().tag) {
+            .identifier => {
+                const identifier = parser.source[parser.current_token().pos .. parser.current_token().end + 1];
+                switch (parser.next_token().tag) {
+                    .comma => {
+                        parser.errors.append(Error{ .pos = parser.current_token().pos, .end = parser.current_token().end, .tag = .multiple_assign });
+                    },
+                    .equals => {
+                        parser.offset += 1;
+                        const expression_index = try parser.parse_expression();
+                        return try parser.append_statement(Statement{ .assignment = AssignmentStatement{ .explicit_type = null, .identifier = identifier, .expression = expression_index } });
+                    },
+                    .lparen => {},
+                    .colon => unreachable, // Labled loop
+                }
+            },
+            .keyword_integer_type => {
+                const pos, const end, _ = parser.current_token();
+                const explicit_type_index = parser.append_type_expression(TypeExpression{ .integer = std.fmt.parseInt(IntegerSize, parser.source[pos + 1 .. end + 1], 10) });
+                // Nice code reuse. Parse the statement as if it doesn't have an explicit type and add the type afterwards.
+                parser.offset += 1;
+                const statement_index = try parser.parse_statement();
+                switch (parser.statements.items[statement_index]) {
+                    .assignment => |*a| {
+                        a.explicit_type = explicit_type_index;
+                    },
+                    .function => |*f| {
+                        f.return_type = explicit_type_index;
+                    },
+                }
+                return statement_index;
+            },
+            .keyword_return => {
+                parser.offset += 1;
+                const expression_index = try parser.parse_expression();
+                return try parser.append_statement(Statement{ .@"return" = expression_index });
+            },
+            .keyword_loop => {
+                unreachable;
+            },
+            else => unreachable,
+        }
+    }
+
+    fn append_statement(parser: *Parser, statement: Statement) !StatementIndex {
+        try parser.statements.append(statement);
+        return parser.statements.items.len - 1;
+    }
+
+    fn append_expression(parser: *Parser, expression: Expression) !ExpressionIndex {
+        try parser.expressions.append(expression);
+        return parser.expressions.items.len - 1;
+    }
+
+    fn append_type_expression(parser: *Parser, type_expression: TypeExpression) !TypeExpressionIndex {
+        try parser.type_expressions.append(type_expression);
+        return parser.type_expressions.items.len - 1;
+    }
+};
+
+// Size of an integer in bits.
+pub const IntegerSize = u32;
+
+pub const TypeExpression = union(enum) {
+    integer: IntegerSize,
+    boolean,
+    f32,
+    f64,
+    list: TypeExpressionIndex,
+    set: TypeExpressionIndex,
+    map: [2]TypeExpressionIndex,
+    tuple: std.ArrayList(TypeExpressionIndex),
+};
+
+pub const Expression = union(enum) {
+    call: CallExpression,
+    method_call: MethodCallExpression,
+    numeric: NumericExpression,
+    boolean: BooleanExpression,
+    tuple: std.ArrayList(ExpressionIndex),
+    list: std.ArrayList(ExpressionIndex),
+    set: std.ArrayList(ExpressionIndex),
+    map: std.ArrayList([2]ExpressionIndex),
+};
+
+// We should be able to differentiate booleans, numbers and list/map/set/tuple literals from the syntax alone.
+// This might cause some trouble late. This might be a severe overcomplication. We'll see.
+pub const NumericExpression = union(enum) {
+    literal: []const u8,
+    negated: ExpressionIndex,
+    binary: Binary,
+
+    pub const Binary = struct {
+        left: ExpressionIndex,
+        right: ExpressionIndex,
+        operator: Operator,
+
+        pub const Operator = enum {
+            addition,
+            subtraction,
+            multiplication,
+            division,
+            // exponent,
+        };
+    };
+};
+
+// Expressions that yield booleans.
+pub const BooleanExpression = union(enum) {
+    literal: bool,
+    inverted: ExpressionIndex, // "not" keyword
+    operator: Operator,
+    comparison: Comparison,
+
+    // TODO: Do not allow ambiguous boolean expressions.
+    pub const Operator = union(enum) {
+        disjunction: std.ArrayList(ExpressionIndex), // "or"
+        conjunction: std.ArrayList(ExpressionIndex), // "and"
+    };
+
+    // Chained comparisons such as "x = y = z = 5" or "0 <= x < 10".
+    //
+    // I'm aware of the possibility of confusing situations. I'm open to remove this
+    // feature if it causes trouble for users.
+    pub const Comparison = struct {
+        expressions: std.ArrayList(ExpressionIndex), // Only Numeric expressions.
+        operators: Operators,
+
+        pub const Operators = union(enum) {
+            equal,
+            // True means that it can be equal as well.
+            //
+            // We only allow chained comparisons in one direction.
+            less: std.ArrayList(bool),
+            more: std.ArrayList(bool),
+        };
+    };
+};
+
+// identifier(expr1, expr2, ... )
+pub const CallExpression = struct {
+    identifier: []const u8,
+    parameters: std.ArrayList(ExpressionIndex),
+};
+
+// expression.method(expr1, expr2, ... )
+pub const MethodCallExpression = struct {
+    object: Expression,
+    method_identifier: []const u8,
+    parameters: std.ArrayList(ExpressionIndex),
+};
+
+// TODO: Check if the statement is in a context where it is allowed.
+pub const Statement = union(enum) {
+    // Only allow in top level:
+    function: FunctionStatement,
+    block: BlockStatement,
+    use: []const u8,
+
+    // Only allow in function bodies:
+    @"return": ExpressionIndex,
+
+    // Only allow in loops
+    @"continue": ?[]const u8, // TODO: LABEL
+    @"break": ?[]const u8, // TODO: LABEL
+
+    // Allowed everywhere.
+    assignment: AssignmentStatement, // This contains both assignments and bindings. The first occurence of an ident i a binding. Explicit type allows for shadowing. This might be confusing to newcommer.
+    loop: std.ArrayList(StatementIndex),
+    if_else: IfElseStatement,
+
+    // TODO: Decide if unsude results should be allowed.
+    call: CallExpression,
+    method_call: MethodCallExpression,
+    // expression: Expression, // I don't want this. But from experience with zig complaining about unused results this can be quite annoying.
+};
+
+// This is very similar to assignments. How about unifying their syntax? This could introduce closures in a nice way. But I'm getting ahead of myself.
+pub const FunctionStatement = struct {
+    return_type: ?TypeExpressionIndex,
+    identifier: []const u8,
+    parameters: std.StringHashMap(TypeExpressionIndex),
+    body: BlockStatement,
+};
+
+pub const BlockStatement = struct {
+    start: StatementIndex,
+    end: StatementIndex, // Inclusive
+};
+
+// Note: we need to keep track of the environment variables to know if something is an binding or assignment. The ast only handles the semantics, not the meaning so this is
+// something you handle in compiler.zig instead.
+pub const AssignmentStatement = struct {
+    explicit_type: ?TypeExpressionIndex,
+    identifier: []const u8,
+    expression: ExpressionIndex,
+};
+
+pub const IfElseStatement = struct {
+    condition: ExpressionIndex,
+    then: BlockStatement,
+    otherwise: ?BlockStatement,
+};
+
+pub const LoopStatement = struct {
+    // Ranges? Iterators? Slices?
+    label: ?[]const u8, // Label syntax is the same as in c. That is "label: loop numeric_expression" to make a label and "continue label" or "break label" to use it
+    repetitions: usize,
+    block: BlockStatement,
+};
+
+// Might be a good idea to introduce the concept of a code block. There's a low of repetition here in loops, if, and function. It's fine right know. Just something to think about.
+
+// Remember:
+// wasm drop
+// wasm labels
+// No function statements in functions
+// No use statement in functions
+// No return outside of functions
+// No closures. functions only use their arguments
+// Shadowing/Rebinding when using explicit type. This is in the compiler, not the parser
+// Bitwise ops cannot be named and, not, or which are keywords. use bitwise_or(x,y) or bit_or(x,y) instead. It's more clear this way so it's a good change.
+// Present errors simply. DO NOT include details and technical words such as parser, tokenizer, expression etc...
+// Pratt parsing for type expressions
+
+// Remember that thing about zls where it doesn't give error on function call arguments?
+// Yeah. Let's try not to recreate that. Figure out a good way to give the user all of
+// these errors before they even try to compile. It saves a lot of time.
+
+const expect = std.testing.expect;
+test "simple add function" {
+    const source =
+        \\i32 add(i32 x, i32 y)
+        \\  return x + y
+        \\
+        \\z = add(-8,9)
+    ;
+    const tokens = try tokenizer.tokenize(source, std.testing.allocator);
+    defer tokens.deinit();
+
+    var parser = try Parser.init(source, tokens.items, std.testing.allocator);
+    defer parser.deinit();
+
+    // There should be no errors.
+    if (try parser.parse()) |errors| {
+        std.debug.print("{any}", .{errors.items});
+        unreachable;
+    }
+
+    try expect(parser.statements.items.len == 1);
+    try expect(parser.statements.items[0] == Statement.function);
+}
