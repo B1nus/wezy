@@ -484,32 +484,37 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 You do not need to handle all overflow errors, but crust makes it really easy to handle them when you need to. If an overflow occurs without error handling, it crashes.
 # Out of memory
 crust will crash, there is no way to handle these errors. In 99.99% of cases your program should crash if it is out of memory.
-# Experimental syntax for Enums and Structs
+# Experimental syntax
 ```
-enum file_type
- text
- image
- video
- executable
-```
-or 
-```
-enum file_type = {
- text,
-image,
-video,
-executable,
-}
-```
-# Experimental syntax for functions
-```
-i32 add = (i32 a, i32, b)
- return a + b
+i24 x = 0
+(i32, i32) -> (i32, i32) divrem = (i32 a, i32 b) { return (floor(a / b), a % b) }
+{[i8]:i32} map = { "hello":1, "bye":2 }
+{i32} set = { 1, 2, 3, 4, 6, 8 }
+[i32] list = [ 1, 2, 3, 4, 5 ]
+struct file = { i32 size, [i8] content }
+enum read_error = { [i3] no_permission, [i8] not_found, [i8] invalid_path }
 
+// Function literals being put to good use
+nums = [1, 2, 3, 4].map((n) {
+ return n.divrem(2) // Methods are just functions.
+})
+
+assert = (bool correct)
+ if not correct
+  panic
+
+assert(nums = nums[1..4]) // One-indexed and inclusive
+
+loop nums[2..], 2.. as n, i
+ print(i.format().join(" => ").join(n.format()))
+
+// These generics need some thinking
+```
+Allows for usage of struct literals, enum literals and function literals. I love this, it's A cool concept, but at this point it's a completely different language. Something to try out, just not now.
 # No hidden control flows
 The standard library should be implemented in the language itself, no magic.
 # Credit
-I want to give credit to all of the programming languages which I've looked at for guidence: [Lua](https://www.lua.org/start.html), [Zig](https://ziglang.org/), [C](https://en.wikipedia.org/wiki/C_(programming_language)), [Rust](https://www.rust-lang.org/), [Scratch](https://scratch.mit.edu/), [WASM](https://webassembly.org/). Thank you for all of the help, and sorry for stealing your features (Mostly zig's...). I also want to give credit to [Ziglings](https://codeberg.org/ziglings/exercises/src/branch/main) and [Watlings](https://github.com/EmNudge/watlings) which helped me learn zig and webassembly. I also want to give credit to this [codelab](https://codelabs.developers.google.com/your-first-webgpu-app) and [learn webgl](https://learnwebgl.brown37.net/) which is an amazing resourse. 
+I want to give credit to all of the programming languages which I've looked at for guidence: [Lua](https://www.lua.org/start.html), [Zig](https://ziglang.org/), [C](https://en.wikipedia.org/wiki/C_(programming_language)), [Rust](https://www.rust-lang.org/), [Scratch](https://scratch.mit.edu/), [WASM](https://webassembly.org/). Thank you for all of the help, and sorry for stealing your features (Mostly zig's...). I also want to give credit to [Ziglings](https://codeberg.org/ziglings/exercises/src/branch/main) and [Watlings](https://github.com/EmNudge/watlings) which helped me learn zig and webassembly. I also want to give credit to this [codelab](https://codelabs.developers.google.com/your-first-webgpu-app) and [learn webgl](https://learnwebgl.brown37.net/) which is an amazing resourse. Credit to [advent of code](https://adventofcode.com/), it's my favourite way to learn languages.
 # TODO
 - [x] Watlings
 - [ ] Webgpu codelab
@@ -517,7 +522,7 @@ I want to give credit to all of the programming languages which I've looked at f
 - [x] Writing an interpreter in go
 - [ ] Crafting Interpreters
 - [x] Ziglings
-- [ ] aoc in zig
+- [x] aoc in zig
 - [ ] Fix painful parts of working with webgpu (less unnecessary repetition of types)
 - [ ] Simplified high level module for working with webgpu (the `graphics` module)
 - [ ] Figure out how to design crust to work well with webassembly
