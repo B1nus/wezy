@@ -1,10 +1,10 @@
 pub const std = @import("std");
 
-// I would write pub const SourceIndex = u32. But let's consider that implicit. For other indicies in the ast I will make it explicit though.
+pub const SourceIndex = u32;
 
 pub const Token = struct {
-    pos: u32,
-    end: u32, // Not necessary for meny tokens. Maybe we can do better?
+    pos: SourceIndex,
+    end: SourceIndex, // Not necessary for meny tokens. Maybe we can do better?
     tag: Tag,
 
     pub const Tag = enum {
@@ -27,6 +27,10 @@ pub const Token = struct {
         unexpected_indentation,
         invalid_dedentation,
     };
+
+    pub fn literal(self: Token, source: [:0]const u8) []const u8 {
+        return source[self.pos .. self.end + 1];
+    }
 };
 
 pub const keywords = std.StaticStringMap(Token.Tag).initComptime(.{
@@ -55,13 +59,15 @@ pub fn get_keyword(identifier: []const u8) ?Token.Tag {
 }
 
 // Return all tokens for a source file.
+//
+// TODO: Make the parser use the tokenizer as an iterator for performance.
 pub fn tokenize(source: [:0]const u8, allocator: std.mem.Allocator) !std.ArrayList(Token) {
     var tokens = std.ArrayList(Token).init(allocator);
-    var indent_stack = std.ArrayList(u32).init(allocator);
+    var indent_stack = std.ArrayList(SourceIndex).init(allocator);
     defer indent_stack.deinit();
 
     try indent_stack.append(0);
-    var offset: u32 = 0;
+    var offset: SourceIndex = 0;
 
     while (true) {
         try next_token_line(source, offset, &indent_stack, &tokens);
@@ -75,9 +81,9 @@ pub fn tokenize(source: [:0]const u8, allocator: std.mem.Allocator) !std.ArrayLi
 // Return all of the tokens from the next non-empty line along with indentation
 //
 // TODO: Add a check for the weird magic values on top of the utf8 files.
-pub fn next_token_line(source: [:0]const u8, offset: u32, indent_stack: *std.ArrayList(u32), tokens: *std.ArrayList(Token)) !void {
+pub fn next_token_line(source: [:0]const u8, offset: SourceIndex, indent_stack: *std.ArrayList(u32), tokens: *std.ArrayList(Token)) !void {
     var index = offset;
-    var indent: u32 = 0;
+    var indent: SourceIndex = 0;
 
     while (source[index] == ' ' or source[index] == '\t' or source[index] == '\r') { // Should \r be here?
         indent += 1;
@@ -139,7 +145,7 @@ pub const State = enum {
 };
 
 // Find the next token. This assumes that the line does not start with indentation and is not empty.
-pub fn next_token(source: [:0]const u8, offset: u32) Token {
+pub fn next_token(source: [:0]const u8, offset: SourceIndex) Token {
     var token = Token{ .pos = offset, .end = undefined, .tag = undefined };
     var index = offset;
 
