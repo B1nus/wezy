@@ -77,49 +77,88 @@ pub fn parse(source: [:0]const u8, allocator: std.mem.Allocator) !Parsed {
     };
 }
 
-pub const Parser = struct {
-    tokens: std.ArrayList(Token),
+pub const LineParser = struct {
+    source: [:0]const u8,
+    token_line: []Token,
+    offset: TokenIndex,
+    expressions: *std.ArrayList(Expression),
+
+    pub fn init(source: [:0]const u8, token_line: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression)) LineParser {
+        return LineParser {
+            .source = source,
+            .token_line = tokens_line,
+            .offset = offset,
+            .expressions = expressions,
+        };
+    }
+
+    // Add more functions here later. maybe. but not now. Just get the tests passing first.
+
+    pub fn parse_expression(self: *LineParser, offset: TokenIndex) !Expression {
+        self.offset += offset;
+        self.parse_prefix();
+    }
+
+    pub fn parse_prefix(self: *LineParser) !Expression {
+        switch (self.current_token().tag) {
+            .integer_literal => {
+                return Expression {.integer_literal = self.token_line[offset].literal(source)};
+            },
+            .minus => {
+                try expressions.append(try self.parse_prefix(offset + 1));
+                const rhs_index = expressions.items.len - 1;
+                return Expression {.negation = rhs_index};
+            },
+            .plus => {
+                return self.parse_prefix(offset + 1);
+            },
+            .identifier => {
+                if (self.token_line.len > 1 and self.token_line[1].tag == .lparen) {
+                    
+                } else {
+                    return Expression { .identifier = self.token_line[offset].literal(source) };
+                }
+            },
+            .lparen => {
+                const exp = parse_expression(offset + 1);
+                if (self.token_line[self.offset].tag == .rparen) {
+                    return exp;
+                } else {
+                    unreachable;
+                }
+            },
+            else => unreachable,
+        }
+    }
+
+    pub fn current_token(self: LineParser) Token {
+        return self.token_line[self.offset];
+    }
+
+    pub fn next_token(self: LineParser) Token {
+        self.offset += 1;
+        return self.current_token();
+    }
 };
 
-pub fn parse_expression(source: [:0]const u8, tokens: []Token, left: ?Expression, expressions: *std.ArrayList(Expression)) !Expression {
-    var left = switch (tokens[0].tag) {
-        .minus => {
-            
-        },
-        .identifier => {
-            // Call expression
-        },
-    },
-    switch (tokens[0].tag) {
-        .newline, .dedentation, .eof => {
-            if (left) |ret| {
-                return  ret
-            } else {
-                unreachable;
-            }
-        },
-        .minus => {
-            const expression = try parse_expression(source, tokens[1..], null, expressions);
-            try expressions.append(expressions);
-            return Expression {.negation = expressions.items.len - 1};
-        },
-        .plus => {
-            if (left) |lhs| {
-                const rhs = try parse_expression(source, tokens[1..])
-            } else {
-                return try parse_expression(source, tokens[1..], null, expressions);
-            }
-        },
-    }
+// Pratt parsing. Neat algorithm.
+pub fn parse_expression(source: [:0]const u8, tokens: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression)) !Expression {
+
+    while 
 }
 
-pub fn parse_infix(source: [:0]const u8, tokens: []Token, allocator: std.mem.Allocator) !Expression {
-    switch (tokens[0]) {
+pub fn parse_prefix(source: [:0]const u8, tokens: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression)) !Expression {
+}
+
+pub fn parse_infix(source: [:0]const u8, tokens: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression), left: ?Expression) !Expression {
+    switch (tokens[offset]) {
         .minus => {
+
         },
         .plus => {
+
         },
-        .identifier => {
+        .lparen => {
 
         },
         
