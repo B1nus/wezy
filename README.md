@@ -484,6 +484,28 @@ Check for equality with `x = y`. Using chained comparisons is allowed `1 < x < 1
 You do not need to handle all overflow errors, but crust makes it really easy to handle them when you need to. If an overflow occurs without error handling, it crashes.
 # Out of memory
 crust will crash, there is no way to handle these errors. In 99.99% of cases your program should crash if it is out of memory.
+# Experimental syntax for Enums and Structs
+```
+enum file_type
+ text
+ image
+ video
+ executable
+```
+or 
+```
+enum file_type = {
+ text,
+image,
+video,
+executable,
+}
+```
+# Experimental syntax for functions
+```
+i32 add = (i32 a, i32, b)
+ return a + b
+
 # No hidden control flows
 The standard library should be implemented in the language itself, no magic.
 # Credit
