@@ -245,6 +245,7 @@ TODO!
 - attributes
 - strings, we already have lists.
 - big_int
+- multiarraylist. lists of structs are multiarraylists by default.
 
 crust's philosophy is that optimisation is the programmers responisiblity, not the compilers. The compiler is a tool. A predictable program which does what you expect it to. I want programmers to be able to predict what crust code will look like in webassembly and use this understanding to their advantage. I don't want the compiler to be a black box full of magic.
 
