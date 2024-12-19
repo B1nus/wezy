@@ -109,7 +109,7 @@ pub const Parser = struct {
     pub const ExpressionIndex = usize;
 
     pub const Precedence = enum {
-        zero,
+        lowest,
         sum,
     };
 
@@ -152,7 +152,7 @@ pub const Parser = struct {
         const identifier = self.tokenizer.token_source(self.tokenizer.current);
         self.advance();
         self.advance_if(Token.Tag.equal);
-        const expression = self.parse_expression(Precedence.zero);
+        const expression = self.parse_expression(Precedence.lowest);
         return Assignment{ .identifier = identifier, .expression = expression };
     }
 
@@ -199,7 +199,7 @@ pub const Parser = struct {
     pub inline fn get_precedence(token_tag: Token.Tag) Precedence {
         return switch (token_tag) {
             .plus => Precedence.sum,
-            .integer => Precedence.zero,
+            .integer => Precedence.lowest,
             else => unreachable,
         };
     }
@@ -276,4 +276,16 @@ test "many assign expressions" {
     try expect(std.mem.eql(u8, parser.assignments.items[1].identifier, "x"));
     try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[1].expression.addition[0]].identifier, "z"));
     try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[1].expression.addition[1]].integer, "2"));
+}
+
+test "pratt parsing" {
+    const source = "1 + 2 + 3";
+    var tokenizer = Tokenizer.init(source);
+    var parser = Parser.init(&tokenizer, std.testing.allocator);
+    defer parser.deinit();
+
+    const expression = parser.parse_expression(Parser.Precedence.lowest);
+    std.debug.print("{any}\n{any}", .{ expression, parser.expressions.items });
+    try expect(std.mem.eql(u8, parser.expressions.items[expression.addition[0]].integer, "1"));
+    try expect(std.mem.eql(Parser.ExpressionIndex, &expression.addition, &.{ 2, 3 }));
 }
