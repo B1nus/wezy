@@ -86,7 +86,7 @@ pub const LineParser = struct {
     pub fn init(source: [:0]const u8, token_line: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression)) LineParser {
         return LineParser {
             .source = source,
-            .token_line = tokens_line,
+            .token_line = token_line,
             .offset = offset,
             .expressions = expressions,
         };
@@ -94,33 +94,48 @@ pub const LineParser = struct {
 
     // Add more functions here later. maybe. but not now. Just get the tests passing first.
 
+    // pratt parsing for the expression starting at offset
     pub fn parse_expression(self: *LineParser, offset: TokenIndex) !Expression {
-        self.offset += offset;
+        self.offset = offset;
         self.parse_prefix();
     }
 
     pub fn parse_prefix(self: *LineParser) !Expression {
         switch (self.current_token().tag) {
             .integer_literal => {
-                return Expression {.integer_literal = self.token_line[offset].literal(source)};
+                return Expression {.integer_literal = self.current_token().literal(self.source)};
             },
             .minus => {
-                try expressions.append(try self.parse_prefix(offset + 1));
-                const rhs_index = expressions.items.len - 1;
+                self.offset += 1;
+                try self.expressions.append(try self.parse_prefix());
+                const rhs_index = self.expressions.items.len - 1;
                 return Expression {.negation = rhs_index};
             },
             .plus => {
-                return self.parse_prefix(offset + 1);
+                self.offset += 1;
+                return self.parse_prefix();
             },
             .identifier => {
-                if (self.token_line.len > 1 and self.token_line[1].tag == .lparen) {
-                    
-                } else {
-                    return Expression { .identifier = self.token_line[offset].literal(source) };
+                const identifier = self.current_token().literal(self.source);
+                self.offset += 1;
+                switch (self.current_token().tag) {
+                    .lparen => {
+                        var expressions = std.ArrayList(ExpressionIndex).init(self.expressions.allocator);
+                        var expression = try self.parse_expression(self.offset + 1);
+                        while (self.current_token().tag != .rparen and self.offset < self.token_line.len - 1) {
+                            try self.expressions.append(expression);
+                            try expressions.append(self.expressions.items.len - 1);
+                            expression = try self.parse_expression(self.offset + 1);
+                        }
+                        return Expression {.call = .{identifier, expressions}};
+                    },
+                    .dot => unreachable,
+                    else => return Expression { .identifier = identifier },
                 }
             },
             .lparen => {
-                const exp = parse_expression(offset + 1);
+                self.offset += 1;
+                const exp = self.parse_expression();
                 if (self.token_line[self.offset].tag == .rparen) {
                     return exp;
                 } else {
@@ -128,6 +143,19 @@ pub const LineParser = struct {
                 }
             },
             else => unreachable,
+        }
+    }
+
+    pub fn parse_infix(self: *LineParser, left: Expression) !Expression {
+        switch (self.current_token().tag) {
+            .rparen, .comma => {
+                return left;
+            },
+            .plus => {
+            },
+            .minus => {
+            },
+            .dot => unreachable, // method call?
         }
     }
 
@@ -140,30 +168,6 @@ pub const LineParser = struct {
         return self.current_token();
     }
 };
-
-// Pratt parsing. Neat algorithm.
-pub fn parse_expression(source: [:0]const u8, tokens: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression)) !Expression {
-
-    while 
-}
-
-pub fn parse_prefix(source: [:0]const u8, tokens: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression)) !Expression {
-}
-
-pub fn parse_infix(source: [:0]const u8, tokens: []Token, offset: TokenIndex, expressions: *std.ArrayList(Expression), left: ?Expression) !Expression {
-    switch (tokens[offset]) {
-        .minus => {
-
-        },
-        .plus => {
-
-        },
-        .lparen => {
-
-        },
-        
-    }
-}
 
 pub const Parsed = struct {
     functions: std.StringHashMap(FunctionDeclaration),
