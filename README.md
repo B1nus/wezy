@@ -507,7 +507,16 @@ assert(nums = nums[1..4]) // One-indexed and inclusive
 loop nums[2..], 2.. as n, i
  print(i.format().join(" => ").join(n.format()))
 
-// These generics need some thinking
+// Generics, not actually generics. just a runtime check for type
+// The Expression enum is the exact same as the one used on the ast.
+// So there is no magic here. This is already in the language but now
+// it's available simply to the user. Expression is not a special enum.
+// It's the same as every other enum.
+print = ([expression] expressions)
+  loop expressions as exp
+    switch exp
+      numeric => ...
+      list => ...
 ```
 Allows for usage of struct literals, enum literals and function literals. I love this, it's A cool concept, but at this point it's a completely different language. Something to try out, just not now.
 # No hidden control flows
