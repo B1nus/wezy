@@ -186,10 +186,10 @@ pub const Parser = struct {
     pub fn parse_infix(self: *Parser, lhs: Expression) Expression {
         switch (self.tokenizer.current.tag) {
             .plus => {
+                const precedence = get_precedence(self.tokenizer.current.tag);
                 self.advance();
-                const rhs = self.parse_expression(get_precedence(self.tokenizer.current.tag));
                 const lhs_index = self.append_expression(lhs);
-                const rhs_index = self.append_expression(rhs);
+                const rhs_index = self.append_expression(self.parse_expression(precedence));
                 return Expression{ .addition = .{ lhs_index, rhs_index } };
             },
             else => unreachable,
@@ -199,7 +199,6 @@ pub const Parser = struct {
     pub inline fn get_precedence(token_tag: Token.Tag) Precedence {
         return switch (token_tag) {
             .plus => Precedence.sum,
-            .integer => Precedence.lowest,
             else => unreachable,
         };
     }
@@ -262,6 +261,8 @@ test "many assign expressions" {
     const source =
         \\z = 1 + 1
         \\
+        \\    
+        \\   
         \\x = z + 2
     ;
     var tokenizer = Tokenizer.init(source);
@@ -285,7 +286,7 @@ test "pratt parsing" {
     defer parser.deinit();
 
     const expression = parser.parse_expression(Parser.Precedence.lowest);
-    std.debug.print("{any}\n{any}", .{ expression, parser.expressions.items });
-    try expect(std.mem.eql(u8, parser.expressions.items[expression.addition[0]].integer, "1"));
-    try expect(std.mem.eql(Parser.ExpressionIndex, &expression.addition, &.{ 2, 3 }));
+    try expect(std.mem.eql(u8, parser.expressions.items[parser.expressions.items[expression.addition[0]].addition[0]].integer, "1"));
+    try expect(std.mem.eql(u8, parser.expressions.items[parser.expressions.items[expression.addition[0]].addition[1]].integer, "2"));
+    try expect(std.mem.eql(u8, parser.expressions.items[expression.addition[1]].integer, "3"));
 }
