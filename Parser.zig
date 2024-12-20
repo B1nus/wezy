@@ -37,12 +37,6 @@ pub fn deinit(self: @This()) void {
     self.expressions.deinit();
 }
 
-pub fn parse_program(self: *@This()) void {
-    while (self.tokenizer.current.tag != .eof) {
-        self.assignments.append(self.parse_assignment()) catch unreachable;
-    }
-}
-
 pub fn parse_assignment(self: *@This()) Assignment {
     while (self.tokenizer.current.tag == .newline) {
         self.advance();
@@ -144,7 +138,8 @@ test "many assign expressions" {
     var parser = @This().init(&tokenizer, std.testing.allocator);
     defer parser.deinit();
 
-    parser.parse_program();
+    try parser.assignments.append(parser.parse_assignment());
+    try parser.assignments.append(parser.parse_assignment());
     try expect(std.mem.eql(u8, parser.assignments.items[0].identifier, "z"));
     try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[0].expression.addition[0]].integer, "1"));
     try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[0].expression.addition[1]].integer, "1"));
@@ -176,5 +171,7 @@ test "integer literal assignments" {
     var parser = @This().init(&tokenizer, std.testing.allocator);
     defer parser.deinit();
 
-    parser.parse_program();
+    while (parser.tokenizer.current.tag != .eof) {
+        try parser.assignments.append(parser.parse_assignment());
+    }
 }

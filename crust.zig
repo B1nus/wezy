@@ -1,6 +1,9 @@
 pub const std = @import("std");
-pub const compile = @import("compiler.zig").compile;
+pub const Tokenizer = @import("Tokenizer.zig");
+pub const Parser = @import("Parser.zig");
+pub const Compiler = @import("Compiler.zig");
 pub const stdout = std.io.getStdOut().writer();
+pub const allocator = std.heap.page_allocator;
 
 // TODO: ANSI for coloring and text styling. Make it pretty! :)
 const usage =
@@ -73,24 +76,30 @@ pub fn main() !void {
             if (std.fs.cwd().openFile(file_path, .{})) |file| {
                 var source = std.ArrayList(u8).fromOwnedSlice(std.heap.page_allocator, try file.readToEndAlloc(std.heap.page_allocator, 0xFFFFFFFF));
                 try source.append(0);
-                std.debug.print("{x}\n", .{source.items});
                 const base_name = std.fs.path.basename(file_path);
                 const dot_pos = std.mem.lastIndexOfScalar(u8, base_name, '.') orelse base_name.len;
-                const name = try std.heap.page_allocator.alloc(u8, dot_pos + 5);
-                std.mem.copyForwards(u8, name[0..], base_name);
+                const name = try allocator.alloc(u8, dot_pos + 5);
+                std.mem.copyForwards(u8, name, base_name);
                 std.mem.copyForwards(u8, name[dot_pos..], ".wasm");
-                std.debug.print("{s}\n", .{name});
-                const wasm_bytes = compile(@ptrCast(source.items), std.heap.page_allocator);
+
+                // Compilation
+                var tokenizer = Tokenizer.init(@ptrCast(source.items));
+                var parser = Parser.init(&tokenizer, allocator);
+                var compiler = Compiler.init(&parser, allocator);
+                const wasm = try compiler.compile(allocator); // TODO Error handling
+                defer compiler.deinit();
+                defer source.deinit();
+                defer wasm.deinit();
 
                 // WARǸING. This overwrites the file
                 //
                 // TODO Let users change output filename
-                const wasm_file = try std.fs.cwd().createFile(name, .{});
-                _ = try wasm_file.write(wasm_bytes.items);
+                const wasm_file = try std.fs.cwd().createFile(name, .{}); // TODO Error handling
+                _ = try wasm_file.write(wasm.items);
             } else |file_open_error| {
                 switch (file_open_error) {
                     std.fs.File.OpenError.FileNotFound => continue :state Command{ .error_ = Command.Error{ .file_not_found = file_path } },
-                    else => unreachable,
+                    else => unreachable, // TODO Error handling
                 }
             }
         },
