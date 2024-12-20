@@ -120,3 +120,13 @@ test "assign tokens" {
     try expect(token_eof.tag == .eof);
     try expect(token_eof.pos == 9);
 }
+
+test "large integer" {
+    const source = "5986 69";
+    var tokenizer = @This().init(source);
+    try expect(tokenizer.current.tag == .integer);
+    try expect(@import("std").mem.eql(u8, tokenizer.token_source(tokenizer.current), "5986"));
+    try expect(tokenizer.peek.tag == .integer);
+    try expect(@import("std").mem.eql(u8, tokenizer.token_source(tokenizer.peek), "69"));
+    try expect(tokenizer.next_token().tag == .eof);
+}

@@ -58,7 +58,7 @@ pub fn parse_expression(self: *@This(), precedence: Precedence) Expression {
     var lhs = self.parse_prefix();
     self.advance();
 
-    while (!tag_is_end_of_line(self.tokenizer.peek.tag) and @intFromEnum(precedence) < @intFromEnum(get_precedence(self.tokenizer.current.tag))) {
+    while (!tag_is_end_of_line(self.tokenizer.current.tag) and !tag_is_end_of_line(self.tokenizer.peek.tag) and @intFromEnum(precedence) < @intFromEnum(get_precedence(self.tokenizer.current.tag))) {
         lhs = self.parse_infix(lhs);
     }
 
@@ -163,4 +163,16 @@ test "pratt parsing" {
     try expect(std.mem.eql(u8, parser.expressions.items[parser.expressions.items[expression.addition[0]].addition[0]].integer, "1"));
     try expect(std.mem.eql(u8, parser.expressions.items[parser.expressions.items[expression.addition[0]].addition[1]].integer, "2"));
     try expect(std.mem.eql(u8, parser.expressions.items[expression.addition[1]].integer, "3"));
+}
+
+test "integer literal assignments" {
+    const source =
+        \\x = 1
+        \\z = 6
+    ;
+    var tokenizer = Tokenizer.init(source);
+    var parser = @This().init(&tokenizer, std.testing.allocator);
+    defer parser.deinit();
+
+    parser.parse_program();
 }
