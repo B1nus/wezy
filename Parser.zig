@@ -44,13 +44,14 @@ pub fn parse_program(self: *@This()) void {
 }
 
 pub fn parse_assignment(self: *@This()) Assignment {
-    while (self.tokenizer.current.tag != .identifier) {
+    while (self.tokenizer.current.tag == .newline) {
         self.advance();
     }
     const identifier = self.tokenizer.token_source(self.tokenizer.current);
     self.advance();
     self.advance_if(Token.Tag.equal);
     const expression = self.parse_expression(Precedence.lowest);
+    self.advance();
     return Assignment{ .identifier = identifier, .expression = expression };
 }
 
@@ -169,6 +170,7 @@ test "integer literal assignments" {
     const source =
         \\x = 1
         \\z = 6
+        \\z = 9
     ;
     var tokenizer = Tokenizer.init(source);
     var parser = @This().init(&tokenizer, std.testing.allocator);

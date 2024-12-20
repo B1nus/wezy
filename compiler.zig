@@ -6,7 +6,6 @@ pub fn compile(source: [:0]const u8, allocator: std.mem.Allocator) std.ArrayList
     var tokenizer = Tokenizer.init(source);
     var parser = Parser.init(&tokenizer, allocator);
     parser.parse_program();
-    std.debug.print("After parse\n", .{});
     defer parser.deinit();
 
     var ident_map = std.StringHashMap(usize).init(allocator);

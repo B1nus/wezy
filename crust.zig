@@ -81,7 +81,12 @@ pub fn main() !void {
                 std.mem.copyForwards(u8, name[dot_pos..], ".wasm");
                 std.debug.print("{s}\n", .{name});
                 const wasm_bytes = compile(@ptrCast(source.items), std.heap.page_allocator);
-                std.debug.print("{x}\n", .{wasm_bytes.items});
+
+                // WARǸING. This overwrites the file
+                //
+                // TODO Let users change output filename
+                const wasm_file = try std.fs.cwd().createFile(name, .{});
+                _ = try wasm_file.write(wasm_bytes.items);
             } else |file_open_error| {
                 switch (file_open_error) {
                     std.fs.File.OpenError.FileNotFound => continue :state Command{ .error_ = Command.Error{ .file_not_found = file_path } },
