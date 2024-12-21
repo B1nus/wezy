@@ -203,6 +203,10 @@ TODO!
 - Webgl for rendering.
 - No function name mangling. "_start" cannot be a name in crust because it starts with an underscore
 - returning a list/map which is created in a function should work. Look at go for reference. There is no reason this should work from a low level perspective.
+- Don't import functions the source code doesn't use.
+- Don't add javascript code which is not needed.
+> [!NOTE]
+> Keep simple crust examples simple. Source code containing a simple assignment should be easy to read in wasm. It should be as simple as if you were to write the assignment in wat. If that is no longer the case, then I know I have failed with this language. One of my main goals is for users to understand the inner workings of the language. If I complicate such simple examples, then something has gone terribly wrong.
 
 # MVP
 - compiles applications that use audio, graphics or input as a website.
