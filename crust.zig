@@ -8,12 +8,12 @@ pub const allocator = std.heap.page_allocator;
 // TODO: ANSI for coloring and text styling. Make it pretty! :)
 const usage =
     \\Usage:
-    \\$ crust run file.crs        # Run program
-    \\$ crust compile file.crs    # Compile to file.html
-    \\$ crust unpack file.html    # Unpack file.html into index.html, index.js, index.css and index.wasm. Store in a folder called ./file/
-    \\$ crust explain 13          # Explain compiler error 13
-    \\$ crust test file.crs       # Run all tests in file.crs and imported files
-    \\$ crust help                # Display this help message
+    \\$ crust run program.crs               # Run program
+    \\$ crust compile program.crs           # Compile to program.html
+    \\$ crust compile program.crs --unpack  # Compile to index.html, index.js, index.wasm and index.css put inside a folder called "./program/"
+    \\$ crust explain 13                    # Explain compiler error 13
+    \\$ crust test program.crs              # Run all tests in program.crs and imported files
+    \\$ crust help                          # Display this help message
     \\
 ;
 
@@ -93,67 +93,55 @@ pub const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).i
             \\<!DOCTYPE html>
             \\<html>
             \\<head>
-            \\  <link rel="stylesheet" href="index.css">
+            \\  <style>
+            \\    #console {
+            \\      /* Makes newlines work. */
+            \\      white-space: pre;
+            \\
+            \\      /* Thank me later for not burning your eyes. */
+            \\      padding: 10px;
+            \\      background-color: black;
+            \\      color: white;
+            \\      font-family: 'Courier New', monospace;
+            \\    }
+            \\    
+            \\    html, body, #console {
+            \\      height: 100%;
+            \\      margin: 0;
+            \\    }
+            \\  </style>
             \\</head>
             \\<body>
             \\  <div id="console"></div>
-            \\  <script src="index.js"></script>
+            \\  <script>
+            \\    const imports = { imports: { log: arg => log(arg) } };
+            \\    
+            \\    const consoleDiv = document.getElementById('console');
+            \\    
+            \\    function log(message) {
+            \\        consoleDiv.textContent += message + "\n";
+            \\        consoleDiv.scrollTop = consoleDiv.scrollHeight; // Auto-scroll to bottom
+            \\    }
+            \\    
+            \\    // Fetch the WebAssembly file
+            \\    fetch('index.wasm')
+            \\        .then(response => response.arrayBuffer()) // Get the binary data
+            \\        .then(bytes => WebAssembly.instantiate(bytes, imports)) // Instantiate the WebAssembly module
+            \\        .then(result => {
+            \\            // The WebAssembly instance is available in `result.instance`
+            \\            console.log("WASM Module Loaded:", result.instance);
+            \\        })
+            \\    .catch(err => {
+            \\        console.error("Error loading WASM file:", err);
+            \\    });
+            \\  </script>
             \\</body>
             \\</html>
             ,
             std.http.Header{ .name = "Content-Type", .value = "text/html" },
         },
     },
-    .{
-        "/index.js",
-        .{
-            \\const imports = { imports: { log: arg => log(arg) } };
-            \\
-            \\const consoleDiv = document.getElementById('console');
-            \\
-            \\function log(message) {
-            \\    const newLine = document.createElement('div');
-            \\    newLine.textContent = message;
-            \\    consoleDiv.appendChild(newLine);
-            \\    consoleDiv.scrollTop = consoleDiv.scrollHeight; // Auto-scroll to bottom
-            \\}
-            \\
-            \\// Fetch the WebAssembly file
-            \\fetch('index.wasm')
-            \\    .then(response => response.arrayBuffer()) // Get the binary data
-            \\    .then(bytes => WebAssembly.instantiate(bytes, imports)) // Instantiate the WebAssembly module
-            \\    .then(result => {
-            \\        // The WebAssembly instance is available in `result.instance`
-            \\        console.log("WASM Module Loaded:", result.instance);
-            \\    })
-            \\.catch(err => {
-            \\    console.error("Error loading WASM file:", err);
-            \\});
-            ,
-            std.http.Header{ .name = "Content-Type", .value = "application/javascript" },
-        },
-    },
     .{ "/index.wasm", .{ "", std.http.Header{ .name = "Content-Type", .value = "application/wasm" } } },
-    .{
-        "/index.css", .{
-            \\#console {
-            \\  background-color: black;
-            \\  height: 100%;
-            \\  font-family: 'Courier New', monospace;
-            \\}
-            \\
-            \\div {
-            \\  color: white;
-            \\}
-            \\
-            \\html, body {
-            \\  height: 100%;
-            \\  margin: 0;
-            \\}
-            ,
-            std.http.Header{ .name = "Content-Type", .value = "text/css" },
-        },
-    },
 });
 
 pub fn run(wasm: []const u8, allocator_: std.mem.Allocator) !void {
