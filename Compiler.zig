@@ -104,12 +104,12 @@ pub fn compile_code(self: *@This()) !void {
 
 pub fn compile(self: *@This(), allocator: std.mem.Allocator) !std.ArrayList(u8) {
     var wasm_bytes = std.ArrayList(u8).init(allocator);
-    try wasm_bytes.appendSlice(&.{ 0, 'a', 's', 'm', 1, 0, 0, 0, 1, 4, 1, 0x60, 0, 0 }); // Magic number, And Function Type Declaration
+    try wasm_bytes.appendSlice(&.{ 0, 'a', 's', 'm', 1, 0, 0, 0 }); // Magic number, And Function Type Declaration
 
     // Types
     try wasm_bytes.appendSlice(&.{ 1, 8, 2, 0x60, 1, i32_, 0, 0x60, 0, 0 });
     // Import "imports.log" function
-    try wasm_bytes.appendSlice(&.{ 2, 0x0F, 1, 7, 'i', 'm', 'p', 'o', 'r', 't', 's', 3, 'l', 'o', 'g', 0, 0, 3 });
+    try wasm_bytes.appendSlice(&.{ 2, 0x0F, 1, 7, 'i', 'm', 'p', 'o', 'r', 't', 's', 3, 'l', 'o', 'g', 0, 0 });
     // Function section
     try wasm_bytes.appendSlice(&.{ 3, 2, 1, 1 });
     // Export "START" function
