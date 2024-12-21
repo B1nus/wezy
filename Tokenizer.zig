@@ -11,6 +11,8 @@ pub const Token = struct {
 
     pub const Tag = enum {
         identifier,
+        lparen,
+        rparen,
         equal,
         integer,
         plus,
@@ -43,6 +45,8 @@ pub fn next_token(self: *@This()) Token {
                 0 => return Token{ .pos = self.source.len, .tag = .eof },
                 '=' => token.tag = .equal,
                 '+' => token.tag = .plus,
+                '(' => token.tag = .lparen,
+                ')' => token.tag = .rparen,
                 '\n' => token.tag = .newline,
                 'a'...'z' => continue :state .identifier,
                 '0'...'9' => continue :state .integer,

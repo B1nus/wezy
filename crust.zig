@@ -82,99 +82,103 @@ pub fn compile(source: [:0]const u8) !std.ArrayList(u8) {
     return wasm_bytes;
 }
 
-pub fn run(wasm: []const u8) !void {
-    // Hard coded static files
-    const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).initComptime(.{
+// Hard coded static files
+pub const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).initComptime(.{
+    .{
+        "/",
         .{
-            "/",
-            .{
-                \\<!DOCTYPE html>
-                \\<html>
-                \\<head>
-                \\  <link rel="icon" href="favicon.ico" type="image/x-icon">
-                \\  <link rel="stylesheet" href="index.css">
-                \\</head>
-                \\<body>
-                \\  <h1>Hello, Zig!</h1>
-                \\  <div id="console"></div>
-                \\  <script src="index.js"></script>
-                \\</body>
-                \\</html>
-                ,
-                std.http.Header{ .name = "Content-Type", .value = "text/html" },
-            },
+            \\<!DOCTYPE html>
+            \\<html>
+            \\<head>
+            \\  <link rel="stylesheet" href="index.css">
+            \\</head>
+            \\<body>
+            \\  <h1>Console</h1>
+            \\  <div id="console"></div>
+            \\  <script src="index.js"></script>
+            \\</body>
+            \\</html>
+            ,
+            std.http.Header{ .name = "Content-Type", .value = "text/html" },
         },
+    },
+    .{
+        "/index.js",
         .{
-            "/index.js",
-            .{
-                \\const imports = { imports: { log: arg => log(arg) } };
-                \\
-                \\const consoleDiv = document.getElementById('console');
-                \\
-                \\function log(message) {
-                \\    const newLine = document.createElement('div');
-                \\    newLine.textContent = message;
-                \\    consoleDiv.appendChild(newLine);
-                \\    consoleDiv.scrollTop = consoleDiv.scrollHeight; // Auto-scroll to bottom
-                \\}
-                \\
-                \\log("Hello from crust!");
-                \\
-                \\// Fetch the WebAssembly file
-                \\fetch('index.wasm')
-                \\    .then(response => response.arrayBuffer()) // Get the binary data
-                \\    .then(bytes => WebAssembly.instantiate(bytes, imports)) // Instantiate the WebAssembly module
-                \\    .then(result => {
-                \\        // The WebAssembly instance is available in `result.instance`
-                \\        console.log("WASM Module Loaded:", result.instance);
-                \\        // Call an exported function (if any)
-                \\        result.instance.exports.START();
-                \\    })
-                \\.catch(err => {
-                \\    console.error("Error loading WASM file:", err);
-                \\});
-                ,
-                std.http.Header{ .name = "Content-Type", .value = "application/javascript" },
-            },
+            \\const imports = { imports: { log: arg => log(arg) } };
+            \\
+            \\const consoleDiv = document.getElementById('console');
+            \\
+            \\function log(message) {
+            \\    const newLine = document.createElement('div');
+            \\    newLine.textContent = message;
+            \\    consoleDiv.appendChild(newLine);
+            \\    consoleDiv.scrollTop = consoleDiv.scrollHeight; // Auto-scroll to bottom
+            \\}
+            \\
+            \\log("Hello from crust!");
+            \\
+            \\// Fetch the WebAssembly file
+            \\fetch('index.wasm')
+            \\    .then(response => response.arrayBuffer()) // Get the binary data
+            \\    .then(bytes => WebAssembly.instantiate(bytes, imports)) // Instantiate the WebAssembly module
+            \\    .then(result => {
+            \\        // The WebAssembly instance is available in `result.instance`
+            \\        console.log("WASM Module Loaded:", result.instance);
+            \\        // Call an exported function (if any)
+            \\        result.instance.exports.START();
+            \\    })
+            \\.catch(err => {
+            \\    console.error("Error loading WASM file:", err);
+            \\});
+            ,
+            std.http.Header{ .name = "Content-Type", .value = "application/javascript" },
         },
-        .{ "/index.wasm", .{ "", std.http.Header{ .name = "Content-Type", .value = "application/wasm" } } },
-        .{ "/index.css", .{ "div { color: lightblue; }", std.http.Header{ .name = "Content-Type", .value = "text/css" } } },
-        .{ "/favicon.ico", .{ @embedFile("crust.svg"), std.http.Header{ .name = "Content-Type", .value = "image/x-icon" } } },
-    });
+    },
+    .{ "/index.wasm", .{ "", std.http.Header{ .name = "Content-Type", .value = "application/wasm" } } },
+    .{ "/index.css", .{ "div { color: white; background-color: black; height: 100%; }", std.http.Header{ .name = "Content-Type", .value = "text/css" } } },
+});
 
+pub fn run(wasm: []const u8, allocator_: std.mem.Allocator) !void {
     var listener = try (try std.net.Address.resolveIp("127.0.0.1", 3597)).listen(.{
         .reuse_address = true,
     });
     defer listener.deinit();
-    try stdout.print("running on port http://127.0.0.1:{d}/", .{listener.listen_address.getPort()});
+    try stdout.print("running on port http://127.0.0.1:{d}/\n\n", .{listener.listen_address.getPort()});
 
     while (true) {
-        const server = try listener.accept();
+        var server = try listener.accept();
 
-        outer: while (true) {
-            var client_head_buffer: [1024]u8 = undefined;
-            var http_server = std.http.Server.init(server, &client_head_buffer);
+        var handle = try std.Thread.spawn(.{ .allocator = allocator }, create_connection, .{ wasm, &server, allocator_ });
+        handle.detach();
+    }
+}
 
-            while (http_server.state == .ready) {
-                var request = http_server.receiveHead() catch |err| switch (err) {
-                    error.HttpHeadersInvalid => continue :outer,
-                    error.HttpConnectionClosing => continue,
-                    error.HttpHeadersUnreadable => continue,
-                    else => |e| return e,
-                };
-                const body = try (try request.reader()).readAllAlloc(allocator, 8192);
-                defer allocator.free(body);
+pub fn create_connection(wasm: []const u8, Conn: *std.net.Server.Connection, allocator_: std.mem.Allocator) !void {
+    outer: while (true) {
+        var client_head_buffer: [1024]u8 = undefined;
+        var http_server = std.http.Server.init(Conn.*, &client_head_buffer);
 
-                if (routes.get(request.head.target)) |route| {
-                    const content, const header = route;
-                    if (std.mem.eql(u8, request.head.target, "/index.wasm")) {
-                        try request.respond(wasm, .{ .status = .ok, .extra_headers = &.{header} });
-                    } else {
-                        try request.respond(content, .{ .status = .ok, .extra_headers = &.{header} });
-                    }
+        while (http_server.state == .ready) {
+            var request = http_server.receiveHead() catch |err| switch (err) {
+                error.HttpHeadersInvalid => continue :outer,
+                error.HttpConnectionClosing => continue,
+                error.HttpHeadersUnreadable => continue,
+                else => |e| return e,
+            };
+            const body = try (try request.reader()).readAllAlloc(allocator_, 8192);
+            defer allocator_.free(body);
+
+            if (routes.get(request.head.target)) |route| {
+                const content, const header = route;
+                if (std.mem.eql(u8, request.head.target, "/index.wasm")) {
+                    try request.respond(wasm, .{ .status = .ok, .extra_headers = &.{header} });
                 } else {
-                    try request.respond("It not workie", .{ .status = .bad_request });
+                    try request.respond(content, .{ .status = .ok, .extra_headers = &.{header} });
                 }
+            } else {
+                try stdout.print("Could not find route \"{s}\"\n", .{request.head.target});
+                try request.respond("It not workie\n", .{ .status = .bad_request });
             }
         }
     }
@@ -218,7 +222,7 @@ pub fn main() !void {
                 const wasm = try compile(source);
                 defer wasm.deinit();
 
-                try run(wasm.items);
+                try run(wasm.items, allocator);
             } else |file_open_error| {
                 switch (file_open_error) {
                     std.fs.File.OpenError.FileNotFound => continue :state Command{ .error_ = Command.Error{ .file_not_found = file_path } },

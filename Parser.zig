@@ -3,7 +3,7 @@ pub const Token = Tokenizer.Token;
 pub const std = @import("std");
 
 tokenizer: *Tokenizer,
-assignments: std.ArrayList(Assignment),
+statements: std.ArrayList(Statement),
 expressions: std.ArrayList(Expression),
 
 pub const ExpressionIndex = usize;
@@ -13,9 +13,9 @@ pub const Precedence = enum {
     sum,
 };
 
-pub const Assignment = struct {
-    identifier: []const u8,
-    expression: Expression,
+pub const Statement = union(enum) {
+    assignment: struct { []const u8, Expression },
+    function_call: struct { []const u8, Expression },
 };
 
 pub const Expression = union(enum) {
@@ -27,26 +27,42 @@ pub const Expression = union(enum) {
 pub fn init(tokenizer: *Tokenizer, allocator: std.mem.Allocator) @This() {
     return @This(){
         .tokenizer = tokenizer,
-        .assignments = std.ArrayList(Assignment).init(allocator),
+        .statements = std.ArrayList(Statement).init(allocator),
         .expressions = std.ArrayList(Expression).init(allocator),
     };
 }
 
 pub fn deinit(self: @This()) void {
-    self.assignments.deinit();
+    self.statements.deinit();
     self.expressions.deinit();
 }
 
-pub fn parse_assignment(self: *@This()) Assignment {
+pub fn parse_statement(self: *@This()) Statement {
     while (self.tokenizer.current.tag == .newline) {
         self.advance();
     }
     const identifier = self.tokenizer.token_source(self.tokenizer.current);
     self.advance();
-    self.advance_if(Token.Tag.equal);
-    const expression = self.parse_expression(Precedence.lowest);
-    self.advance();
-    return Assignment{ .identifier = identifier, .expression = expression };
+    switch (self.tokenizer.current.tag) {
+        .lparen => {
+            self.advance();
+            const expression = self.parse_expression(Precedence.lowest);
+            self.advance_if(Token.Tag.rparen); // TODO Error handling
+            self.advance_if(Token.Tag.newline); // TODO Error handling
+            return Statement{ .function_call = .{ identifier, expression } };
+        },
+        .equal => {
+            self.advance();
+            const expression = self.parse_expression(Precedence.lowest);
+            // TODO Error handling
+            if (self.tokenizer.current.tag != .newline and self.tokenizer.current.tag != .eof) {
+                unreachable;
+            }
+            self.advance();
+            return Statement{ .assignment = .{ identifier, expression } };
+        },
+        else => unreachable, // TODO Error handling
+    }
 }
 
 pub fn parse_expression(self: *@This(), precedence: Precedence) Expression {
@@ -120,10 +136,10 @@ test "assign parsing" {
     var tokenizer = Tokenizer.init(source);
     var parser = @This().init(&tokenizer, std.testing.allocator);
     defer parser.deinit();
-    const assignment = parser.parse_assignment();
-    try expect(std.mem.eql(u8, assignment.identifier, "z"));
-    try expect(std.mem.eql(u8, parser.expressions.items[assignment.expression.addition[0]].integer, "5"));
-    try expect(std.mem.eql(u8, parser.expressions.items[assignment.expression.addition[1]].integer, "4"));
+    const identifier, const expression = parser.parse_statement().assignment;
+    try expect(std.mem.eql(u8, identifier, "z"));
+    try expect(std.mem.eql(u8, parser.expressions.items[expression.addition[0]].integer, "5"));
+    try expect(std.mem.eql(u8, parser.expressions.items[expression.addition[1]].integer, "4"));
 }
 
 test "many assign expressions" {
@@ -138,15 +154,18 @@ test "many assign expressions" {
     var parser = @This().init(&tokenizer, std.testing.allocator);
     defer parser.deinit();
 
-    try parser.assignments.append(parser.parse_assignment());
-    try parser.assignments.append(parser.parse_assignment());
-    try expect(std.mem.eql(u8, parser.assignments.items[0].identifier, "z"));
-    try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[0].expression.addition[0]].integer, "1"));
-    try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[0].expression.addition[1]].integer, "1"));
+    try parser.statements.append(parser.parse_statement());
+    try parser.statements.append(parser.parse_statement());
 
-    try expect(std.mem.eql(u8, parser.assignments.items[1].identifier, "x"));
-    try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[1].expression.addition[0]].identifier, "z"));
-    try expect(std.mem.eql(u8, parser.expressions.items[parser.assignments.items[1].expression.addition[1]].integer, "2"));
+    const id1, const exp1 = parser.statements.items[0].assignment;
+    const id2, const exp2 = parser.statements.items[1].assignment;
+    try expect(std.mem.eql(u8, id1, "z"));
+    try expect(std.mem.eql(u8, parser.expressions.items[exp1.addition[0]].integer, "1"));
+    try expect(std.mem.eql(u8, parser.expressions.items[exp1.addition[1]].integer, "1"));
+
+    try expect(std.mem.eql(u8, id2, "x"));
+    try expect(std.mem.eql(u8, parser.expressions.items[exp2.addition[0]].identifier, "z"));
+    try expect(std.mem.eql(u8, parser.expressions.items[exp2.addition[1]].integer, "2"));
 }
 
 test "pratt parsing" {
@@ -172,6 +191,6 @@ test "integer literal assignments" {
     defer parser.deinit();
 
     while (parser.tokenizer.current.tag != .eof) {
-        try parser.assignments.append(parser.parse_assignment());
+        try parser.statements.append(parser.parse_statement());
     }
 }

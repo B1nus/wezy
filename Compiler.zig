@@ -16,7 +16,11 @@ pub const i32_const = 0x41;
 pub const i32_add = 0x6A;
 pub const local_get = 0x20;
 pub const local_set = 0x21;
+pub const call = 0x10;
 pub const end = 0x0B;
+
+// Imported function indicies.
+pub const log_id = 0x00;
 
 parser: *Parser,
 locals: std.StringHashMap(usize),
@@ -45,7 +49,7 @@ pub fn compile_expression(self: *@This(), expression: Parser.Expression) !void {
         .integer => |integer| {
             const value = try std.fmt.parseInt(u32, integer, 10); // TODO Error handling
             try self.code.append(i32_const);
-            try std.leb.writeUleb128(self.code.writer(), value);
+            try std.leb.writeIleb128(self.code.writer(), value);
         },
         .identifier => |identifier| {
             try self.code.append(local_get);
@@ -59,31 +63,57 @@ pub fn compile_expression(self: *@This(), expression: Parser.Expression) !void {
     }
 }
 
-// Compile the assignment and append to the code
-pub fn compile_assignment(self: *@This(), assignment: Parser.Assignment) !void {
-    try self.compile_expression(assignment.expression);
-    // The value is now on the stack.
-    try self.code.append(local_set);
-    if (self.locals.get(assignment.identifier)) |local_index| {
-        try std.leb.writeUleb128(self.code.writer(), local_index);
-    } else {
-        const local_index = self.locals.count();
-        try self.locals.put(assignment.identifier, local_index);
-        try std.leb.writeUleb128(self.code.writer(), local_index);
+// Compile the statement and append to the code
+pub fn compile_statement(self: *@This(), statement: Parser.Statement) !void {
+    switch (statement) {
+        .assignment => |assignmnet| {
+            const identifier, const expression = assignmnet;
+            try self.compile_expression(expression);
+            // The value is now on the stack.
+            try self.code.append(local_set);
+            if (self.locals.get(identifier)) |local_index| {
+                try std.leb.writeUleb128(self.code.writer(), local_index);
+            } else {
+                const local_index = self.locals.count();
+                try self.locals.put(identifier, local_index);
+                try std.leb.writeUleb128(self.code.writer(), local_index);
+            }
+        },
+        .function_call => |functions_call| {
+            const identifier, const expression = functions_call;
+            if (std.mem.eql(u8, identifier, "print")) {
+                try self.compile_expression(expression);
+                // The value is no on the stack
+
+                try self.code.append(call);
+                try self.code.append(log_id);
+            } else {
+                unreachable; // TODO User defined functions
+            }
+        },
     }
 }
 
 // This compiles the entire code. NOTE! This does not include the local variable declaration.
 pub fn compile_code(self: *@This()) !void {
     while (self.parser.tokenizer.current.tag != .eof) {
-        try self.compile_assignment(self.parser.parse_assignment());
+        try self.compile_statement(self.parser.parse_statement());
     }
     try self.code.append(end);
 }
 
 pub fn compile(self: *@This(), allocator: std.mem.Allocator) !std.ArrayList(u8) {
     var wasm_bytes = std.ArrayList(u8).init(allocator);
-    try wasm_bytes.appendSlice(&.{ 0, 'a', 's', 'm', 1, 0, 0, 0, 1, 4, 1, 0x60, 0, 0, 3, 2, 1, 0 }); // Magic number, And Function Type Declaration
+    try wasm_bytes.appendSlice(&.{ 0, 'a', 's', 'm', 1, 0, 0, 0, 1, 4, 1, 0x60, 0, 0 }); // Magic number, And Function Type Declaration
+
+    // Types
+    try wasm_bytes.appendSlice(&.{ 1, 8, 2, 0x60, 1, i32_, 0, 0x60, 0, 0 });
+    // Import "imports.log" function
+    try wasm_bytes.appendSlice(&.{ 2, 0x0F, 1, 7, 'i', 'm', 'p', 'o', 'r', 't', 's', 3, 'l', 'o', 'g', 0, 0, 3 });
+    // Function section
+    try wasm_bytes.appendSlice(&.{ 3, 2, 1, 1 });
+    // Export "START" function
+    try wasm_bytes.appendSlice(&.{ 7, 9, 1, 5, 'S', 'T', 'A', 'R', 'T', 0, 1 });
 
     // Start of code section
     try wasm_bytes.append(0x0A);
