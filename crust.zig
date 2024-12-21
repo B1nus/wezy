@@ -20,7 +20,7 @@ const usage =
 pub const Command = union(enum) {
     run: []const u8,
     compile: []const u8,
-    // unpack: []const u8,
+    // TODO unpack: []const u8,
     // explain: CompilerError,
     // test_: []const u8,
     help,
@@ -83,6 +83,9 @@ pub fn compile(source: [:0]const u8) !std.ArrayList(u8) {
 }
 
 // Hard coded static files
+//
+// TODO Move this into Compiler.zig.
+// TODO Make Compiler.compile output an index.html file directly.
 pub const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).initComptime(.{
     .{
         "/",
@@ -122,8 +125,6 @@ pub const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).i
             \\    .then(result => {
             \\        // The WebAssembly instance is available in `result.instance`
             \\        console.log("WASM Module Loaded:", result.instance);
-            \\        // Call an exported function (if any)
-            \\        result.instance.exports.START();
             \\    })
             \\.catch(err => {
             \\    console.error("Error loading WASM file:", err);

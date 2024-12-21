@@ -25,6 +25,13 @@ pub const end = 0x0B;
 // A simple crust example should stay as a simple wasm file. I want users to be able
 // to see what's going on. If simple source code such as "x = 5 + 5" fails to be simple
 // after compilation, then know I have failed.
+//
+// It is easier to keep the function in all the time, and always import memory, and always
+// have the same javascript code. But the is causes a problem which hits at the very
+// core of the language.
+//
+// Figure out a nice way to generate the javascript and wasm shims automatically while
+// keeping simple assignments simple.
 pub const log_id = 0x00;
 
 parser: *Parser,
@@ -121,8 +128,8 @@ pub fn compile(self: *@This(), allocator: std.mem.Allocator) !std.ArrayList(u8) 
     try wasm_bytes.appendSlice(&.{ 2, 0x0F, 1, 7, 'i', 'm', 'p', 'o', 'r', 't', 's', 3, 'l', 'o', 'g', 0, 0 });
     // Function section
     try wasm_bytes.appendSlice(&.{ 3, 2, 1, 1 });
-    // Export "START" function
-    try wasm_bytes.appendSlice(&.{ 7, 9, 1, 5, 'S', 'T', 'A', 'R', 'T', 0, 1 });
+
+    try wasm_bytes.appendSlice(&.{ 8, 1, 1 });
 
     // Start of code section
     try wasm_bytes.append(0x0A);
