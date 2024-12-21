@@ -93,7 +93,6 @@ pub const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).i
             \\  <link rel="stylesheet" href="index.css">
             \\</head>
             \\<body>
-            \\  <h1>Console</h1>
             \\  <div id="console"></div>
             \\  <script src="index.js"></script>
             \\</body>
@@ -116,8 +115,6 @@ pub const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).i
             \\    consoleDiv.scrollTop = consoleDiv.scrollHeight; // Auto-scroll to bottom
             \\}
             \\
-            \\log("Hello from crust!");
-            \\
             \\// Fetch the WebAssembly file
             \\fetch('index.wasm')
             \\    .then(response => response.arrayBuffer()) // Get the binary data
@@ -136,7 +133,26 @@ pub const routes = std.StaticStringMap(struct { []const u8, std.http.Header }).i
         },
     },
     .{ "/index.wasm", .{ "", std.http.Header{ .name = "Content-Type", .value = "application/wasm" } } },
-    .{ "/index.css", .{ "div { color: white; background-color: black; height: 100%; }", std.http.Header{ .name = "Content-Type", .value = "text/css" } } },
+    .{
+        "/index.css", .{
+            \\#console {
+            \\  background-color: black;
+            \\  height: 100%;
+            \\  font-family: 'Courier New', monospace;
+            \\}
+            \\
+            \\div {
+            \\  color: white;
+            \\}
+            \\
+            \\html, body {
+            \\  height: 100%;
+            \\  margin: 0;
+            \\}
+            ,
+            std.http.Header{ .name = "Content-Type", .value = "text/css" },
+        },
+    },
 });
 
 pub fn run(wasm: []const u8, allocator_: std.mem.Allocator) !void {
@@ -177,8 +193,10 @@ pub fn create_connection(wasm: []const u8, Conn: *std.net.Server.Connection, all
                     try request.respond(content, .{ .status = .ok, .extra_headers = &.{header} });
                 }
             } else {
-                try stdout.print("Could not find route \"{s}\"\n", .{request.head.target});
-                try request.respond("It not workie\n", .{ .status = .bad_request });
+                if (std.mem.eql(u8, request.head.target, "/favicon.ico")) {} else {
+                    try stdout.print("Could not find route \"{s}\"\n", .{request.head.target});
+                    try request.respond("It not workie\n", .{ .status = .bad_request });
+                }
             }
         }
     }

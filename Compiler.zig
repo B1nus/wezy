@@ -20,6 +20,11 @@ pub const call = 0x10;
 pub const end = 0x0B;
 
 // Imported function indicies.
+//
+// It is super important that we don't import functions we don't need.
+// A simple crust example should stay as a simple wasm file. I want users to be able
+// to see what's going on. If simple source code such as "x = 5 + 5" fails to be simple
+// after compilation, then know I have failed.
 pub const log_id = 0x00;
 
 parser: *Parser,
@@ -60,6 +65,7 @@ pub fn compile_expression(self: *@This(), expression: Parser.Expression) !void {
             try self.compile_expression(self.parser.expressions.items[indicies[1]]);
             try self.code.append(i32_add);
         },
+        .string => |_| {},
     }
 }
 
@@ -81,6 +87,9 @@ pub fn compile_statement(self: *@This(), statement: Parser.Statement) !void {
         },
         .function_call => |functions_call| {
             const identifier, const expression = functions_call;
+            if (expression == Parser.Expression.string) {
+                return; // TODO String printing
+            }
             if (std.mem.eql(u8, identifier, "print")) {
                 try self.compile_expression(expression);
                 // The value is no on the stack

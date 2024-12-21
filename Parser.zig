@@ -19,6 +19,7 @@ pub const Statement = union(enum) {
 };
 
 pub const Expression = union(enum) {
+    string: []const u8,
     integer: []const u8,
     addition: [2]ExpressionIndex,
     identifier: []const u8,
@@ -66,6 +67,11 @@ pub fn parse_statement(self: *@This()) Statement {
 }
 
 pub fn parse_expression(self: *@This(), precedence: Precedence) Expression {
+    if (self.tokenizer.current.tag == .string) {
+        const string = Expression{ .string = self.tokenizer.token_source(self.tokenizer.current) };
+        self.advance();
+        return string;
+    }
     var lhs = self.parse_prefix();
     self.advance();
 

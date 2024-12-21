@@ -18,6 +18,7 @@ pub const Token = struct {
         plus,
         newline,
         eof,
+        string, // utf8, it's just a list of bytes A.K.A: [i8]
     };
 };
 
@@ -36,6 +37,7 @@ pub fn next_token(self: *@This()) Token {
         start,
         integer,
         identifier,
+        string,
     };
 
     var token = Token{ .pos = self.offset, .tag = undefined };
@@ -48,6 +50,7 @@ pub fn next_token(self: *@This()) Token {
                 '(' => token.tag = .lparen,
                 ')' => token.tag = .rparen,
                 '\n' => token.tag = .newline,
+                '\"' => continue :state .string,
                 'a'...'z' => continue :state .identifier,
                 '0'...'9' => continue :state .integer,
                 ' ', '\t' => {
@@ -60,6 +63,17 @@ pub fn next_token(self: *@This()) Token {
 
             // For single character tokens, we need to move offset past them.
             self.offset += 1;
+        },
+        .string => {
+            self.offset += 1;
+            // TODO Escape sequences
+            switch (self.source[self.offset]) {
+                '\"' => {
+                    self.offset += 1;
+                    token.tag = .string;
+                },
+                else => continue :state .string,
+            }
         },
         .integer => {
             self.offset += 1;
@@ -96,6 +110,13 @@ pub fn token_source(self: @This(), token: Token) []const u8 {
                 end += 1;
             }
             return self.source[token.pos..end];
+        },
+        .string => {
+            var end: SourceIndex = token.pos + 1;
+            while (self.source[end] != '\"') {
+                end += 1;
+            }
+            return self.source[token.pos .. end + 1];
         },
         else => unreachable,
     }
