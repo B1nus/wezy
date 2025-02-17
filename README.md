@@ -3,7 +3,8 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 # Goals
 - simplicity
 # Mvp
-- only wasi
+- only wasm core
+- only wasi preview 1
 - only integers
 # Error handling
 Nope, it just crashes.
