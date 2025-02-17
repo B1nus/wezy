@@ -13,7 +13,7 @@ Nope.
 # Mutability
 Nope. Everything is mutable.
 # Memory
-Memory is deallocated once a variable goes ou of scope.
+Memory is deallocated once a variable goes out of scope.
 # Functions
 All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
 # Types
@@ -150,4 +150,9 @@ f64 parse_f64([i8] text)
 print([i8] text)
 [i8] input()
 [[i8]] command_line_arguments()
+```
+# Debugging
+```
+assert(bool condition)
+debug(any value)
 ```
