@@ -1,5 +1,6 @@
 # TODO:
-- [_] Simplify this README.md.
+- [ ] Simplify this README.md.
+- [ ] Wait for webgpu to come to wasi
 # Placeholder Name
 Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce some lower level concepts such as floats and bitwise operations and introduce you to writing code with text instead of blocks.
 # Goals
