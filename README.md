@@ -14,7 +14,7 @@ Nope. Everything is mutable.
 # Borrow Checker
 Unlike rust the borrowchecker does not enforce memory safety. It only deallocates memory. Please note that values created in a function does not go out of scope if they are returned from the function.
 # Functions
-All parameters are mutable references. Strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
+All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
 # Types
 - We have 3 kinds of literals for numbers. Floats `1.0`, Integers `58` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
 - Integer literals can be in binary `0b01001011`, hexadecimal `0x4B` and decimal `75`.
