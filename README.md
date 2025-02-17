@@ -16,17 +16,13 @@ Unlike rust the borrowchecker does not enforce memory safety. It only deallocate
 # Functions
 All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
 # Types
-- We have 3 kinds of literals for numbers. Floats `1.0`, Integers `58` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
-- Integer literals can be in binary `0b01001011`, hexadecimal `0x4B` and decimal `75`.
-- Integers can be of any size that's an exponent of 2. In other words `i8, i16, i32, i64, i128, i256, i512 ...`. They can be as big as you want.
+- We have 5 kinds of literals for numbers. Floats `1.0`, Integers `58`, Hexadecimal `0x4B`, Binary `0b01001011` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
+- Integers can be any size that's an exponent of 2, `i8, i16, i32, i64, i128, i256, i512 ...`.
 - floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
-- Expansion of integers is implicit. (`i32 x = 'b'`)
-- Conversion to `f64` is implicit. (`f64 x = 5`)
-- Divison always returns an `f64`. Use `ceil()`, `floor()` or `round()` to make it into an integer.
-- `f64` is choosen before an integer, a larger integer is choosen before the smaller integers. `5 + 5.0` is a `f64` and `5 + 'a'` is an `i64`.
-- No conversion functions. use type declarations `i8 x = 4`. To clarify: `x = 4` would give you an `ì64`
-> [!NOTE]
-> Please try to simplify these rules, they are unwieldy.
+- Conversions are implicit. Use type declarations to convert between types. (`i64 x = 'a'`)
+- Division always returns an `f64`. Use `div_i64()` for integer division.
+- The type of an expression is the largest integer in the expression or `f64` if there is a float involved anywhere.
+- Integer literals are assumed to be i64 unless given another type.
 # Comments
 Comments start with `//`.
 # Boolean Expresssions
