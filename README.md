@@ -1,12 +1,9 @@
+# TODO:
+- [_] Simplify this README.md.
 # Placeholder Name
-Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce some lower level concepts such as floats and bitwise operations and introduce you to a development environment similar to most other languages.
-
-Funily enough, the language is quite low level. Even though it might not feel like it. It's similar to the amount of abstraction of C. Unlike llvm I won't add any crazy optimisations, I want to keep the compiler simple and predictable. One of my goals is that a user should never be suprised when using this language.
-
-I don't want users to be confused about what will happen when they run their code. This is why you can't pass list/map reference to a new variable. You are forced to use the `clone()` function and create a new list. This is something I plan to keep consistent in my language.
+Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce some lower level concepts such as floats and bitwise operations and introduce you to writing code with text instead of blocks.
 # Goals
-- simplicity & friendliness
-- no magic
+- simplicity
 # Mvp
 - only compile to website
 - only webgl
@@ -16,13 +13,11 @@ I don't want users to be confused about what will happen when they run their cod
 # Compiler Errors
 - Nodejs has a good example of BAD errors. This is what my error message said: ![nice error node, thank you](https://github.com/user-attachments/assets/eb8bd225-18a2-42e2-8952-c6a8a433ecf8). When it could have just said `Could not find file '15.jsA'` and nothing more. Avoid this always.
 # Borrow Checker
-- Moving is never allowed
-- A value can not be used after it goes out of scope
-> [!NOTE]
-> Figure out the exactly what the borrow checker needs to check. The list should not be very long.
->
-> The borrow checkers goal in this language is not memory safety, just to free stuff that's not used. If a user has a reference to a list item and then removes that list item, the program simply crashes if it tries to use it. This language is not supposed to be used in security critical sutiations, so that convenience is well worth it.
+Unlike in rust, the borrowchecker does not enforce memory safety. It's only here to free memory when values go out of scope. Please note that the end of a function does not count as the end of a scope if the value is returned from the function.
+# References/Pointers
+Nope, they don't exist.
 # Functions
+All arguments to functions are mutable references.
 > [!NOTE]
 > Figure out the function syntax. It should align with the design goals of being simple, easy for beginners and consise.
 - Functions are strongly typed, meaning that you have to declare the input and output types.
