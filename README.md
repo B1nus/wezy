@@ -56,6 +56,7 @@ f64 random_f64(f64 min, f64 max)
 and, or, not
 i64 mod_i64(i64 x, i64 y)
 i64 mod_f64(f64 x, f64 y)
+i64 div_i64(i64 x, i64 y)
 i64 round(f64 x) // Crashes if the input is infinity or nan.
 i64 floor(f64 x) // Crashes if the input is infinity or nan.
 i64 ceil(f64 x) // Crashes if the input is infinity or nan.
