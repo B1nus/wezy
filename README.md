@@ -17,6 +17,10 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 Unlike in rust, the borrowchecker does not enforce memory safety. It's only here to free memory when values go out of scope. Please note that the end of a function does not count as the end of a scope if the value is returned from the function.
 # References/Pointers
 Nope, they don't exist.
+# Error handling
+Nope, we just crash.
+# Any
+An internal type not accessible to the user.
 # Functions
 All arguments to functions are mutable references.
 > [!NOTE]
@@ -138,48 +142,42 @@ i32 size()
 ```
 draw_image(path, x, y, rotation)
 draw_triangle(x1, y1, x2, y2, x3, y3, r, g, b, a)
-draw_triangle_image(path, x1. y1, x2, y2, x3, y3, uv_x1, uv_y1, uv_x2, uv_y2, uv_x3, uv_y3)
 
 clear_canvas(r, g, b, a)
-resolution()
+(i32, i32) resolution()
 ```
 # Audio
 ```
 play(path)
-volume()
-set_volume(vol)
+f32 get_volume()
+set_volume(f32 vol)
 ```
 # Input
 ```
-mouse_position()
-mouse_pressed()
-key_pressed(key)
+(i32, i32) mouse_position()
+bool mouse_pressed()
+bool key_pressed(i8 key)
 
 i64 nanoseconds_since_start()
 i64 seconds_since_2000()
 ```
 # Files
 ```
-read(path)
+[i8] read(path)
 write(path, contents)
-parse_i64(text)
-parse_f64(text)
-format(value)
-print(text)
+i64 parse_i64(text)
+f64 parse_f64(text)
+[i8] format(any value)
+print([i8] text)
 input()
 args()
-```
-# Debugging
-```
-show(any variable1, any variable2, ... )
-hide(any variable1, any variable2, ... )
 ```
 # Networking
 TODO!
 > [!WARNING]
 > The user has to memorize if a function is standalone or a method. Either make the pattern obvious or make everything into either methods of normal functions.
 # Remember
-- Lists, and Maps are not allowed in arithmetic expressions. You cannot repeat a string like this `"hello"`. You can only use the repeat function. Why? Simplicity of course, now you won't have to ask yourself. Hmmm, is that a number or a list? And users won't have to learn two ways of doing things, only one. This is a general mantra of this language, keep things simple with only one way to do a thing.
+- Lists, and Maps are not allowed in arithmetic expressions. You cannot repeat a string like this `"hello" * 5`. You can only use the repeat function. Why? Simplicity of course, now you won't have to ask yourself. Hmmm, is that a number or a list? And users won't have to learn two ways of doing things, only one. This is a general mantra of this language, keep things simple with only one way to do a thing.
 - Don't add both attributes and methods, just make everything into methods. A way to decrease the number of abstraction a user has to learn. In other words, a way to make the language simpler.
 - Rotation is in degrees. that holds for sin, cos, tan, asin, acos, atan etc... (should I name asin as arcsin to avoid confusion for newcommers? I remeber being confused by that when I was little)
 - Every literal should have an assumed type, so that you don't force users to write the type explicitly, or well, maybe you should make them do that i dunno. It's probably annoying for newcommers.
