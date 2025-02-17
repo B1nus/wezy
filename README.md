@@ -1,5 +1,5 @@
 # crust
-Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce some lower level concepts such as floats and bitwise operations and introduce you to a development environment similar to most other languages.
+Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language, and a great next language to learn after Scratch. It will introduce low level concepts such as floating point numbers and bitwise operations.
 # Goals
 - simplicity
 # Mvp
