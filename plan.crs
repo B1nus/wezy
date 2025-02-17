@@ -1,0 +1,14 @@
+// 1: AST
+// 2: debug()
+// 3: print()
+
+Token next_token([i8] source_code, i64 &mut index)
+
+Line next_line([i8] source_code, i64 &mut index)
+
+Statement next_statement([i8] source_code, i64 &mut index)
+
+// Remember simplicity:
+// No expression statements
+// No functions inside functions
+// 
