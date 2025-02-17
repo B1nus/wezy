@@ -60,7 +60,7 @@ i64 div_i64(i64 x, i64 y)
 i64 round(f64 x) // Crashes if the input is infinity or nan.
 i64 floor(f64 x) // Crashes if the input is infinity or nan.
 i64 ceil(f64 x) // Crashes if the input is infinity or nan.
-i64 abs(i64 x)
+i64 abs_i64(i64 x)
 f64 abs_f64(f64 x)
 f64 sqrt(f64 x)
 f64 sin(f64 x)
