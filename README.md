@@ -11,8 +11,8 @@ Nope, it just crashes.
 Nope.
 # Mutability
 Nope. Everything is mutable.
-# Borrow Checker
-Unlike rust the borrowchecker does not enforce memory safety. It only deallocates memory. Please note that values created in a function does not go out of scope if they are returned from the function.
+# Memory
+Unlike rust the borrowchecker does not enforce memory safety. The borrowchecker deallocates variables which have gone out of scope.
 # Functions
 All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
 # Types
