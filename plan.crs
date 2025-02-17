@@ -8,7 +8,11 @@ Line next_line([i8] source_code, i64 &mut index)
 
 Statement next_statement([i8] source_code, i64 &mut index)
 
-// Remember simplicity:
+// Remember K.I.S.S:
 // No expression statements
 // No functions inside functions
-// 
+// No capital letters
+// No implicit return
+// No add/sud/mul/div assign
+// No variable swap optimisation
+// No indexing syntax
