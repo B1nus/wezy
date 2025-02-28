@@ -17,7 +17,7 @@ Memory is deallocated once a variable goes out of scope.
 # Functions
 All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
 # Types
-- We have 5 kinds of literals for numbers. Floats `1.0`, Integers `58`, Hexadecimal `0x4B`, Binary `0b01001011` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
+- We have 5 kinds of number literals. Floats `1.0`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
 - Integers can be any size that's an exponent of 2, `i8, i16, i32, i64, i128, i256, i512 ...`.
 - floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
 - Conversions are implicit. Use type declarations to convert between types. (`i64 x = 'a'`)
@@ -53,12 +53,17 @@ f64 random_f64(f64 min, f64 max)
 and, or, not
 i64 mod_i64(i64 x, i64 y)
 i64 mod_f64(f64 x, f64 y)
-i64 div_i64(i64 x, i64 y)
-i64 round(f64 x) // Crashes if the input is infinity or nan.
-i64 floor(f64 x) // Crashes if the input is infinity or nan.
-i64 ceil(f64 x) // Crashes if the input is infinity or nan.
+i64 div_i64(i64 x, i64 y) // Crashes if y is equal to zero
 i64 abs_i64(i64 x)
+
+// All floating point functions crash if the input is infinity or nan. Use these functions to check for those cases:
+bool is_nan(f64 x)
+bool is_inifnity(f64 x)
+
 f64 abs_f64(f64 x)
+i64 round(f64 x)
+i64 floor(f64 x)
+i64 ceil(f64 x)
 f64 sqrt(f64 x)
 f64 sin(f64 x)
 f64 cos(f64 x)
