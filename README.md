@@ -7,7 +7,7 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 - only wasi preview 1
 - only integers
 # Error handling
-Just assertions. Use if statements to avoid crashing.
+Just assertions. Avoid crashing with if statements.
 # Pointers
 Nope.
 # Mutability
@@ -17,10 +17,11 @@ Memory is deallocated once a variable goes out of scope.
 # Functions
 All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
 # Types
-- We have 5 kinds of number literals. Floats `1.0`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011` and Bytes `'a'`. The Bytes value is the characters value in [ascii](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fdd%2FASCII-Table.svg%2F2522px-ASCII-Table.svg.png&f=1&nofb=1&ipt=d06751b1640d9b550ceeb692df4b97fa295a63c012adbe3822e5ec24809bd801&ipo=images) and has the type `i8`.
+- We have 5 kinds of number literals. Floats `1.0`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Chars `'a'`. Chars can be any [utf-8](https://en.wikipedia.org/wiki/UTF-8) code point and has the samllest possible integer type out of `i8`, `i16` and `i32`.
 - Integers can be any size that's an exponent of 2, `i8, i16, i32, i64, i128, i256, i512 ...`.
 - floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
 - Conversions are implicit. Use type declarations to convert between types. (`i64 x = 'a'`)
+- The program crashes if the conversion is impossible. (`i8 = 923837`)
 - Division always returns an `f64`. Use `div_i64()` for integer division.
 - The type of an expression is the largest integer in the expression or `f64` if there is a float involved anywhere.
 - Integer literals are assumed to be i64 unless given another type.
@@ -85,34 +86,33 @@ i64 shift(i64 x, i8 shift)
 list1 = [1, 3, -3, 7]
 list2 = "Hello, World!"
 
-push(item)
-pull()
-set(index, item) // Crashes if the index does not exist
-remove(index) // Crashes if the index does not exist?
+push(any item)
+any pull() // Crashes if the list is empty
+set(i64 index, any item) // Crashes if the index does not exist
+remove(i64 index) // Crashes if the index does not exist?
 clear()
-insert(item, index)
-replace(old, new)
-index(item)
-length()
-contains(item)
-join(other)
-clone()
-repeat(times)
-split(separator)
+insert(any item, i64 index) 
+replace(any old, any new)
+i64 index(any item) // Crashes if the item does not exist
+i64 length()
+bool contains(item)
+[any] join([any] other)
+[any] clone()
+[any] repeat(i64 times)
+[[any]] split([any] separator)
 ```
 # Maps
 ```
 {[i8]:i32} map = {"you":10, "me":69}
 
-set(key, value)
-get(key)  // Crashes if the key does not exist
-delete(key) // Crashes if the key does not exist=
+set(any key, any value)
+get(any key) // Crashes if the key does not exist
+delete(any key) // Crashes if the key does not exist=
 clear()
-value(key)
-keys()
-size()
-has(key)
-clone()
+[any] keys()
+i64 size()
+bool has(any key)
+{any:any} clone()
 ```
 # Tuples
 ```
