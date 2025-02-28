@@ -124,7 +124,7 @@ i32 size()
 ```
 # Graphics
 ```
-draw_image([i8] path, f64 x, f64 y, f64 rotation)
+draw_image([i8] path, f64 x, f64 y, f64 scale, f64 rotation)
 draw_triangle(f64 x1, f64 y1, f64 x2, f64 y2, f64 x3, f64 y3, f64 r, f64 g, f64 b, f64 a)
 
 clear_canvas(f64 r, f64 g, f64 b)
