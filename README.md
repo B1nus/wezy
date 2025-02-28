@@ -7,11 +7,11 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 - only wasi preview 1
 - only integers
 # Error handling
-Nope, it just crashes.
+Just assertions. Use if statements to avoid crashing.
 # Pointers
 Nope.
 # Mutability
-Nope. Everything is mutable.
+Everything is mutable.
 # Memory
 Memory is deallocated once a variable goes out of scope.
 # Functions
@@ -142,8 +142,10 @@ i64 seconds_since_2000()
 ```
 # Files
 ```
-[i8] read(path)
-write([i8] path, [i8] content)
+bool has_write_access(path)
+bool has_read_access(path)
+[i8] read(path) // Crashes if we don't have access
+write([i8] path, [i8] content) // Crashes if we don't have access
 i64 parse_i64([i8] text)
 f64 parse_f64([i8] text)
 [i8] format(any value)
