@@ -2,6 +2,15 @@
 Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch. It will introduce low level concepts such as floating point numbers and bitwise operations.
 # Goals
 - simplicity
+> [!NOTE]
+> 1. It's hard to know if something is a function or method
+>  - Only functions
+> 3. There are too many implicit number rules
+>  - Have one integer type
+>  - Have one integer type and one byte type
+>  - Have a integer type which is a collective name for all integers
+>  - Explicit number conversion
+
 # Mvp
 - only wasm core
 - only wasi preview 1
@@ -17,7 +26,8 @@ Memory is deallocated once a variable goes out of scope.
 # Functions
 All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
 # Types
-- We have 5 kinds of number literals. Floats `1.0`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Chars `'a'`. Chars can be any [utf-8](https://en.wikipedia.org/wiki/UTF-8) code point and has the samllest possible integer type out of `i8`, `i16` and `i32`.
+- We have 5 kinds of number literals. Floats `1.0`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Chars `'a'`.
+- Chars can be any [utf-8](https://en.wikipedia.org/wiki/UTF-8) code point and has the samllest possible integer type out of `i8`, `i16` and `i32`.
 - Integers can be any size that's an exponent of 2, `i8, i16, i32, i64, i128, i256, i512 ...`.
 - floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
 - Conversions are implicit. Use type declarations to convert between types. (`i64 x = 'a'`)
@@ -25,6 +35,13 @@ All parameters are mutable references. Functions are strongly typed. Functions c
 - Division always returns an `f64`. Use `div_i64()` for integer division.
 - The type of an expression is the largest integer in the expression or `f64` if there is a float involved anywhere.
 - Integer literals are assumed to be i64 unless given another type.
+> [!NOTE]
+> Hmmm... what is this trying to solve?
+> Well in trivial cases such as 1 + 1.5 we don't want to be explicit about the type. And if for example using `function('a')` that conversion is implicit or when sending integers to a function taking only floats. Is there anything else? Idk. but it introduces a lot confusing sutiations when it's hard to know the static type of a variable. This is a hard call.
+>
+> So, it's about how we imply a type to expressions.
+> It's about how we do conversion implicitly for number types in arguments to functions.
+> That's it. You always have the choice to be explicit with type declarations.
 # Comments
 Comments start with `//`.
 # Boolean Expresssions
@@ -128,7 +145,7 @@ draw_image([i8] path, f64 x, f64 y, f64 scale, f64 rotation)
 draw_triangle(f64 x1, f64 y1, f64 x2, f64 y2, f64 x3, f64 y3, f64 r, f64 g, f64 b, f64 a)
 
 clear_canvas(f64 r, f64 g, f64 b)
-(i32, i32) get_resolution()
+(i64, i64) get_resolution()
 ```
 # Audio
 ```
@@ -138,14 +155,14 @@ set_volume(i32 vol)
 ```
 # Input
 ```
-(i32, i32) mouse_position()
+(i64, i64) mouse_position()
 bool mouse_pressed()
 bool key_pressed(i8 key)
 
 i64 nanoseconds_since_start()
 i64 seconds_since_2000()
 ```
-# Files
+# Text
 ```
 bool has_write_access(path)
 bool has_read_access(path)
