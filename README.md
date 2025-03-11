@@ -150,8 +150,8 @@ clear_canvas(f64 r, f64 g, f64 b)
 # Audio
 ```
 play([i8] path)
-i32 get_volume()
-set_volume(i32 vol)
+f64 get_volume()
+set_volume(f64 vol)
 ```
 # Input
 ```
@@ -164,13 +164,15 @@ i64 seconds_since_2000()
 ```
 # Text
 ```
-bool has_write_access(path)
-bool has_read_access(path)
+bool exists(path) 
+bool has_write_access(path) // Crashes if path does not exist
+bool has_read_access(path) // Crashes if path does not exist
 [i8] read(path) // Crashes if we don't have access
 write([i8] path, [i8] content) // Crashes if we don't have access
-i64 parse_i64([i8] text)
-f64 parse_f64([i8] text)
-[i8] format(any value)
+i64 parse_i64([i8] text, i64 base) // Crashes if it's not a i64
+f64 parse_f64([i8] text, i64 base) // Crashes if it's not a f64
+[i8] format_i64(i64 x, i64 base) // Crashes if the base is less than 2
+[i8] format_f64(f64 x, i64 decimals) // Crashes if decimals is negative
 print([i8] text)
 [i8] input()
 [[i8]] command_line_arguments()
