@@ -8,7 +8,6 @@ const Token = union(enum) {
     decimal_integer: []u8,
     indentation: Index,
     plus,
-    newline,
     eof,
 };
 
@@ -17,27 +16,48 @@ pub fn next_token(source: []u8, index: *Index) Token {
         start,
         identifier,
         decimal_integer,
+        indentation,
+        invalid,
     };
 
     var state = State.start;
-    const start_index = index.*;
+    var start_index = index.*;
 
     while (index < source.len) : (index.* += 1) {
-        switch (source[index.*]) {
-            
+        switch (state) {
+            .start => {
+                state = switch (source[index.*]) {
+                    '\n' => State.indentation,
+                    ' ', '\r', '\t' => {
+                        index.* += 1;
+                        start_index.* = index.*;
+                        State.start
+                    }
+                    '+' => State.plus,
+                    'a'...'z' => 
+                };
+            }
+
         }
     }
 
     return switch(state) {
         .start => .eof,
-        .identifier => .identifier: source[start_index]
+        .identifier => .identifier: source[start_index..index.*],
+        else => .eof,
     };
-    return .eof;
 }
 
 pub fn main() !void {
+    const allocator = std.heap.page_allocator;
+
     var args = std.process.args();
     std.debug.assert(args.skip());
     const path = args.next().?;
-    std.debug.print("{s}\n", .{path});
+
+    const file = try std.fs.cwd().openFile(path, .{});
+    const source = try file.readToEndAlloc(allocator, std.math.maxInt(u64));
+
+    var index: usize = 0;
+    std.debug.print("{any}\n", .{next_token(source, &index)});
 }

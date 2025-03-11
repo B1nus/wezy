@@ -26,3 +26,7 @@ Literal parse_literal([i8 source_code, i64 &mut index)
 // No error/crash messages
 // No stacktraces
 // No function overloading
+// No methods
+// No comptime
+// No metaprogramming
+
