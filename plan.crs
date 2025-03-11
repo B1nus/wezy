@@ -20,3 +20,9 @@ Literal parse_literal([i8 source_code, i64 &mut index)
 // No add/sud/mul/div assign
 // No swap optimisation
 // No indexing syntax
+// No default arguments
+// No structs/enums
+// No implicit types in bindings
+// No error/crash messages
+// No stacktraces
+// No function overloading

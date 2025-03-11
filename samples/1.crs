@@ -3,26 +3,26 @@ use functions.crs as funcs
 i64 dot_product(i64 x1, i64 y1, i64 x2, i64 y2)
   return x1 * x2 + y1 * y2
 
-[i8] format_i64(i64 number)
-  out = ""
-  x = abs_i64(number)
+[i8] format(i64 number)
+  [i8] out = ""
+  i64 x = abs_i64(number)
   loop
     i8 char = mod_i64(x, 10)
     out.push(char)
-    x = div_f64(x, 10)
+    f64 x = div_f64(x, 10)
     if x == 0
       if number < 0
         out.insert('-', 0)
       return out
 
 sort([i64] list)
-  i = 0
+  i64 i = 0
   loop list.length()
     done = true
-    j = 1
+    i64 j = 1
     loop list.length() - 1
       if list.get(i) > list.get(j)
-        temp = list.get(i)
+        i64 temp = list.get(i)
         list.set(i, list.get(j))
         list.set(j, temp)
         done = false
@@ -31,14 +31,14 @@ sort([i64] list)
     i.change(1)
 
 [i64] sorted([i64] list)
-  list = list.clone()
+  [i64] list = list.clone()
   sort(list)
   return list
 
 assert(dot_product(1, 2, 3, 4) == 11)
-assert(format_i64(-59) == "-59")
+assert(format(-59) == "-59")
 assert(sorted([-5, 9, 3, 2]) == [-5, 2, 3, 9])
 
-list = [-5, 9, 3, 2]
+[i64] list = [-5, 9, 3, 2]
 sort(list)
 assert(list == [-5,2,3,9])

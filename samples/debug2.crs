@@ -1,0 +1,5 @@
+assert(true)
+assert(3 >= 2)
+assert(3 < 4 < 5)
+assert(4 == 4 - 1 + 1)
+

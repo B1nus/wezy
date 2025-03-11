@@ -1,0 +1,6 @@
+i64 x = 5
+text = format_i64(x, 10)
+assert(text == "5")
+
+i64 x = parse_i64(text, 10)
+assert(x == 5)
