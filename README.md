@@ -170,7 +170,7 @@ bool has_read_access(path) // Crashes if path does not exist
 [i8] read(path) // Crashes if we don't have access
 write([i8] path, [i8] content) // Crashes if we don't have access
 i64 parse_i64([i8] text, i64 base) // Crashes if it's not a i64
-f64 parse_f64([i8] text, i64 base) // Crashes if it's not a f64
+f64 parse_f64([i8] text) // Crashes if it's not a f64
 [i8] format_i64(i64 x, i64 base) // Crashes if the base is less than 2
 [i8] format_f64(f64 x, i64 decimals) // Crashes if decimals is negative
 print([i8] text)
