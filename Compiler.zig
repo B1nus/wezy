@@ -21,18 +21,87 @@ pub const Import = enum {
     log_i32,
     log_str, // This won't be in the language, but I need some practice
              // getting wasm memory to work. The concept of strings don't
-             // exist in crust. There's only lists of bytes.
+             // exist in crust. There's only lists of bytes "[i8]".
     // TODO make log_str into log_[i8]. And make all strings into mutable [i8].
 
     // draw_triangle,
     // draw_image,
+
+    // The type signature bytes in webassembly.
+    pub fn type_signature(self: Import) []const u8 {
+        switch (self) {
+            .log_i32 => {
+                return &.{0x60,1,i32_,0};
+            },
+            .log_str => {
+                return &.{0x60,2,i32_,0};
+            },
+        }
+    }
+
+    // The javascript source code for the function.
+    pub fn javascipt_code(self: Import) []const u8 {
+        switch (self) {
+            // I do prefer the div console though. It is more in line with
+            // what crust is trying to be.
+            .log_i32 => {
+                return "(number) => console.log(number)";
+            },
+            .log_str => {
+                return "(ptr, len) => { //TODO }";
+            },
+        }
+    }
+};
+
+// Helper functions written in wasm. Currently only memory related.
+pub const Helper = enum {
+    alloc,
+    realloc,
+    free,
+
+    // The bytes for this functions type signature
+    pub fn type_signature(self: Helper) []const u8 {
+        switch (self) {
+            .free => {
+                return &.{0x60,1,i32_,0};
+            },
+            .alloc => {
+                return &.{0x60,1,i32_,1,i32_};
+            },
+            .realloc => {
+                return &.{0x60,2,i32_,1,i32_};
+            },
+        }
+    }
+
+    // The bytes for this functions body
+    pub fn wasm_code(self: Helper) []const u8 {
+        switch (self) {
+            else => unreachable,
+        }
+    }
+};
+
+pub const Function = union(enum) {
+    // start, Always at index 0.
+    user: []const u8,
+    import: Import,
+    helper: Helper,
 };
 
 parser: *Parser,
 locals: std.StringHashMap(usize),
+// Hmm. how to
 imports: std.AutoHashMap(Import, usize),
+helpers: std.AutoHashMap(Helper, usize),
+user_functions: std.StringHashMap(usize),
+functions: std.ArrayList(std.ArrayList(u8)),
+
+
 
 // TODO
+// Compile index.html, index.css, index
 // Compile into index.html
 // Only compile js functions necessary
 // Only compile wasm imports necessary
@@ -143,7 +212,8 @@ pub fn compile_code(self: *@This(), allocator: std.mem.Allocator) !std.ArrayList
 pub fn compile_imports(self: *@This()) !std.ArrayList(u8) {
 }
 
-pub fn compile_javascipr()
+pub fn compile_javascipt(imports: []const Import, allocator: std.mem.Allocator) std.ArrayList(u8) {
+}
 
 pub fn compile_wasm(self: *@This(), allocator: std.mem.Allocator) !std.ArrayList(u8) {
     var wasm_bytes = std.ArrayList(u8).init(allocator);
@@ -181,34 +251,15 @@ pub fn compile_wasm(self: *@This(), allocator: std.mem.Allocator) !std.ArrayList
     return wasm_bytes;
 }
 
-pub const css
-
-pub const UnpackingError = error {
-    no_script,
-    no_wasm,
-};
-
-// I just realized something. This system would be very prone
-// to breaking with updates. How can I make sure this keeps working
-// even as I update crust?
-//
-// It should work like normal right? The only hard part if finding
-// the webassembly file. As long as I keep that consistent it should
-// not be a problem.
-//
-// Otherwise I could just make unpacking an option while compiling.
-// Yeah, that's probably a better idea...
-pub const Unpacked = struct {
-    html: []const u8,
-    js: []const u8,
-    wasm: []const u8,
-    css: []const u8,
-};
-
-// Unpacks the html file into four different files. index.html
-// index.js, index.wasm and index.css.
-pub fn unpack(html: []const u8) UnpackingError!Unpacked {
-}
+pub const css =
+    \\#console {
+    \\
+    \\
+    \\
+    \\
+    \\
+    \\
+    ;
 
 test "single assign statement" {
     const source = "x = 16 + 13";

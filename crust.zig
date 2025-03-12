@@ -191,6 +191,11 @@ pub fn create_connection(wasm: []const u8, Conn: *std.net.Server.Connection, all
     }
 }
 
+// TODO Turn the files into a single html file. Used for running and compiliation.
+// pub fn html(wasm: []const u8, css: []const u8, js: []const u8, html: []const u8) []const u8 {
+//
+// }
+
 pub fn main() !void {
     var args = std.process.args();
     try state: switch (parse_args(&args)) {
