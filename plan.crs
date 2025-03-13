@@ -29,4 +29,6 @@ Literal parse_literal([i8 source_code, i64 &mut index)
 // No methods
 // No comptime
 // No metaprogramming
+// No bindings without initial expression
+// No root indentation
 
