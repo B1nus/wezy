@@ -293,64 +293,6 @@ pub fn compile_expression(expression: Expression, expressions: []Expression, loc
     }
 }
 
-// pub fn compile_statement(statement: Statement, expressions: []Expression, local_variables: *std.StringHashMap(u64), imports: *std.ArrayList([]u8), import_types: *std.ArrayList(u8), function_types: *std.ArrayList([]u8), function_codes: *std.ArrayList([]u8), functions: *std.StringHashMap(u64), code_bytes: *std.ArrayList(u8)) void {
-//     switch (statement) {
-//         .binding => |binding| {
-//             compile_expression(binding.expression, expressions, local_variables.*, code_bytes);
-//             const local_variable_entry = local_variables.getOrPutValue(binding.identifier, local_variables.count()) catch unreachable;
-//             const local_variable_index = local_variable_entry.value_ptr.*;
-//             code_bytes.append(0x21) catch unreachable;
-//             std.leb.writeIleb128(code_bytes.writer(), local_variable_index) catch unreachable;
-//         },
-//         .call => |call| {
-//             compile_expression(call.expression, expressions, local_variables.*, code_bytes);
-//             code_bytes.append(0x10) catch unreachable;
-//
-//             const function = std.meta.stringToEnum(Functions, call.identifier) orelse {
-//                 unreachable;
-//             };
-//
-//             var function_index = undefined;
-//             switch (function) {
-//                 .debug => {
-//                     var fd_write_index = undefined;
-//                     if (functions.get("fd_write")) |index| {
-//                         fd_write_index = index;
-//                     } else {
-//                         imports.append([_]u8{ 0x16 } ++ "was_snapshot_preview1" ++ [_]u8{ 0x09 } ++ "fd_write") catch unreachable;
-//                         import_types.append(function_types.items.len) catch unreachable;
-//                         function_types.append([_]u8{ 0x60, 0x01, 0x7E, 0x00 }) catch unreachable;
-//                         fd_write_index = functions.count();
-//                         functions.put("fd_write", fd_write_index);
-//                     }
-//
-//                     if (functions.get("write_i64")) |index| {
-//                         function_index = index;
-//                     } else {
-//                         [_]u8{ 0x01, 0x02, 0x7F } ++ [_]u8{ 0x41, 0xE8, 0x07, 0x21, 0x01, 0x41, 0x00, 0x21, 0x02, 0x03, 0x40, 0x20, 0x01, 0x20, 0x02, 0x6B, 0x20, 0x00, 0x42, 0x0A, 0x81, 0xA7, 0x41, 0x30, 0x6A, 0x3A, 0x00, 0x00, 0x20, 0x00, 0x42, 0x0A, 0x7F, 0x21, 0x00, 0x20, 0x02, 0x41, 0x01, 0x6A, 0x21, 0x02, 0x20, 0x00, 0x42, 0x00, 0x52, 0x0D, 0x00, 0x0B, 0x20, 0x01, 0x41, 0x01, 0x6A, 0x20, 0x02, 0x6B, 0x21, 0x01, 0x41, 0x00, 0x20, 0x01, 0x36, 0x02, 0x00, 0x41, 0x04, 0x20, 0x02, 0x36, 0x02, 0x00, 0x41, 0x01, 0x41, 0x00, 0x41, 0x01, 0x41, 0xE4, 0x00, 0x10, undefined, 0x1A, 0x0B }
-//                     }
-//                 },
-//                 .assert => unreachable,
-//             }
-//
-//             std.leb.writeIleb128(code_bytes.writer(), function_index) catch unreachable;
-//         },
-//     }
-// }
-//
-// const Functions = enum {
-//     debug,
-//     assert,
-// };
-//
-// const fd_write_type = [_]u8{ 0x60, 0x04, 0x7F, 0x7F, 0x7F, 0x7F, 0x01, 0x7F };
-// // const proc_exit_type = [_]u8{ 0x60, 0x01, 0x7F, 0x00 };
-// // const proc_exit_import = [_]u8{ 0x16, 0x77, 0x61, 0x73, 0x69, 0x5F, 0x73, 0x6E, 0x61, 0x70, 0x73, 0x68, 0x6F, 0x74, 0x5F, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x31, 0x09, 0x70, 0x72, 0x6F, 0x63, 0x5F, 0x65, 0x78, 0x69, 0x74 };
-// // const crash_type = [_]u8{ 0x60, 0x00, 0x00 };
-// // const crash_code = [_]u8{ 0x00 } ++ [_]u8{  };
-// const start_type = [_]u8{ 0x60, 0x00, 0x00 };
-// const write_i64_code = ;
-
 // How to add debug info in debug calls (line number and expression)
 // How to make a debug function in wasm. Should be able to debug any expression.
 // TODO: add debug call to failed asserts.
@@ -375,37 +317,95 @@ pub fn main() !void {
     _ = args.skip();
     const path = args.next().?;
 
-    // const file = try std.fs.cwd().openFile(path, .{});
-    // const source = try file.readToEndAlloc(allocator, std.math.maxInt(u64));
+    const file = try std.fs.cwd().openFile(path, .{});
+    const source = try file.readToEndAlloc(allocator, std.math.maxInt(u64));
 
-    // var index: usize = 0;
-    // var expressions = std.ArrayList(Expression).init(allocator);
-    // var code_bytes = std.ArrayList(u8).init(allocator);
-    // var local_variables = std.StringHashMap(u64).init(allocator);
-    // var functions = std.StringHashMap(u64).init(allocator);
-    // defer expressions.deinit();
-    // defer code_bytes.deinit();
-    // defer local_variables.deinit();
-
-    // while (next_statement(source, &index, &expressions)) |statement| {
-    //     compile_statement(statement, expressions.items, &local_variables, &code_bytes);
-    // }
+    var source_index: usize = 0;
+    var expressions = std.ArrayList(Expression).init(allocator);
+    var local_variables = std.StringHashMap(u64).init(allocator);
 
     const output_path = args.next() orelse replace_extension(allocator, path, ".wasm");
     const output_file = try std.fs.cwd().createFile(output_path, .{ .truncate = true });
-    _ = try output_file.write(&.{ 0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00 });
 
-    var function_types = std.ArrayList(u8).init(allocator);
-    var import_count: u32 = 0;
-    var imports = std.ArrayList(u8).init(allocator); // includes the type for imports
-    var code_count: u32 = 0;
-    var function_identifiers = std.StringHashMap(u32).init(allocator);
-    var dependencies = std.HashMap(u32, []u8).init(allocator); // 
-    var code = std.ArrayList(u8).init(allocator);
-    var code_types = std.ArrayList(u32).init(allocator);
+    var wasi_import_types = std.ArrayList(u8).init(allocator);
+    var wasi_import_names = std.ArrayList([]const u8).init(allocator); // includes the type for imports
 
-    for (dependencies.entries()) |dependency| {
-        const pos, const identifier = dependency;
-        code.items[pos] = function_identifiers.get(identifier).?;
+    var std_function_types = std.ArrayList(u8).init(allocator);
+    var std_function_codes = std.ArrayList(u8).init(allocator);
+    var std_function_names = std.ArrayList([]const u8).init(allocator);
+
+    var start_function_code = std.ArrayList(u8).init(allocator);
+
+    while (next_statement(source, &source_index, &expressions)) |statement| {
+        switch (statement) {
+            .binding => |binding| {
+                compile_expression(binding.expression, expressions.items, local_variables, &start_function_code);
+                const local_variable_entry = local_variables.getOrPutValue(binding.identifier, local_variables.count()) catch unreachable;
+                const local_variable_index = local_variable_entry.value_ptr.*;
+                start_function_code.append(0x21) catch unreachable;
+                std.leb.writeIleb128(start_function_code.writer(), local_variable_index) catch unreachable;
+            },
+            .call => |call| {
+                compile_expression(call.expression, expressions, local_variables, &start_function_code);
+                start_function_code.append(0x10) catch unreachable;
+
+                const Functions = enum {
+                    debug,
+                    assert,
+                };
+
+                const function = std.meta.stringToEnum(Functions, call.identifier) orelse {
+                    unreachable;
+                };
+
+                var function_index = undefined;
+                switch (function) {
+                    .debug => {
+                        var fd_write_index = undefined;
+                        if (std.mem.indexOf([]const u8, wasi_import_names, "fd_write")) |index| {
+                            fd_write_index = index;
+                        } else {
+                            fd_write_index = wasi_import_names.items.len;
+                            wasi_import_types.appendSlice(&[_]u8{ 0x60, 0x04, 0x7F, 0x7F, 0x7F, 0x7F, 0x01, 0x7F }) catch unreachable;
+                            wasi_import_names.append("fd_write");
+                        }
+
+                        if (std.mem.indexOf([]const u8, std_function_names, "write_i64")) |index| {
+                            function_index = index;
+                        } else {
+                            var code = std.ArrayList(u8).init(allocator);
+                            code.appendSlice(&[_]u8{ 0x01, 0x02, 0x7F, 0x41, 0xE8, 0x07, 0x21, 0x01, 0x41, 0x00, 0x21, 0x02, 0x03, 0x40, 0x20, 0x01, 0x20, 0x02, 0x6B, 0x20, 0x00, 0x42, 0x0A, 0x81, 0xA7, 0x41, 0x30, 0x6A, 0x3A, 0x00, 0x00, 0x20, 0x00, 0x42, 0x0A, 0x7F, 0x21, 0x00, 0x20, 0x02, 0x41, 0x01, 0x6A, 0x21, 0x02, 0x20, 0x00, 0x42, 0x00, 0x52, 0x0D, 0x00, 0x0B, 0x20, 0x01, 0x41, 0x01, 0x6A, 0x20, 0x02, 0x6B, 0x21, 0x01, 0x41, 0x00, 0x20, 0x01, 0x36, 0x02, 0x00, 0x41, 0x04, 0x20, 0x02, 0x36, 0x02, 0x00, 0x41, 0x01, 0x41, 0x00, 0x41, 0x01, 0x41, 0xE4, 0x00, 0x10 }) catch unreachable;
+                            std.leb.writeIleb128(code.writer(), fd_write_index) catch unreachable;
+                            code.appendSlice(&[_]u8{ 0x1A, 0x0B }) catch unreachable;
+                            std.leb.writeIleb128(std_function_codes.writer(), code.items.len) catch unreachable;
+                            std_function_codes.appendSlice(code.items) catch unreachable;
+                            std_function_types.appendSlice(&[_]u8{ 0x60, 0x01, 0x7F, 0x00 }) catch unreachable;
+                            std_function_names.append("write_i64") catch unreachable;
+                            code.deinit();
+                        }
+                    },
+                    .assert => unreachable,
+                }
+
+                std.leb.writeIleb128(start_function_code.writer(), function_index) catch unreachable;
+            },
+        }
     }
+
+    _ = try output_file.write(&.{ 0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00 });
 }
+//
+// }
+//
+// const Functions = enum {
+//     debug,
+//     assert,
+// };
+//
+// const fd_write_type = [_]u8{ 0x60, 0x04, 0x7F, 0x7F, 0x7F, 0x7F, 0x01, 0x7F };
+// // const proc_exit_type = [_]u8{ 0x60, 0x01, 0x7F, 0x00 };
+// // const proc_exit_import = [_]u8{ 0x16, 0x77, 0x61, 0x73, 0x69, 0x5F, 0x73, 0x6E, 0x61, 0x70, 0x73, 0x68, 0x6F, 0x74, 0x5F, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x31, 0x09, 0x70, 0x72, 0x6F, 0x63, 0x5F, 0x65, 0x78, 0x69, 0x74 };
+// // const crash_type = [_]u8{ 0x60, 0x00, 0x00 };
+// // const crash_code = [_]u8{ 0x00 } ++ [_]u8{  };
+// const start_type = [_]u8{ 0x60, 0x00, 0x00 };
+// const write_i64_code = ;
