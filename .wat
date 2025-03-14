@@ -1,10 +1,14 @@
 (module
     (import "wasi_snapshot_preview1" "fd_write" (func $fd_write (param i32 i32 i32 i32) (result i32)))
+    (import "wasi_snapshot_preview1" "proc_exit" (func $proc_exit (param i32)))
 
     (memory (export "memory") 1)
 
     (func $main (export "_start")
-        (call $print_i64 (i64.const 214322313))
+        (call $print_i64 (i64.const 111))
+        (call $print_i64 (i64.const 222))
+        (call $print_i64 (i64.const 333))
+        (call $proc_exit (i32.const 0))
     )
 
     (func $print_i64 (param $x i64)
