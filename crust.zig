@@ -301,6 +301,13 @@ pub fn compile_expression(expression: Expression, expressions: []Expression, loc
 // Hmmm. How to make it easy to add std wasm functions?
 // Hmmm. Let users add wasm code?
 
+pub fn write_i64_code(bytes: *std.ArrayList(u8), fd_write_index: u32) void {
+    bytes.appendSlice(&[_]u8{ 0x01, 0x02, 0x7F, 0x41, 0xE8, 0x07, 0x21, 0x01, 0x41, 0x00, 0x21, 0x02, 0x03, 0x40, 0x20, 0x01, 0x20, 0x02, 0x6B, 0x20, 0x00, 0x42, 0x0A, 0x81, 0xA7, 0x41, 0x30, 0x6A, 0x3A, 0x00, 0x00, 0x20, 0x00, 0x42, 0x0A, 0x7F, 0x21, 0x00, 0x20, 0x02, 0x41, 0x01, 0x6A, 0x21, 0x02, 0x20, 0x00, 0x42, 0x00, 0x52, 0x0D, 0x00, 0x0B, 0x20, 0x01, 0x41, 0x01, 0x6a, 0x41, 0x0a, 0x3a, 0x00, 0x00, 0x20, 0x01, 0x41, 0x01, 0x6A, 0x20, 0x02, 0x6B, 0x21, 0x01, 0x41, 0x00, 0x20, 0x01, 0x36, 0x02, 0x00, 0x41, 0x04, 0x20, 0x02, 0x41, 0x01, 0x6a, 0x36, 0x02, 0x00, 0x41, 0x01, 0x41, 0x00, 0x41, 0x01, 0x41, 0xE4, 0x00, 0x10 }) catch unreachable;
+    std.leb.writeIleb128(bytes.writer(), fd_write_index) catch unreachable;
+    bytes.appendSlice(&[_]u8{ 0x1A, 0x0B }) catch unreachable;
+}
+const write_i64_type = [_]u8{ 0x60, 0x01, 0x7E, 0x00 };
+
 pub fn replace_extension(allocator: std.mem.Allocator, path: []const u8, new_extension: []const u8) []u8 {
     const extension = std.fs.path.extension(path);
     var new_path = allocator.alloc(u8, path.len - extension.len + new_extension.len) catch unreachable;
@@ -324,17 +331,16 @@ pub fn main() !void {
     var expressions = std.ArrayList(Expression).init(allocator);
     var local_variables = std.StringHashMap(u64).init(allocator);
 
-    const output_path = args.next() orelse replace_extension(allocator, path, ".wasm");
-    const output_file = try std.fs.cwd().createFile(output_path, .{ .truncate = true });
-
     var wasi_import_types = std.ArrayList(u8).init(allocator);
-    var wasi_import_names = std.ArrayList([]const u8).init(allocator); // includes the type for imports
+    var wasi_import_names = std.StringArrayHashMap(u32).init(allocator);
 
     var std_function_types = std.ArrayList(u8).init(allocator);
     var std_function_codes = std.ArrayList(u8).init(allocator);
-    var std_function_names = std.ArrayList([]const u8).init(allocator);
+    var std_function_names = std.StringArrayHashMap(u32).init(allocator);
 
     var start_function_code = std.ArrayList(u8).init(allocator);
+
+    var std_uses = std.AutoArrayHashMap(u32, []const u8).init(allocator);
 
     while (next_statement(source, &source_index, &expressions)) |statement| {
         switch (statement) {
@@ -346,66 +352,133 @@ pub fn main() !void {
                 std.leb.writeIleb128(start_function_code.writer(), local_variable_index) catch unreachable;
             },
             .call => |call| {
-                compile_expression(call.expression, expressions, local_variables, &start_function_code);
+                compile_expression(call.expression, expressions.items, local_variables, &start_function_code);
                 start_function_code.append(0x10) catch unreachable;
 
-                const Functions = enum {
+                const function = std.meta.stringToEnum(enum {
                     debug,
                     assert,
-                };
-
-                const function = std.meta.stringToEnum(Functions, call.identifier) orelse {
+                }, call.identifier) orelse {
                     unreachable;
                 };
 
-                var function_index = undefined;
+                var function_index: u32 = undefined;
                 switch (function) {
                     .debug => {
-                        var fd_write_index = undefined;
-                        if (std.mem.indexOf([]const u8, wasi_import_names, "fd_write")) |index| {
-                            fd_write_index = index;
+                        var fd_write_index: u32 = undefined;
+                        if (wasi_import_names.get("fd_write")) |index| {
+                            fd_write_index = @intCast(index);
                         } else {
-                            fd_write_index = wasi_import_names.items.len;
+                            fd_write_index = @intCast(wasi_import_names.count());
                             wasi_import_types.appendSlice(&[_]u8{ 0x60, 0x04, 0x7F, 0x7F, 0x7F, 0x7F, 0x01, 0x7F }) catch unreachable;
-                            wasi_import_names.append("fd_write");
+                            wasi_import_names.put("fd_write", fd_write_index) catch unreachable;
                         }
 
-                        if (std.mem.indexOf([]const u8, std_function_names, "write_i64")) |index| {
-                            function_index = index;
+                        if (std_function_names.get("write_i64")) |index| {
+                            function_index = @intCast(index);
                         } else {
                             var code = std.ArrayList(u8).init(allocator);
-                            code.appendSlice(&[_]u8{ 0x01, 0x02, 0x7F, 0x41, 0xE8, 0x07, 0x21, 0x01, 0x41, 0x00, 0x21, 0x02, 0x03, 0x40, 0x20, 0x01, 0x20, 0x02, 0x6B, 0x20, 0x00, 0x42, 0x0A, 0x81, 0xA7, 0x41, 0x30, 0x6A, 0x3A, 0x00, 0x00, 0x20, 0x00, 0x42, 0x0A, 0x7F, 0x21, 0x00, 0x20, 0x02, 0x41, 0x01, 0x6A, 0x21, 0x02, 0x20, 0x00, 0x42, 0x00, 0x52, 0x0D, 0x00, 0x0B, 0x20, 0x01, 0x41, 0x01, 0x6A, 0x20, 0x02, 0x6B, 0x21, 0x01, 0x41, 0x00, 0x20, 0x01, 0x36, 0x02, 0x00, 0x41, 0x04, 0x20, 0x02, 0x36, 0x02, 0x00, 0x41, 0x01, 0x41, 0x00, 0x41, 0x01, 0x41, 0xE4, 0x00, 0x10 }) catch unreachable;
-                            std.leb.writeIleb128(code.writer(), fd_write_index) catch unreachable;
-                            code.appendSlice(&[_]u8{ 0x1A, 0x0B }) catch unreachable;
+                            write_i64_code(&code, fd_write_index);
                             std.leb.writeIleb128(std_function_codes.writer(), code.items.len) catch unreachable;
                             std_function_codes.appendSlice(code.items) catch unreachable;
-                            std_function_types.appendSlice(&[_]u8{ 0x60, 0x01, 0x7F, 0x00 }) catch unreachable;
-                            std_function_names.append("write_i64") catch unreachable;
                             code.deinit();
+
+                            function_index = @intCast(std_function_names.count());
+                            std_function_types.appendSlice(&write_i64_type) catch unreachable;
+                            std_function_names.put("write_i64", function_index) catch unreachable;
                         }
                     },
                     .assert => unreachable,
                 }
 
-                std.leb.writeIleb128(start_function_code.writer(), function_index) catch unreachable;
+                std_uses.put(@intCast(start_function_code.items.len), "write_i64") catch unreachable;
             },
         }
     }
 
-    _ = try output_file.write(&.{ 0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00 });
+    var new_start_function_code = std.ArrayList(u8).init(allocator);
+    var std_uses_iterator = std_uses.iterator();
+    var last: u32 = 0;
+    var offset: u32 = 0;
+    while (std_uses_iterator.next()) |std_use| {
+        try new_start_function_code.appendSlice(start_function_code.items[last .. std_use.key_ptr.* + offset]);
+        last = std_use.key_ptr.* + offset;
+        const mem = new_start_function_code.items.len;
+        try std.leb.writeIleb128(new_start_function_code.writer(), std_function_names.get(std_use.value_ptr.*).? + wasi_import_names.count());
+        offset += @intCast(new_start_function_code.items.len - mem);
+    }
+    try new_start_function_code.appendSlice(start_function_code.items[last..]);
+    start_function_code = new_start_function_code;
+
+    const output_path = args.next() orelse replace_extension(allocator, path, ".wasm");
+    const output_file = try std.fs.cwd().createFile(output_path, .{ .truncate = true });
+
+    var sections = std.AutoArrayHashMap(u8, []u8).init(allocator);
+
+    var type_section = std.ArrayList(u8).init(allocator);
+    try std.leb.writeIleb128(type_section.writer(), wasi_import_names.count() + std_function_names.count() + 1);
+    try type_section.appendSlice(wasi_import_types.items);
+    try type_section.appendSlice(std_function_types.items);
+    try type_section.appendSlice(&.{ 0x60, 0x00, 0x00 });
+    try sections.put(0x01, type_section.items);
+
+    var import_section = std.ArrayList(u8).init(allocator);
+    try std.leb.writeIleb128(import_section.writer(), wasi_import_names.count());
+    var import_iterator = wasi_import_names.iterator();
+    while (import_iterator.next()) |import_entry| {
+        const import = import_entry.key_ptr.*;
+        const i = import_entry.value_ptr.*;
+        try import_section.appendSlice(&.{ 0x16, 0x77, 0x61, 0x73, 0x69, 0x5F, 0x73, 0x6E, 0x61, 0x70, 0x73, 0x68, 0x6F, 0x74, 0x5F, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x31 });
+        try std.leb.writeIleb128(import_section.writer(), import.len);
+        try import_section.appendSlice(import);
+        try import_section.append(0x00);
+        try std.leb.writeIleb128(import_section.writer(), i);
+    }
+    try sections.put(0x02, import_section.items);
+
+    var function_section = std.ArrayList(u8).init(allocator);
+    try std.leb.writeIleb128(function_section.writer(), std_function_names.count() + 1);
+    for (0..std_function_names.count() + 1) |i| {
+        try std.leb.writeIleb128(function_section.writer(), i + wasi_import_names.count());
+    }
+    try sections.put(0x03, function_section.items);
+
+    var memory_section = std.ArrayList(u8).init(allocator);
+    try memory_section.appendSlice(&.{ 0x01, 0x00, 0x01 });
+    try sections.put(0x05, memory_section.items);
+
+    var export_section = std.ArrayList(u8).init(allocator);
+    try export_section.append(0x02);
+    try std.leb.writeIleb128(export_section.writer(), "_start".len);
+    try export_section.appendSlice("_start");
+    try export_section.append(0x00);
+    try std.leb.writeIleb128(export_section.writer(), std_function_names.count() + wasi_import_names.count());
+    try std.leb.writeIleb128(export_section.writer(), "memory".len);
+    try export_section.appendSlice("memory");
+    try export_section.appendSlice(&.{ 0x02, 0x00 });
+    try sections.put(0x07, export_section.items);
+
+    var code_section = std.ArrayList(u8).init(allocator);
+    try std.leb.writeIleb128(code_section.writer(), std_function_names.count() + 1);
+    try code_section.appendSlice(std_function_codes.items);
+    var start_function_locals = std.ArrayList(u8).init(allocator);
+    try start_function_locals.append(0x01);
+    try std.leb.writeIleb128(start_function_locals.writer(), local_variables.count());
+    try start_function_locals.append(0x7E);
+    try std.leb.writeIleb128(code_section.writer(), start_function_code.items.len + start_function_locals.items.len + 1);
+    try code_section.appendSlice(start_function_locals.items);
+    try code_section.appendSlice(start_function_code.items);
+    try code_section.append(0x0B);
+    try sections.put(0x0A, code_section.items);
+
+    _ = try output_file.write(&.{ 0x00, 'a', 's', 'm', 0x01, 0x00, 0x00, 0x00 });
+    var section_iterator = sections.iterator();
+    while (section_iterator.next()) |section| {
+        _ = try output_file.write(&.{section.key_ptr.*});
+        try std.leb.writeIleb128(output_file.writer(), section.value_ptr.len);
+        _ = try output_file.write(section.value_ptr.*);
+    }
 }
-//
-// }
-//
-// const Functions = enum {
-//     debug,
-//     assert,
-// };
-//
-// const fd_write_type = [_]u8{ 0x60, 0x04, 0x7F, 0x7F, 0x7F, 0x7F, 0x01, 0x7F };
+
 // // const proc_exit_type = [_]u8{ 0x60, 0x01, 0x7F, 0x00 };
-// // const proc_exit_import = [_]u8{ 0x16, 0x77, 0x61, 0x73, 0x69, 0x5F, 0x73, 0x6E, 0x61, 0x70, 0x73, 0x68, 0x6F, 0x74, 0x5F, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x31, 0x09, 0x70, 0x72, 0x6F, 0x63, 0x5F, 0x65, 0x78, 0x69, 0x74 };
-// // const crash_type = [_]u8{ 0x60, 0x00, 0x00 };
 // // const crash_code = [_]u8{ 0x00 } ++ [_]u8{  };
-// const start_type = [_]u8{ 0x60, 0x00, 0x00 };
-// const write_i64_code = ;
