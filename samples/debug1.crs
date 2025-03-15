@@ -1,2 +1,4 @@
+i64 x = 2 + 8
+debug(x)
 i64 x = 2 + 6
 debug(x)

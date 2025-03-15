@@ -387,11 +387,39 @@ pub fn main() !void {
                             std_function_types.appendSlice(&write_i64_type) catch unreachable;
                             std_function_names.put("write_i64", function_index) catch unreachable;
                         }
-                    },
-                    .assert => unreachable,
-                }
 
-                std_uses.put(@intCast(start_function_code.items.len), "write_i64") catch unreachable;
+                        std_uses.put(@intCast(start_function_code.items.len), "write_i64") catch unreachable;
+                    },
+                    .assert => {
+                        var proc_exit_index: u32 = undefined;
+                        if (wasi_import_names.get("proc_exit")) |index| {
+                            proc_exit_index = @intCast(index);
+                        } else {
+                            proc_exit_index = @intCast(wasi_import_names.count());
+                            wasi_import_types.appendSlice(&[_]u8{ 0x60, 0x01, 0x7F, 0x00 }) catch unreachable;
+                            wasi_import_names.put("proc_exit", proc_exit_index) catch unreachable;
+                        }
+
+                        if (std_function_names.get("crash")) |index| {
+                            function_index = @intCast(index);
+                        } else {
+                            var code = std.ArrayList(u8).init(allocator);
+                            try code.appendSlice(&.{ 0x00, 0x41, 0x00, 0x10 });
+                            try std.leb.writeIleb128(code.writer(), proc_exit_index);
+                            try code.append(0x0B);
+
+                            std.leb.writeIleb128(std_function_codes.writer(), code.items.len) catch unreachable;
+                            std_function_codes.appendSlice(code.items) catch unreachable;
+                            code.deinit();
+
+                            function_index = @intCast(std_function_names.count());
+                            std_function_types.appendSlice(&write_i64_type) catch unreachable;
+                            std_function_names.put("crash", function_index) catch unreachable;
+                        }
+
+                        std_uses.put(@intCast(start_function_code.items.len), "crash") catch unreachable;
+                    },
+                }
             },
         }
     }
@@ -399,13 +427,10 @@ pub fn main() !void {
     var new_start_function_code = std.ArrayList(u8).init(allocator);
     var std_uses_iterator = std_uses.iterator();
     var last: u32 = 0;
-    var offset: u32 = 0;
     while (std_uses_iterator.next()) |std_use| {
-        try new_start_function_code.appendSlice(start_function_code.items[last .. std_use.key_ptr.* + offset]);
-        last = std_use.key_ptr.* + offset;
-        const mem = new_start_function_code.items.len;
+        try new_start_function_code.appendSlice(start_function_code.items[last..std_use.key_ptr.*]);
+        last = std_use.key_ptr.*;
         try std.leb.writeIleb128(new_start_function_code.writer(), std_function_names.get(std_use.value_ptr.*).? + wasi_import_names.count());
-        offset += @intCast(new_start_function_code.items.len - mem);
     }
     try new_start_function_code.appendSlice(start_function_code.items[last..]);
     start_function_code = new_start_function_code;
