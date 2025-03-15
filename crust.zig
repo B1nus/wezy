@@ -110,10 +110,16 @@ pub fn next_token(source: []u8, index: *u64) Token {
 
 const Statement = union(enum) {
     binding: Binding,
+    assignment: Assignment,
     call: Call,
 
     const Binding = struct {
         type: TypeExpression,
+        identifier: []u8,
+        expression: Expression,
+    };
+
+    const Assignment = struct {
         identifier: []u8,
         expression: Expression,
     };
@@ -144,6 +150,7 @@ pub fn next_statement(source: []u8, index: *u64, expressions: *std.ArrayList(Exp
         identifier: []u8,
         typed: TypeExpression,
         binding: struct { TypeExpression, []u8 },
+        assignment: []u8,
         call: []u8,
     };
 
@@ -159,6 +166,7 @@ pub fn next_statement(source: []u8, index: *u64, expressions: *std.ArrayList(Exp
             },
             .identifier => |identifier| switch (next_token(source, index)) {
                 .left_parenthesis => state = State{ .call = identifier },
+                .equals => state = State{ .assignment = identifier },
                 else => unreachable,
             },
             .typed => |@"type"| switch (next_token(source, index)) {
@@ -167,6 +175,11 @@ pub fn next_statement(source: []u8, index: *u64, expressions: *std.ArrayList(Exp
                     else => unreachable,
                 },
                 else => unreachable,
+            },
+            .assignment => |identifier| {
+                const expression = next_expression(source, index, expressions, Precedence.none);
+                _ = next_token(source, index);
+                return Statement{ .assignment = Statement.Assignment{ .identifier = identifier, .expression = expression } };
             },
             .binding => |binding| {
                 const @"type", const identifier = binding;
@@ -350,6 +363,11 @@ pub fn main() !void {
                 const local_variable_index = local_variable_entry.value_ptr.*;
                 start_function_code.append(0x21) catch unreachable;
                 std.leb.writeIleb128(start_function_code.writer(), local_variable_index) catch unreachable;
+            },
+            .assignment => |assignment| {
+                compile_expression(assignment.expression, expressions.items, local_variables, &start_function_code);
+                start_function_code.append(0x21) catch unreachable;
+                std.leb.writeIleb128(start_function_code.writer(), local_variables.get(assignment.identifier).?) catch unreachable;
             },
             .call => |call| {
                 compile_expression(call.expression, expressions.items, local_variables, &start_function_code);
