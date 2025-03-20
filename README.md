@@ -53,13 +53,12 @@ loop
 ```
 # Math
 > [!NOTE]
-> It might be better to add integer types.
+> Consider adding integer types.
 ```
 number random_number(number min, number max) // Crashes if NAN
 bool is_whole_number(number x) // Crashes if NAN or INFINITY
-bool is_not_a_number(number x)
 bool is_infinity(number x)
-number modulus(number x) // Crashes if NAN or INFINITY
+bool is_nan(number x)
 number absolute(number x) // Crashes if NAN
 number round(number x) // Crashes if NAN or INFINITY
 number floor(number x) // Crashes if NAN or INFINITY
@@ -72,13 +71,19 @@ number arcsin(number x) // Crashes if NAN or INFINITY
 number arccos(number x) // Crashes if abs(x) > 1 NAN or INFINITY
 number arctan(number x) // Crashes if NAN or INFINITY
 number logarithm(number x) // Crashes if NAN or INFINITY or x <= 0
-number exponential(number x) // Crashes if NAN or INFINITY
 number bitwise_xor(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
 number bitwise_and(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
 number bitwise_or(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
 number bitwise_not(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
 number bitwise_shift(number x, number shift) // Crashes if NAN or INFINITY or shift not a whole number
-+,-,/,*
+
+// constants
+number infinity
+number nan
+number pi
+number e
+
++,-,/,*,%,^
 >,>=,<=,<
 and, or, not
 ```
@@ -99,7 +104,7 @@ bool is_in_list([any] list, any item)
 [any] join_lists([any] self, [any] other)
 [any] clone_list([any] list)
 [any] repeat_list[any] list, number times)
-[[any]] split([any] separator)
+[[any]] split_list([any] list, [any] separator)
 ```
 # Maps
 ```
@@ -166,7 +171,7 @@ RESOLUTION get_resolution()
 ```
 play_sound([number] path)
 number get_volume()
-set_volume(number vol)
+set_volume(number new_volume) // Crashes if volume is not in the range 0-100.
 ```
 # Input
 ```
