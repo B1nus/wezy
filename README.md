@@ -5,6 +5,7 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 > [!NOTE]
 > 1. It's hard to know if something is a function or method
 >  - Only functions
+>  - Function overloading
 > 3. There are too many implicit number rules
 >  - Have one integer type
 >  - Have one integer type and one byte type
