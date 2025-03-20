@@ -11,6 +11,7 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 >  - Have one integer type and one byte type
 >  - Have a integer type which is a collective name for all integers
 >  - Explicit number conversion
+>  - All numbers are f64
 
 # Mvp
 - only wasm core
