@@ -13,6 +13,10 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 >  - Explicit number conversion
 >  - All numbers are f64
 
+Two choices:
+1. u8, u16, u32, u27, i8 etc... and f64
+2. only floats and bytes. <- much easier to implement start here
+
 # Mvp
 - only wasm core
 - only wasi preview 1
@@ -65,54 +69,48 @@ loop
     break
 ```
 # Math
+> [!NOTE]
+> It might be better to add integer types.
 ```
+number random_number(number min, number max) // Crashes if NAN
+bool is_whole_number(number x) // Crashes if NAN or INFINITY
+bool is_not_a_number(number x)
+bool is_infinity(number x)
+number modulus(number x) // Crashes if NAN or INFINITY
+number absolute(number x) // Crashes if NAN
+number round(number x) // Crashes if NAN or INFINITY
+number floor(number x) // Crashes if NAN or INFINITY
+number ceiling(number x) // Crashes if NAN or INFINITY
+number sqrt(number x) // Crashes if NAN, INFINITY or negative
+number sin(number x) // Crashes if NAN or INFINITY
+number cos(number x) // Crashes if NAN or INFINITY
+number tan(number x) // Crashes if cos(x) == 0 or x is NAN or INFINITY
+number arcsin(number x) // Crashes if NAN or INFINITY
+number arccos(number x) // Crashes if abs(x) > 1 NAN or INFINITY
+number arctan(number x) // Crashes if NAN or INFINITY
+number logarithm(number x) // Crashes if NAN or INFINITY or x <= 0
+number exponential(number x) // Crashes if NAN or INFINITY
+number bitwise_xor(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
+number bitwise_and(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
+number bitwise_or(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
+number bitwise_not(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
+number bitwise_shift(number x, number shift) // Crashes if NAN or INFINITY or shift not a whole number
 +,-,/,*
-i64 random_i64(i64 min, i64 max)
-f64 random_f64(f64 min, f64 max)
 >,>=,<=,<
 and, or, not
-i64 mod_i64(i64 x, i64 y)
-i64 mod_f64(f64 x, f64 y)
-i64 div_i64(i64 x, i64 y) // Crashes if y is equal to zero
-i64 abs_i64(i64 x)
-
-// All floating point functions crash if the input is infinity or nan. Use these functions to check for those cases:
-bool is_nan(f64 x)
-bool is_inifnity(f64 x)
-
-f64 abs_f64(f64 x)
-i64 round(f64 x)
-i64 floor(f64 x)
-i64 ceil(f64 x)
-f64 sqrt(f64 x)
-f64 sin(f64 x)
-f64 cos(f64 x)
-f64 tan(f64 x) // Crashes if the cosine of the input is zero
-f64 arcsin(f64 x)
-f64 arccos(f64 x)
-f64 arctan(f64 x)
-f64 ln(f64 x) // Crashes if the input is equal to or less than zero
-f64 exp(f64 x)
-
-i64 xor(i64 x, i64 y)
-i64 and(i64 x, i64 y)
-i64 or(i64 x, i64 y)
-i64 not(i64 x)
-i64 shift(i64 x, i8 shift)
 ```
 # Lists
 ```
 list1 = [1, 3, -3, 7]
 list2 = "Hello, World!"
 
-push([any] list, any item)
-any pull([any] list) // Crashes if the list is empty
-set([any] list, i64 index, any item) // Crashes if the index does not exist
-remove([any] list, i64 index) // Crashes if the index does not exist?
-clear([any] list)
-insert([any] list, any item, i64 index) 
-replace([any] list, any old, any new)
-i64 index([any] list, any item) // Crashes if the item does not exist
+add_to_list([any] list, any item)
+any pull_from_list([any] list) // Crashes if the list is empty
+set_list_item([any] list, number index, any item) // Crashes if the index does not exist
+remove_from_list([any] list, number index) // Crashes if the index does not exist
+clear_list([any] list)
+insert_to_list([any] list, any item, i64 index) 
+number index([any] list, any item) // Crashes if the item does not exist
 i64 length([any] list)
 bool contains([any] list, any item)
 [any] join([any] self, [any] other)
