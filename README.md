@@ -1,28 +1,19 @@
 # crust
-Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch. It will introduce low level concepts such as floating point numbers and bitwise operations.
+Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch.
 # Goals
 - simplicity
-> [!NOTE]
-> 1. It's hard to know if something is a function or method
->  - Only functions
->  - Function overloading
-> 3. There are too many implicit number rules
->  - Have one integer type
->  - Have one integer type and one byte type
->  - Have a integer type which is a collective name for all integers
->  - Explicit number conversion
->  - All numbers are f64
-
-Two choices:
-1. u8, u16, u32, u27, i8 etc... and f64
-2. only floats and bytes. <- much easier to implement start here
-
 # Mvp
 - only wasm core
 - only wasi preview 1
-- only integers
+- only f64
+> [!NOTE]
+> Hmmm... tuples or structs.
+> Hmmm... enums?
+> Hmmm... none of the above? See how well you can do without them first.
 # Error handling
 Just assertions. Avoid crashing with if statements.
+> [!NOTE]
+> Crashes show the assert that failed. We rely on good naming to make it obvious why it failed.
 # Pointers
 Nope.
 # Mutability
@@ -30,30 +21,22 @@ Everything is mutable.
 # Memory
 Memory is deallocated once a variable goes out of scope.
 # Functions
-All parameters are mutable references. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
-# Types
-- We have 5 kinds of number literals. Floats `1.0`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Chars `'a'`.
-- Chars can be any [utf-8](https://en.wikipedia.org/wiki/UTF-8) code point and has the samllest possible integer type out of `i8`, `i16` and `i32`.
-- Integers can be any size that's an exponent of 2, `i8, i16, i32, i64, i128, i256, i512 ...`.
-- floats have one size `f64` which is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
-- Conversions are implicit. Use type declarations to convert between types. (`i64 x = 'a'`)
-- The program crashes if the conversion is impossible. (`i8 = 923837`)
-- Division always returns an `f64`. Use `div_i64()` for integer division.
-- The type of an expression is the largest integer in the expression or `f64` if there is a float involved anywhere.
-- Integer literals are assumed to be i64 unless given another type.
-> [!NOTE]
-> Hmmm... what is this trying to solve?
-> Well in trivial cases such as 1 + 1.5 we don't want to be explicit about the type. And if for example using `function('a')` that conversion is implicit or when sending integers to a function taking only floats. Is there anything else? Idk. but it introduces a lot confusing sutiations when it's hard to know the static type of a variable. This is a hard call.
->
-> So, it's about how we imply a type to expressions.
-> It's about how we do conversion implicitly for number types in arguments to functions.
-> That's it. You always have the choice to be explicit with type declarations.
+All parameters are mutable. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters. They can return mutliple values using tuples.
+# Numbers
+- We have 5 kinds of number literals. Floats `1.5`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Chars `'a'`.
+- Compiler error if the literal is too big or too small.
+- Chars can be any [utf-8](https://en.wikipedia.org/wiki/UTF-8) code point.
+- `number` is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
+# Strings
+Strings are lists of numbers. `"Hello, World!"` is of type `[number]` and each character is an element in the list. This is super wasteful but very simple.
 # Comments
 Comments start with `//`.
 # Boolean Expresssions
-Chained bollean expressions `0 < x <= 10` are allowed. Ambiguous expressions such as `x and y or z` are not allowed.
+Chained boolean expressions `0 < x <= 10` are allowed. Ambiguous expressions such as `x and y or z` are not allowed.
 # `use`
-The `use` keyword imports code from local files, `use stuff/functions.crs`. By default the contents are put in the top level of your file, name collisions are possible. You can give them a namespace with the `as` keyword: `use stuff/function.crs as funcs`.
+The `use` keyword imports code from local files, `use stuff/functions.crs`. You can give imported functions a namespace with the `as` keyword: `use stuff/function.crs as funcs`. Use a function from the imported file using dot syntax `x = funcs.function(args)`.
+> [!NOTE]
+> Don't forget to add the right line numbers and file names in error messages.
 # Control
 ```
 if condition
@@ -101,81 +84,126 @@ and, or, not
 ```
 # Lists
 ```
-list1 = [1, 3, -3, 7]
-list2 = "Hello, World!"
+[number] list1 = [1, 3, -3, 7]
+[number] list2 = "Hello, World!"
 
 add_to_list([any] list, any item)
 any pull_from_list([any] list) // Crashes if the list is empty
 set_list_item([any] list, number index, any item) // Crashes if the index does not exist
 remove_from_list([any] list, number index) // Crashes if the index does not exist
 clear_list([any] list)
-insert_to_list([any] list, any item, i64 index) 
+insert_into_list([any] list, any item, i64 index) 
 number index([any] list, any item) // Crashes if the item does not exist
-i64 length([any] list)
-bool contains([any] list, any item)
-[any] join([any] self, [any] other)
-[any] clone([any] list)
-[any] repeat[any] list, (i64 times)
+number list_length([any] list)
+bool is_in_list([any] list, any item)
+[any] join_lists([any] self, [any] other)
+[any] clone_list([any] list)
+[any] repeat_list[any] list, number times)
 [[any]] split([any] separator)
 ```
 # Maps
 ```
-{[i8]:i32} map = {"you":10, "me":69}
+{[number]:number} map = {"you":10, "me":69}
 
-set(any key, any value)
-get(any key) // Crashes if the key does not exist
-delete(any key) // Crashes if the key does not exist=
-clear()
-[any] keys()
-i64 size()
-bool has(any key)
-{any:any} clone()
+set_map_value({any:any} map, any key, any value)
+any get_map_value({any:any} map, any key) // Crashes if the key does not exist
+delete_map_key({any:any} map, any key) // Crashes if the key does not exist
+clear_map({any:any} map)
+[any] keys({any:any} map)
+number map_size({any:any} map)
+bool is_in_map({any:any} map, any key)
+{any:any} clone_map()
 ```
-# Tuples
-```
-(i32, [i8], i8, f64) tuple = (1, "Hello", '\n', 5.9)
+# Bundles
+> [!WARNING]
+> This syntax relies on coloring to be readable.
 
-get(i32 index) // Crashes if the index is not in range
-set(i32 index) // Crashes if the index is not in range
-i32 size()
+> [!WARNING]
+> This adds a lot of complexity
+```
+bundle PLAYER
+  number x
+  number y
+  [number] name
+
+PLAYER player = PLAYER
+  x = 0
+  y = 0
+  name = "Hejsan"
+
+print(player.name)
+```
+# Choices
+> [!WARNING]
+> This syntax relies on coloring to be readable.
+
+> [!WARNING]
+> This adds a lot of complexity.
+```
+choice RESULT
+  number success
+  error failure
+
+choice ERROR
+  skill_issue
+  pwned
+  kekw
+
+if result == RESULT.success
+  debug(result.success)
+else
+  debug(result.failure)
 ```
 # Graphics
 ```
-draw_image([i8] path, f64 x, f64 y, f64 scale, f64 rotation)
-draw_triangle(f64 x1, f64 y1, f64 x2, f64 y2, f64 x3, f64 y3, f64 r, f64 g, f64 b, f64 a)
+draw_image([number] path, number x, number y, number scale, f64 rotation)
+draw_triangle(TRIANGLE triangle, COLOR color, number a)
 
-clear_canvas(f64 r, f64 g, f64 b)
-(i64, i64) get_resolution()
+clear_canvas(COLOR)
+RESOLUTION get_resolution()
 ```
 # Audio
 ```
-play([i8] path)
-f64 get_volume()
-set_volume(f64 vol)
+play_sound([number] path)
+number get_volume()
+set_volume(number vol)
 ```
 # Input
 ```
-(i64, i64) mouse_position()
-bool mouse_pressed()
-bool key_pressed(i8 key)
+MOUSE_POSITION mouse_position()
+choice MOUSE_BUTTON
+  left
+  right
+  middle
+bool mouse_pressed(MOUSE_BUTTON mouse_button)
+bool is_mouse_just_pressed(MOUSE_BUTTON mouse_button)
+bool is_mouse_just_released(MOUSE_BUTTON mouse_button)
+choice KEY
+  a
+  b
+  ...
+bool is_key_pressed(KEY key)
+bool is_key_just_pressed(KEY key)
+bool is_key_just_released(KEY key)
 
-i64 nanoseconds_since_start()
-i64 seconds_since_2000()
+number seconds_since_start()
+number seconds_since_2000()
 ```
 # Text
 ```
-bool exists(path) 
-bool has_write_access(path) // Crashes if path does not exist
-bool has_read_access(path) // Crashes if path does not exist
-[i8] read(path) // Crashes if we don't have access
-write([i8] path, [i8] content) // Crashes if we don't have access
-i64 parse_i64([i8] text, i64 base) // Crashes if it's not a i64
-f64 parse_f64([i8] text) // Crashes if it's not a f64
-[i8] format_i64(i64 x, i64 base) // Crashes if the base is less than 2
-[i8] format_f64(f64 x, i64 decimals) // Crashes if decimals is negative
-print([i8] text)
-[i8] input()
-[[i8]] command_line_arguments()
+number parse_number([number] text, number)
+[number] format_number(number x, number decimals) // Crashes if decimals is not a whole number bigger bigger than or equal to zero.
+print([number] text)
+[[number]] command_line_arguments()
+[number] read_input()
+```
+# Files
+```
+bool file_exists([number] path) 
+bool is_readable([number] path) // Crashes if path does not exist
+bool is_writeable([number] path) // Crashes if path does not exist
+[number] read_file([number] path) // Crashes if we don't have access or path does not exist
+write_file([number] path, [number] content) // Crashes if we don't have access or path does not exist
 ```
 # Debugging
 ```
