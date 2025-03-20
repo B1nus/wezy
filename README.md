@@ -104,19 +104,19 @@ i64 shift(i64 x, i8 shift)
 list1 = [1, 3, -3, 7]
 list2 = "Hello, World!"
 
-push(any item)
-any pull() // Crashes if the list is empty
-set(i64 index, any item) // Crashes if the index does not exist
-remove(i64 index) // Crashes if the index does not exist?
-clear()
-insert(any item, i64 index) 
-replace(any old, any new)
-i64 index(any item) // Crashes if the item does not exist
-i64 length()
-bool contains(item)
-[any] join([any] other)
-[any] clone()
-[any] repeat(i64 times)
+push([any] list, any item)
+any pull([any] list) // Crashes if the list is empty
+set([any] list, i64 index, any item) // Crashes if the index does not exist
+remove([any] list, i64 index) // Crashes if the index does not exist?
+clear([any] list)
+insert([any] list, any item, i64 index) 
+replace([any] list, any old, any new)
+i64 index([any] list, any item) // Crashes if the item does not exist
+i64 length([any] list)
+bool contains([any] list, any item)
+[any] join([any] self, [any] other)
+[any] clone([any] list)
+[any] repeat[any] list, (i64 times)
 [[any]] split([any] separator)
 ```
 # Maps
