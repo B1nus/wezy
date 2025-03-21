@@ -19,7 +19,7 @@ Memory is deallocated once a variable goes out of scope.
 # Functions
 All parameters are mutable. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters.
 # Numbers
-- We have 5 kinds of number literals. Floats `1.5`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Chars `"a"`.
+- We have 5 kinds of number literals. Floats `1.5`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Character `"a"`.
 - Compiler error if the literal is too big or too small.
 - Chars can be any [utf-8](https://en.wikipedia.org/wiki/UTF-8) code point.
 - `number` is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
