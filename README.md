@@ -102,7 +102,6 @@ number index([any] list, any item) // Crashes if the item does not exist
 number list_length([any] list)
 bool is_in_list([any] list, any item)
 [any] join_lists([any] self, [any] other)
-[any] clone_list([any] list)
 [any] repeat_list[any] list, number times)
 [[any]] split_list([any] list, [any] separator)
 ```
@@ -117,7 +116,16 @@ clear_map({any:any} map)
 [any] keys({any:any} map)
 number map_size({any:any} map)
 bool is_in_map({any:any} map, any key)
-{any:any} clone_map()
+```
+# Sets
+```
+{number} set = {2, 3, 5, 7, 11}
+
+add_to_set({any} set, any item)
+remove_from_set({any} set, any item) // Crashes if it is not in the set
+bool is_in_set({any} set, any item)
+clear_set({any} set)
+[any] set_as_list({any} set)
 ```
 # Bundles
 > [!WARNING]
@@ -210,8 +218,9 @@ bool is_writeable([number] path) // Crashes if path does not exist
 [number] read_file([number] path) // Crashes if we don't have access or path does not exist
 write_file([number] path, [number] content) // Crashes if we don't have access or path does not exist
 ```
-# Debugging
+# Misc
 ```
 assert(bool condition)
+clone(any variable)
 debug(any value)
 ```
