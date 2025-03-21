@@ -6,10 +6,6 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 - only wasm core
 - only wasi preview 1
 - only f64
-> [!NOTE]
-> Hmmm... tuples or structs.
-> Hmmm... enums?
-> Hmmm... none of the above? See how well you can do without them first.
 # Error handling
 Just assertions. Avoid crashing with if statements.
 > [!NOTE]
