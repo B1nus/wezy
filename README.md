@@ -82,6 +82,7 @@ number infinity
 number nan
 number pi
 number e
+// You can shadow these if you want to
 
 +,-,/,*,%,^
 >,>=,<=,<
