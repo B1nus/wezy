@@ -6,10 +6,33 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 - only wasm core
 - only wasi preview 1
 - only f64
+# Developer notes
+- Remember K.I.S.S:
+- No expression statements
+- No functions inside functions
+- No capital letters
+- No implicit return
+- No add/sud/mul/div assign
+- No swap optimisation
+- No indexing syntax
+- No default arguments
+- No structs/enums
+- No implicit types in bindings
+- No error/crash messages
+- No stacktraces
+- No function overloading
+- No methods
+- No comptime
+- No metaprogramming
+- No bindings without initial expression
+- No root indentation
+- No function overriding
 # Error handling
 Just assertions. Avoid crashing with if statements.
 > [!NOTE]
 > Crashes show the assert that failed. We rely on good naming to make it obvious why it failed.
+# Shadowing
+Redeclare a variable to shadow it.
 # Pointers
 Nope.
 # Mutability

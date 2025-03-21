@@ -1,3 +1,44 @@
+bundle RESOLUTION
+  number width
+  number height
+
+RESOLUTION get_resolution()
+  ...
+
+bundle MOUSE_POSITION
+  number x
+  number y
+
+MOUSE_POSITION get_mouse_position()
+  ...
+
+bool is_key_pressed([number] key)
+  if key == "a"
+    ...
+  else if key == "b"
+    ...
+  else
+    assert(false)
+
+number seconds_since_start()
+  ...
+
+bundle DATE
+  number year
+  number month
+  number day
+
+DATE get_current_date()
+  ...
+
+bundle TIME
+  number hour
+  number minute
+  number second
+
+TIME get_current_time()
+  ...
+
 [any] join_lists([[any]] lists)
   [any] out = []
   number list_index = 0
@@ -15,18 +56,18 @@ assert(bool condition)
     wasm("(call $proc_exit (i32.const 0))")
 
 [number] format_number(number x, number base, number decimals)
-  assert(false)
+  ...
 
 print([number] text)
   [number] text = clone_list(text)
   add_to_list(text, '\n')
   wasi_import("fd_write")
 
+number realloc(number pointer, number bytes)
+  ...
+
 number alloc(number bytes)
   return realloc(0, bytes)
-
-number realloc(number pointer, number bytes)
-  assert(false)
 
 free(number pointer)
   realloc(pointer, 0)
@@ -45,7 +86,8 @@ debug_map(...
 
 // Formatting is baked into the syntax, no formatter necessary.
 // Super easy generics and metaprogramming?
-// Every variable is a mutable reference.
+// choice? (enums)
+// Every variable is a mutable reference. A.K.A. everything is a i32 pointing into linear memory. Yes this is inefficient. Cry about it.
 
 clone_number(...
 clone_bool(...
