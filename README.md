@@ -129,10 +129,8 @@ clear_set({any} set)
 ```
 # Bundles
 > [!WARNING]
-> This syntax relies on coloring to be readable.
-
-> [!WARNING]
-> This adds a lot of complexity
+> - This syntax relies on coloring to be readable.
+> - This adds complexity.
 ```
 bundle PLAYER
   number x
@@ -146,33 +144,14 @@ PLAYER player = PLAYER
 
 print(player.name)
 ```
-# Choices
-> [!WARNING]
-> This syntax relies on coloring to be readable.
-
-> [!WARNING]
-> This adds a lot of complexity.
-```
-choice RESULT
-  number success
-  error failure
-
-choice ERROR
-  skill_issue
-  pwned
-  kekw
-
-if result == RESULT.success
-  debug(result.success)
-else
-  debug(result.failure)
-```
+> [!NOTE]
+> `enum` could be useful. Call them `choice` to be more beginner friendly.
 # Graphics
 ```
 draw_image([number] path, number x, number y, number scale, f64 rotation)
 draw_triangle(TRIANGLE triangle, COLOR color, number a)
 
-clear_canvas(COLOR)
+clear_canvas(COLOR color)
 RESOLUTION get_resolution()
 ```
 # Audio
@@ -184,20 +163,12 @@ set_volume(number new_volume) // Crashes if volume is not in the range 0-100.
 # Input
 ```
 MOUSE_POSITION mouse_position()
-choice MOUSE_BUTTON
-  left
-  right
-  middle
-bool mouse_pressed(MOUSE_BUTTON mouse_button)
-bool is_mouse_just_pressed(MOUSE_BUTTON mouse_button)
-bool is_mouse_just_released(MOUSE_BUTTON mouse_button)
-choice KEY
-  a
-  b
-  ...
-bool is_key_pressed(KEY key)
-bool is_key_just_pressed(KEY key)
-bool is_key_just_released(KEY key)
+bool mouse_pressed([number] mouse_button) // Crashes if the mouse button name is invalid
+bool is_mouse_just_pressed([number] mouse_button) // Crashes if the mouse button name is invalid
+bool is_mouse_just_released([number] mouse_button) // Crashes if the mouse button name is invalid
+bool is_key_pressed([number] key) // Crashes if the key is invalid
+bool is_key_just_pressed([number] key) // Crashes if the key is invalid
+bool is_key_just_released([number] key) // Crashes if the key is invalid
 
 number seconds_since_start()
 number seconds_since_2000()
