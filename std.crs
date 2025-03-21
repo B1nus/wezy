@@ -1,0 +1,53 @@
+[any] join_lists([[any]] lists)
+  [any] out = []
+  number list_index = 0
+  loop list_length(lists)
+    number item_index = 0
+    [any] list = get_list_item(lists, list_index)
+    loop list_length(list)
+      add_to_list(out, clone(get_list_item(list, item_index)))
+      item_index = item_index + 1
+    list_index = list_index + 1
+  return out
+
+assert(bool condition)
+  if not condition
+    wasm("(call $proc_exit (i32.const 0))")
+
+[number] format_number(number x, number base, number decimals)
+  assert(false)
+
+print([number] text)
+  [number] text = clone_list(text)
+  add_to_list(text, '\n')
+  wasi_import("fd_write")
+
+number alloc(number bytes)
+  return realloc(0, bytes)
+
+number realloc(number pointer, number bytes)
+  assert(false)
+
+free(number pointer)
+  realloc(pointer, 0)
+
+debug_number([number] identifier, [number] file_path, number line, number x)
+  print(join_lists([file_path, ":", line, " ", identifier, " = ", format_number(x, 10, 5)]))
+debug_bool([number] identifier, [number] file_path, number line, bool x)
+  [number] text = ""
+  if x
+    text = "true"
+  else
+    text = "false"
+  print(join_lists([file_path, ":", line, " ", identifier, " = ", text]))
+debug_list(...
+debug_map(...
+
+// Formatting is baked into the syntax, no formatter necessary.
+// Super easy generics and metaprogramming?
+// Every variable is a mutable reference.
+
+clone_number(...
+clone_bool(...
+clone_list(...
+clone_map(...
