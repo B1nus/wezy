@@ -59,6 +59,10 @@ number random_number(number min, number max) // Crashes if NAN
 bool is_whole_number(number x) // Crashes if NAN or INFINITY
 bool is_infinity(number x)
 bool is_nan(number x)
+number infinity()
+number nan()
+number pi()
+number e()
 number absolute(number x) // Crashes if NAN
 number round(number x) // Crashes if NAN or INFINITY
 number floor(number x) // Crashes if NAN or INFINITY
@@ -76,13 +80,6 @@ number bitwise_and(number x, number y) // Crashes if NAN or INFINITY or not a wh
 number bitwise_or(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
 number bitwise_not(number x, number y) // Crashes if NAN or INFINITY or not a whole number or too big
 number bitwise_shift(number x, number shift) // Crashes if NAN or INFINITY or shift not a whole number
-
-// constants
-number infinity
-number nan
-number pi
-number e
-// You can shadow these if you want to
 
 +,-,/,*,%,^
 >,>=,<=,<
