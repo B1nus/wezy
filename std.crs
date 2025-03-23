@@ -1,95 +1,108 @@
-bundle RESOLUTION
-  number width
-  number height
+bundle Resolution
+  Number width
+  Number height
 
-RESOLUTION get_resolution()
+bundle MousePosition
+  Number x
+  Number y
+
+choice Key
+  space
+  enter
   ...
 
-bundle MOUSE_POSITION
-  number x
-  number y
+choice MouseButton
+  left
+  right
+  middle
 
-MOUSE_POSITION get_mouse_position()
-  ...
+Resolution get_resolution()
+MousePosition get_mouse_position()
+Bool is_key_pressed(Key key)
+Bool is_mouse_button_pressed(MouseButton mouse_button)
 
-bool is_key_pressed([number] key)
-  if key == "a"
-    ...
-  else if key == "b"
-    ...
-  else
-    assert(false)
+bundle Date
+  Number year
+  Number month
+  Number day
 
-number seconds_since_start()
-  ...
+bundle Time
+  Number hour
+  Number minute
+  Number second
 
-bundle DATE
-  number year
-  number month
-  number day
+Number seconds_since_start()
+Date get_current_date()
+Time get_current_time()
 
-DATE get_current_date()
-  ...
+{K:V} join([{K:V}] maps)
+[T] join([[T]] lists)
+{T} join([{T}] sets)
 
-bundle TIME
-  number hour
-  number minute
-  number second
+Number size({K:V} map)
+Number size([T] list)
+Number size({T} set)
 
-TIME get_current_time()
-  ...
+add({K:V} map, K key, V value)
+add([T] list, T item)
+add({T} set, T item)
 
-[any] join_lists([[any]] lists)
-  [any] out = []
-  number list_index = 0
-  loop list_length(lists)
-    number item_index = 0
-    [any] list = get_list_item(lists, list_index)
-    loop list_length(list)
-      add_to_list(out, clone(get_list_item(list, item_index)))
-      item_index = item_index + 1
-    list_index = list_index + 1
-  return out
+extend({K:V} map, {K:V} other_map)
+extend([T] list, [T] other_list)
+extend({T} set, {T} other_set)
 
-assert(bool condition)
-  if not condition
-    wasm("(call $proc_exit (i32.const 0))")
+remove({K:V} map, K key)
+remove([T] list, Number index)
+remove({T} set, T item)
 
-[number] format_number(number x, number base, number decimals)
-  ...
+V get({K:V} map, K key)
+T get([T] list, Number index)
 
-print([number] text)
-  [number] text = clone_list(text)
-  add_to_list(text, '\n')
-  wasi_import("fd_write")
+set({K:V} map, K key, V value)
+set([T] list, Number index, T value) // assert(length(list) > index)
 
-number realloc(number pointer, number bytes)
-  ...
+has({K:V} map, K key)
+has([T] list, T item)
+has({T} set, T item)
 
-number alloc(number bytes)
-  return realloc(0, bytes)
+[K] to_key_list({K:V} map)
+[V] to_value_list({K:V} map)
+[T] to_list({T} set)
 
-free(number pointer)
+assert(Bool condition)
+
+print([Number] text)
+  [Number] text = clone(text)
+  add(text, '\n')
+  // TODO: Write text to linear memory
+  // TODO: Call fd_write
+
+Number realloc(Number pointer, Number size)
+
+Number alloc(Number size)
+  return realloc(0, size)
+
+free(Number pointer)
   realloc(pointer, 0)
 
-debug_number([number] identifier, [number] file_path, number line, number x)
-  print(join_lists([file_path, ":", line, " ", identifier, " = ", format_number(x, 10, 5)]))
-debug_bool([number] identifier, [number] file_path, number line, bool x)
-  [number] text = ""
-  if x
-    text = "true"
-  else
-    text = "false"
-  print(join_lists([file_path, ":", line, " ", identifier, " = ", text]))
-debug_list(...
-debug_map(...
+[Number] format(Number number)
+[Number] format(Number number, Number base)
+[Number] format(Number number, Number base, Number digits)
+[Number] format(Bool bool)
+[Number] format({Any:Any} map)
+[Number] format([Any] list)
+[Number] format({Any} set)
 
-// Formatting is baked into the syntax, no formatter necessary.
+Number clone(Number number)
+Bool clone(Bool bool)
+{T} clone({T} set)
+[T] clone([T] list)
+{K:V} clone({K:V} map)
+
+// Formatting is baked into the syntax, no formatter necessary. Only one way to write any given piece of code.
 // Super easy generics and metaprogramming?
-// choice? (enums)
 // Every variable is a mutable reference. A.K.A. everything is a i32 pointing into linear memory. Yes this is inefficient. Cry about it.
-
-clone_number(...
-clone_bool(...
-clone_list(...
-clone_map(...
+// One indexed
+// Untyped bindings
+// Overloading
+// Generics
