@@ -2,11 +2,30 @@ pub const std = @import("std");
 pub const Inst = @import("wasm.zig").Instructions;
 pub const Type = @import("wasm.zig").Types;
 
-pub const function = [_]u8{
-    Inst.@"local.get",
-    0,
+pub const Function = struct {
+    dependencies: []const Dependency,
+    code: []const u8,
 };
 
-test {
-    std.debug.print("{any}\n", .{@as(Inst, @enumFromInt(0x7E))});
-}
+pub const Dependency = struct {
+    name: []const u8,
+    tag: Tag,
+
+    const Tag = enum {
+        wasi,
+        std,
+    };
+};
+
+pub const allocate = Function {
+    .dependencies = .{
+        Dependency { .name = "assert", .tag = .std },
+    },
+    .code = .{
+        Inst.@"i32.const",
+        0,
+        Inst.@"i32.eqz",
+        Inst.@"call",
+        0,
+    },
+};
