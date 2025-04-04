@@ -4,7 +4,15 @@ pub const Type = @import("wasm.zig").Types;
 
 pub const Function = struct {
     dependencies: []const Dependency,
+    params: []const Type,
+    results: []const Type,
+    locals: []const Local,
     code: []const u8,
+};
+
+pub const Local = struct {
+    type: Type,
+    amount: usize,
 };
 
 pub const Dependency = struct {
@@ -17,9 +25,18 @@ pub const Dependency = struct {
     };
 };
 
-pub const allocate = Function {
+pub const exp = Function {
     .dependencies = .{
         Dependency { .name = "assert", .tag = .std },
+    },
+    .params = .{
+        Type.@"f64",
+    },
+    .results = .{
+        Type.@"f64",
+    },
+    .locals = .{
+        .{ Type.@"i32", 2 },
     },
     .code = .{
         Inst.@"i32.const",
