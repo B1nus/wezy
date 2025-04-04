@@ -1,5 +1,0 @@
-print("Hello, World!")
-
-[i64] numbers = [1, 1, 2, 3, 5]
-debug(numbers)
-print(format_i64(number.get(0)))

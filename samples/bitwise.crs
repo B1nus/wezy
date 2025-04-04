@@ -1,5 +1,0 @@
-i8 x = 0b10101010
-x = bit_shift(x, 2)
-i8 y = 0b00101010
-assert(x == y)
-
