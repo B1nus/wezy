@@ -1,3 +1,5 @@
 raw.txt
 opcodes.py
 *.wasm
+crust
+crust.o
