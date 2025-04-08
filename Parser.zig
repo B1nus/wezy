@@ -12,10 +12,25 @@ pub fn init(source: []const u8, allocator: std.mem.Allocator) @This() {
     };
 }
 
-pub fn next(self: *@This()) void {
-    const token = self.tokenizer.next();
+pub fn next(self: *@This()) usize {
+    var token = self.tokenizer.next();
     std.debug.assert(token.tag = .identifier):
     const identifier = self.tokenizer.source[token.start..token.end];
+
+    token = self.tokenizer.next();
+    switch (token.tag) {
+        .left_parenthesis => {
+            const first = self.tokenizer.next();
+            const second = self.tokenizer.next();
+        },
+    }
+    // name ( ) newline -> call
+    // name ( name type -> function
+    // name ( ) type -> function
+    // name ( ) indentation -> function
+}
+
+pub fn next_call(self: *@This()) usize {
 }
 
 pub fn next_expression(self: *@This()) usize {
@@ -65,6 +80,21 @@ pub const Expressions = enum(u8) {
     not,
     xor,
 };
+
+[zero] identifier ( ... ) newline -> call or empty function
+[non-zero] identifier ( ... ) newline -> call
+identifier ( ... ) type newline -> empty function
+identifier ( ... ) indentation -> function
+identifier ( ... ) type indentation -> function
+identifier, -> multiple_assign
+identifier type -> multiple_assign
+use -> use
+loop -> loop
+repeat -> repeat
+return -> return
+if -> if
+else -> else
+else if -> else if
 
 // string: u32, u32
 // type: u8,
