@@ -567,29 +567,6 @@ const instructions = std.StaticStringMap(Inst).initComptime(.{
     .{"i64.atomic.rmw32.cmpxchg_u", .{0x4e, 0xfe, &[0]Arg{}}},
 });
 
-pub fn runWasm(wasm: []const u8) void {
-    var proc = std.process.Child.init(&[_][]const u8{"wasmtime", "-"}, std.heap.page_allocator);
-    proc.stdin_behavior = .Pipe;
-    proc.spawn() catch unreachable;
-    
-    if (proc.stdin) |*stdin| {
-        stdin.writeAll(wasm) catch unreachable;
-        stdin.close();
-        proc.stdin = null;
-    }
-    
-    _ = proc.wait() catch unreachable;
-}
-
-pub fn replace_extension(allocator: std.mem.Allocator, path: []const u8, new_extension: []const u8) []u8 {
-    const extension = std.fs.path.extension(path);
-    var new_path = allocator.alloc(u8, path.len - extension.len + new_extension.len) catch unreachable;
-    std.mem.copyForwards(u8, new_path, path[0 .. path.len - extension.len]);
-    std.mem.copyForwards(u8, new_path[new_path.len - new_extension.len ..], new_extension);
-
-    return new_path;
-}
-
 pub const Valtype = enum(u8) {
     @"i32" = 0x7F,
     @"i64" = 0x7E,
@@ -962,33 +939,68 @@ pub fn readNextSection(allocator: std.mem.Allocator, section: Section, reader: a
     return stream.getWritten();
 }
 
+pub fn runWasm(wasm: []const u8) !void {
+    var proc = std.process.Child.init(&[_][]const u8{"wasmtime", "-"}, std.heap.page_allocator);
+    proc.stdin_behavior = .Pipe;
+    try proc.spawn();
+    
+    if (proc.stdin) |*stdin| {
+        try stdin.writeAll(wasm);
+        stdin.close();
+        proc.stdin = null;
+    }
+    
+    _ = try proc.wait();
+}
+
+pub fn replace_extension(allocator: std.mem.Allocator, path: []const u8, new_extension: []const u8) []u8 {
+    const extension = std.fs.path.extension(path);
+    var new_path = allocator.alloc(u8, path.len - extension.len + new_extension.len) catch unreachable;
+    std.mem.copyForwards(u8, new_path, path[0 .. path.len - extension.len]);
+    std.mem.copyForwards(u8, new_path[new_path.len - new_extension.len ..], new_extension);
+
+    return new_path;
+}
+
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
+    const stdout = std.io.getStdOut().writer();
 
     var args = std.process.args();
     _ = args.next();
-    const path = args.next().?;
-    const file = try std.fs.cwd().openFile(path, .{});
-    defer file.close();
 
-    var out = try std.ArrayList(u8).initCapacity(allocator, 0xFFFF);
-    try out.appendSlice(&.{0,'a','s','m',1,0,0,0});
+    if (args.next()) |source_path| {
+        const source_file = try std.fs.cwd().openFile(source_path, .{});
+        defer source_file.close();
 
-    const read_buffer = try allocator.alloc(u8, 0xFF);
-    const write_buffer = try allocator.alloc(u8, 0xFFFF);
+        var out = try std.ArrayList(u8).initCapacity(allocator, 0xFFFF);
+        try out.appendSlice(&.{0,'a','s','m',1,0,0,0});
 
-    while (readNextSectionVariant(file.reader(), read_buffer)) |section| {
-        const content = try readNextSection(allocator, section, file.reader(), read_buffer, write_buffer);
-        try out.append(@intFromEnum(section));
-        try std.leb.writeUleb128(out.writer(), content.len);
-        try out.appendSlice(content);
-    }
+        const read_buffer = try allocator.alloc(u8, 0xFF);
+        const write_buffer = try allocator.alloc(u8, 0xFFFF);
 
-    if (args.next()) |out_path| {
-        const out_file = try std.fs.cwd().createFile(out_path, .{ .truncate = true });
-        try out_file.writeAll(out.items);
-        out_file.close();
+        while (readNextSectionVariant(source_file.reader(), read_buffer)) |section| {
+            const content = try readNextSection(allocator, section, source_file.reader(), read_buffer, write_buffer);
+            try out.append(@intFromEnum(section));
+            try std.leb.writeUleb128(out.writer(), content.len);
+            try out.appendSlice(content);
+        }
+
+        if (args.next()) |out_path| {
+            const out_file = try std.fs.cwd().createFile(out_path, .{ .truncate = true });
+            try out_file.writeAll(out.items);
+            out_file.close();
+
+            try stdout.print("crust has compiled {s}.\n", .{ out_path });
+        } else {
+            if (runWasm(out.items)) |_| {
+                try stdout.print("crust is finnished running.\n", .{ });
+            } else |e| switch (e) {
+                error.FileNotFound => try stdout.print("crust needs you to install wasmtime first.\n", .{}),
+                else => return e,
+            }
+        }
     } else {
-        runWasm(out.items);
+        try stdout.print("crust needs a file path.\n", .{});
     }
 }
