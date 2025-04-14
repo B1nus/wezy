@@ -1,12 +1,6 @@
 const std = @import("std");
 const Inst = @import("inst.zig").Inst;
-const instBytes = @import("inst.zig").bytes;
-
-// pub fn compileToken(reader: std.io.Reader, buffer: []u8) ![]u8 {
-//     var index: usize = 0;
-//
-//     switch
-// }
+const instToBytes = @import("inst.zig").instToBytes;
 
 pub fn main() !void {
     const stdout = std.io.getStdOut().writer();

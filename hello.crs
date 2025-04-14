@@ -1,0 +1,46 @@
+custom hey "12345"
+
+global type identifier literal
+
+func do_stuff
+  x i32
+  y i32
+  z i32
+  w i32
+i32 i32
+  local i32 xy
+  local i32 wz
+  inst local.get x
+  inst local.get y
+  inst i32.mul
+  inst local.set xy
+  inst local.get z
+  inst local.get w
+  inst i32.mul
+  inst local.set zw
+  inst local.get xy
+  inst local.get zw
+  inst i32.mul
+
+func main
+  inst i32.const 0x1
+  inst i32.const 0x1
+  inst i32.const 0x1
+  inst i32.const 0x1
+  inst do_stuff
+  inst drop
+  inst drop
+
+import wasi_snapshot_preview1 fd_write func i32 i32 i32 i32 result i32
+
+memory memory 1 <max>
+
+export memory mem memory
+export _start func main
+export name global e
+start main
+
+global f32 e 2.718_281_828
+
+data 0 "hi\n"
+data 8 0x00_00_00_00_03_00_00_00
