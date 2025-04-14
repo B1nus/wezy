@@ -27,18 +27,20 @@
   (core module $run
     (import "wasi" "write" (func $write (param i32 i32 i32 i32)))
     (import "wasi" "get-stdout" (func $get-stdout (result i32)))
+    (import "deps" "memory" (memory 2 2))
+    (import "deps" "realloc" (func $realloc (param i32 i32 i32 i32) (result i32)))
     (func (export "run") (result i32)
       (call $get-stdout)
       (i32.const 0)
-      (i32.const 8)
+      (i32.const 4)
       (i32.const 0)
       (call $write)
       (i32.const 0)
     )
+    (data (i32.const 0) "hi\n")
   )
   (core module $deps
-    (memory (export "memory") 1) 
-    (data (i32.const 0) "hi\n")
+    (memory (export "memory") 2 2) 
     (func (export "realloc") (param i32 i32 i32 i32) (result i32)
       (i32.const 1)
       (memory.grow)
@@ -51,10 +53,16 @@
   (core instance $deps (instantiate $deps))
   (core func $write (canon lower (func $streams "[method]output-stream.blocking-write-and-flush") (memory $deps "memory") (realloc (func $deps "realloc"))))
   (core func $get-stdout (canon lower (func $stdout "get-stdout")))
-  (core instance $run (instantiate $run (with "wasi" (instance
-    (export "write" (func $write))
-    (export "get-stdout" (func $get-stdout))
-  ))))
+  (core instance $run (instantiate $run
+    (with "wasi" (instance
+      (export "write" (func $write))
+      (export "get-stdout" (func $get-stdout))
+    ))
+    (with "deps" (instance
+      (export "memory" (memory $deps "memory"))
+      (export "realloc" (func $deps "realloc"))
+    ))
+  ))
   (type $run-t (func (result (result))))
   (func $run (type $run-t) (canon lift (core func $run "run")))
   (component $cli

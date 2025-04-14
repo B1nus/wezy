@@ -1,0 +1,42 @@
+package std;
+
+interface std {
+  print: func(text: list<u8>);
+  input: func() -> list<u8>;
+
+  write: func(path: list<u8>, text: list<u8>);
+  read: func(path: list<u8>) -> list<u8>);
+
+  exists: func(path: list<u8>) -> bool;
+  readable: func(path: list<u8>) -> bool;
+  writeable: func(path: list<u8>) -> bool;
+
+  record point {
+    x: u32,
+    y: u32,
+  }
+
+  record size {
+    width: u32,
+    height: u32,
+  }
+
+  record color {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+  }
+
+  get-resolution: func() -> point;
+  draw-triangle: func(points: list<3, u8>, color);
+  draw-image: func(position: point, rotation: f32, path: list<u8>);
+
+  play-sound: func(path: list<u8>);
+  set-volume: func(new-volume: f32);
+  get-colume: func() -> f32;
+
+  assert: func(condition: bool);
+  clone: func(ptr: u32, type: );
+  debug: func(ptr: u32, type:);
+}
