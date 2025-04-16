@@ -1,9 +1,0 @@
-package std:debug;
-
-interface test {
-  assert: func(condition: bool);
-}
-
-interface info {
-  debug: func(
-}
