@@ -27,6 +27,7 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 - No bindings without initial expression
 - No root indentation
 - No function overriding
+- [How hashmaps work](https://stackoverflow.com/a/15479974)
 # Error handling
 Just assertions. Avoid crashing with if statements.
 > [!NOTE]
