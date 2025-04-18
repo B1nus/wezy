@@ -1,0 +1,4 @@
+wasm_i32_add(1, 2)
+x u32 = wasm_memory_size(0)
+wasm_i32_store(4, 69)
+x vec128 = wasm_v128_const(1,2,3,4,5,6,7,8,9)

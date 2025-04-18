@@ -38,5 +38,5 @@ interface std {
 
   assert: func(condition: bool);
   clone: func(ptr: u32, type: );
-  debug: func(ptr: u32, type:);
+  debug: func(ptr: u32, type: );
 }
