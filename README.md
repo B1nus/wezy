@@ -2,6 +2,8 @@
 Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch. Head over to the [website](https://b1nus.github.io/crust/) to start coding! Have fun!
 
 Note: I need to do more market research. I don't understand my target audience at all.
+
+At first glance, you don't seem to have enough features. but you do, you need to be creative. Just like in scratch.
 # Mvp
 - only wasm core
 - only wasi preview 1
