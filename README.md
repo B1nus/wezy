@@ -1,7 +1,7 @@
 # crust
-Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch. Head over to the [website](https://b1nus.github.io/crust/) to start coding!
-# Goals
-- simplicity
+Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch. Head over to the [website](https://b1nus.github.io/crust/) to start coding! Have fun!
+
+Note: I need to do more market research. I don't understand my target audience at all.
 # Mvp
 - only wasm core
 - only wasi preview 1
@@ -35,20 +35,22 @@ Just assertions. Avoid crashing with if statements.
 # Shadowing
 Redeclare a variable to shadow it.
 # Pointers
-Nope.
+CHOPPING BLOCK -> Nope.
 # Mutability
 Everything is mutable.
 # Memory
 Memory is deallocated once a variable goes out of scope.
 # Functions
-All parameters are mutable. Functions are strongly typed. Functions cannot use varibles from the outside, only their parameters.
+All parameters are mutable. Functions are strongly typed.
+
+CHOPPING BLOCK -> Functions cannot use variables from the outside, only their parameters.
 # Numbers
 - We have 5 kinds of number literals. Floats `1.5`, Decimal `58`, Hexadecimal `0x4B`, Binary `0b01001011`, and Character `"a"`.
 - Compiler error if the literal is too big or too small.
 - Chars can be any [utf-8](https://en.wikipedia.org/wiki/UTF-8) code point.
-- `number` is a 64-bit floating point number following the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
+- f32 and f64 follow the normal rules of [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754).
 # Strings
-Strings are lists of numbers. `"Hello, World!"` is of type `[number]` and each character is an element in the list. This is wasteful but very simple.
+Strings are lists of numbers. `"Hello, World!"` is of type `[u8]` and each character is an element in the list. This is wasteful but very simple.
 # Comments
 Comments start with `//`.
 # Boolean Expresssions
