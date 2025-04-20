@@ -3,7 +3,13 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 
 Note: I need to do more market research. I don't understand my target audience at all.
 
+Use simple words! Always. List is better than DynamicArrayList. etc.
+
 At first glance, you don't seem to have enough features. but you do, you need to be creative. Just like in scratch.
+# DEVNOTES: Website:
+- Hotreloading. Just restart it for now, but make it only restart if necessary otherwise.
+- Interactive helper. Haven't though to much of the details, but it's more or less a necessity.
+- Auto indent. Tab and Tab remove easily.
 # Mvp
 - only wasm core
 - only wasi preview 1
