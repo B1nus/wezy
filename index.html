@@ -9,25 +9,49 @@
     }
     textarea {
       width: 50%;
-      resize: none;
-      font-family: monospace;
-      background-color: #2e2e2e;
+      box-sizing: border-box;
+      font-family: 'Courier New';
+      background-color: black;
       color: white;
-      border: none;
+      margin: 0;
       padding: 10px;
-      outline: none;
+      border: 0;
+      font-size: 25px;
+      line-height: 1.5;
     }
     canvas {
       width: 50%;
       height: 100%;
+      background-color: black;
     }
   </style>
 </head>
 <body>
-  <textarea>draw_triangle()</textarea>
+  <textarea id="textbox">draw_triangle()</textarea>
   <canvas id="canvas"></canvas>
 
   <script>
+    const textarea = document.getElementById('textbox');
+
+    // Listen for the Tab key
+    textarea.addEventListener('keydown', function(event) {
+      if (event.key === 'Tab') {
+        event.preventDefault(); // Prevent default tab behavior (focus shift)
+
+        // Get current cursor position
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+
+        // Insert spaces (4 spaces here, can be adjusted)
+        const value = textarea.value;
+        const spaces = '    ';  // 4 spaces for a tab
+        textarea.value = value.substring(0, start) + spaces + value.substring(end);
+
+        // Move the cursor to the end of the inserted spaces
+        textarea.selectionStart = textarea.selectionEnd = start + spaces.length;
+      }
+    });
+
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -39,11 +63,11 @@
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "black";
+      ctx.fillStyle = "white";
       ctx.beginPath();
-      ctx.moveTo(canvas.width / 2, canvas.height * 0.2);       // Top point
-      ctx.lineTo(canvas.width * 0.2, canvas.height * 0.8);     // Bottom left
-      ctx.lineTo(canvas.width * 0.8, canvas.height * 0.8);     // Bottom right
+      ctx.moveTo(canvas.width / 2, canvas.height * 0.4);       // Top point
+      ctx.lineTo(canvas.width * 0.4, canvas.height * 0.6);     // Bottom left
+      ctx.lineTo(canvas.width * 0.6, canvas.height * 0.6);     // Bottom right
       ctx.closePath();
       ctx.fill();
     }
