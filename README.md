@@ -1,5 +1,7 @@
 # crust
 Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch. Head over to the [website](https://b1nus.github.io/crust/) to start coding. Have fun!
+
+Look [what people are able to do in geometry dash](https://www.youtube.com/watch?v=2I02aKeqgpM). It's not even built for this, but creative people still find a way. I love this so much.
 # Simplicity Idea Nuggets
 - Functions implicitly return and reassign their arguments.
 
