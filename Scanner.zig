@@ -1,12 +1,12 @@
 source: []const u8,
-word: ?Word,
+word: Word,
 start: usize,
 index: usize,
 
 pub fn init(source: []const u8) @This() {
     return .{
         .source = source,
-        .word = null,
+        .word = .beginningOfFile,
         .start = 0,
         .index = 0,
     };
@@ -35,7 +35,8 @@ fn getPreviousByte(self: @This()) u8 {
 
 pub fn previousWord(self: *@This()) !Word {
     if (self.index == 0) {
-        return .beginningOfFile;
+        self.word = .beginningOfFile;
+        return self.word;
     }
     switch (self.getByte()) {
         0 => {
@@ -66,9 +67,9 @@ pub fn previousWord(self: *@This()) !Word {
         },
     }
     const mem_pos = self.index;
-    const word = self.nextWord();
+    self.word = try self.nextWord();
     self.index = mem_pos;
-    return word;
+    return self.word;
 }
 
 pub fn skipUntil(self: *@This(), end: []const u8) void {
@@ -99,7 +100,10 @@ pub fn nextWord(self: *@This()) !Word {
         0 => switch (self.getPreviousByte()) {
             '\n' => return error.TrailingNewline,
             ' ' => return error.TrailingSpace,
-            else => return .endOfFile,
+            else => {
+                self.word = .endOfFile;
+                return self.word;
+            },
         },
         ' ' => return error.UnexpectedSpace,
         '\n' => switch (self.nextByte()) {
@@ -112,7 +116,8 @@ pub fn nextWord(self: *@This()) !Word {
                     if (self.getByte() == '\n') {
                         return error.UnusedIndentation;
                     } else {
-                        return .{ .doubleNewline = n };
+                        self.word = .{ .doubleNewline = n };
+                        return self.word;
                     }
                 },
             },
@@ -121,7 +126,8 @@ pub fn nextWord(self: *@This()) !Word {
                 if (self.getByte() == '\n') {
                     return error.UnusedIndentation;
                 } else {
-                    return .{ .newline = n };
+                    self.word = .{ .newline = n };
+                    return self.word;
                 }
             },
         },
@@ -130,7 +136,8 @@ pub fn nextWord(self: *@This()) !Word {
             if (self.getByte() == ' ') {
                 _ = self.nextByte();
             }
-            return .{ .word = word };
+            self.word = .{ .word = word };
+            return self.word;
         },
     }
 }
