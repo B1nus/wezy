@@ -1,4 +1,5 @@
-const eql = @import("std").mem.eql;
+const std = @import("std");
+const eql = std.mem.eql;
 
 pub fn NameMap(comptime N: usize) type {
     return struct {
@@ -101,9 +102,14 @@ test "NameMap" {
 
 test "ValueMap" {
     var valueMap = ValueMap(10).init();
-    try expect(try valueMap.indexOf("hello") == 0);
-    try expect(try valueMap.indexOf("hello2") == 1);
-    try expect(try valueMap.indexOf("hello") == 0);
-    try expect(eql(u8, valueMap.slice()[0], "hello"));
-    try expect(eql(u8, valueMap.slice()[1], "hello2"));
+    var itemBuf = try std.BoundedArray(u8, 10).init(0);
+    try itemBuf.appendSlice(&.{ 0, 1 });
+    try expect(try valueMap.indexOf(itemBuf.slice()) == 0);
+    try itemBuf.append(2);
+    try expect(try valueMap.indexOf(itemBuf.slice()) == 1);
+    itemBuf.len -= 1;
+    try expect(try valueMap.indexOf(itemBuf.slice()) == 0);
+    try expect(eql(u8, valueMap.slice()[0], &.{ 0, 1 }));
+    try expect(eql(u8, valueMap.slice()[1], &.{ 0, 1, 2 }));
+    try expect(valueMap.len == 2);
 }

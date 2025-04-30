@@ -1,16 +1,20 @@
 const std = @import("std");
-const max_core_module_len: usize = 0x100;
-const max_source_len: usize = 0x100;
+const eql = std.mem.eql;
+const writeUleb128 = std.leb.writeUleb128;
+const writeIleb128 = std.leb.writeIleb128;
+const stderr = std.io.getStdIn().writer();
+const Inst = @import("inst.zig").Inst;
+const instToBytes = @import("inst.zig").instToBytes;
+const Scanner = @import("Scanner.zig");
+const Buffer = @import("Buffer.zig").Buffer;
+const NameMap = @import("maps.zig").NameMap;
+const ValueMap = @import("maps.zig").ValueMap;
 
-const Declaration = enum {
-    import,
-    @"export",
-    memory,
-    table,
-    elem,
-    global,
-    data,
+const Type = enum(u8) {
     func,
+    table,
+    memory,
+    global,
 };
 
 const Valtype = enum(u8) {
@@ -23,397 +27,627 @@ const Valtype = enum(u8) {
     externref = 0x6f,
 };
 
-const ImportType = enum {
-    func,
-    table,
-    memory,
-    global,
-};
+pub fn compileFuncType(scanner: *Scanner, typeBuffer: anytype, types: anytype) !usize {
+    const startLen = typeBuffer.len;
+    try typeBuffer.append(0x60);
 
-const CompilerError = error{
-    MissingDeclaration,
-    UnknownDeclaration,
-    EmptyImportDeclaration,
-    MissingImportModName,
-    MissingImportItemName,
-    MissingImportAsKeyword,
-    MissingImportType,
-    UnknownImportType,
-    ExpectedImportAsKeyword,
-    MissingImportName,
-    TooManySpaces,
-    DeclarationIsTooLate,
-    DeclarationCannotChange,
-    ExpectedEndOfLine,
-    TooManyNewlines,
-    ExpectedKeywordParamOrResult,
-    ExpectedKeywordResult,
-    UnknownValtype,
-    ExpectedAParamType,
-    ExpectedAResultType,
-    SpaceAtTheEndOfALine,
-    MissingExportedName,
-    MissingExportWithKeyword,
-    ExpectedExportWithKeyword,
-    MissingExportType,
-    MissingExportName,
-    UnknownExportType,
-    MissingMemoryName,
-    MissingMinPageCount,
-    ExpectedMinPageCountToBePositiveInteger,
-    ExpectedMaxPageCountToBePositiveInteger,
-};
-
-pub fn nextWord(source: []u8, index: *usize, target: u8, banned: ?u8) ![]u8 {
-    const startIndex = index.*;
-    if (source[index.*] == banned) {
-        return error.BannedChar;
-    }
-    while (index.* < source.len and source[index.*] != target and source[index.*] != banned) : (index.* += 1) {}
-    const word = source[startIndex..index.*];
-
-    switch (skip(source, index, target)) {
-        .No,
-        .One,
-        .EndOfFile,
-        => return word,
-        else => return error.TooManySeparators,
-    }
-}
-
-const Skip = enum {
-    No,
-    One,
-    Two,
-    TooMany,
-    EndOfFile,
-};
-
-pub fn skip(source: []u8, index: *usize, target: u8) Skip {
-    const startIndex = index.*;
-    while (index.* < source.len and source[index.*] == target) : (index.* += 1) {}
-    if (index.* >= source.len) {
-        return .EndOfFile;
-    }
-    return switch (index.* - startIndex) {
-        0 => .No,
-        1 => .One,
-        2 => .Two,
-        else => .TooMany,
-    };
-}
-
-pub fn parseFuncType(source: []u8, index: *usize, typeWriter: anytype) !void {
-    try typeWriter.writeByte(0x60);
-    if (index.* >= source.len or source[index.*] == '\n') {} else {
-        const word = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-            error.TooManySeparators => return CompilerError.TooManySpaces,
-            error.BannedChar => {
-                try typeWriter.writeByte(0);
-                try typeWriter.writeByte(0);
-                return;
-            },
-        };
-        if (std.mem.eql(u8, "param", word)) {
-            var paramBuf = try std.BoundedArray(u8, 0x10).init(0);
-            if (parseTypeList(source, index, paramBuf.writer()) catch |err| switch (err) {
-                error.ExpectedValtype => return CompilerError.ExpectedAParamType,
-                else => return err,
-            }) |word2| {
-                try std.leb.writeUleb128(typeWriter, paramBuf.len);
-                try typeWriter.writeAll(paramBuf.slice());
-                if (std.mem.eql(u8, "result", word2)) {
-                    var resultBuf = try std.BoundedArray(u8, 0x10).init(0);
-                    if (parseTypeList(source, index, resultBuf.writer()) catch |err| switch (err) {
-                        error.ExpectedValtype => return CompilerError.ExpectedAResultType,
-                        else => return err,
-                    }) |_| {
-                        return CompilerError.ExpectedEndOfLine;
-                    } else {
-                        try std.leb.writeUleb128(typeWriter, resultBuf.len);
-                        try typeWriter.writeAll(resultBuf.slice());
+    switch (try scanner.nextWord()) {
+        .word => |prefix| {
+            var buffer = Buffer(10).init();
+            var word = try scanner.nextWord();
+            if (eql(u8, prefix, "param")) {
+                while (true) {
+                    switch (word) {
+                        .word => |valtypeStr| if (eql(u8, valtypeStr, "result")) {
+                            break;
+                        } else if (std.meta.stringToEnum(Valtype, valtypeStr)) |valtype| {
+                            try buffer.append(@intFromEnum(valtype));
+                        } else {
+                            return error.UnknownValtype;
+                        },
+                        else => break,
                     }
-                } else {
-                    return CompilerError.ExpectedKeywordResult;
+                    word = try scanner.nextWord();
+                }
+                if (buffer.len == 0) {
+                    return error.ExpectedParamType;
                 }
             }
-        } else if (std.mem.eql(u8, "result", word)) {
-            var resultBuf = try std.BoundedArray(u8, 0x10).init(0);
-            if (parseTypeList(source, index, resultBuf.writer()) catch |err| switch (err) {
-                error.ExpectedValtype => return CompilerError.ExpectedAResultType,
-                else => return err,
-            }) |_| {
-                return CompilerError.ExpectedEndOfLine;
-            } else {
-                try std.leb.writeUleb128(typeWriter, resultBuf.len);
-                try typeWriter.writeAll(resultBuf.slice());
-            }
-        } else {
-            return CompilerError.ExpectedKeywordParamOrResult;
-        }
-    }
-}
-
-pub fn parseTypeList(source: []u8, index: *usize, writer: anytype) !?[]u8 {
-    var word = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-        error.TooManySeparators => return CompilerError.TooManySpaces,
-        error.BannedChar => {
-            return error.ExpectedValtype;
-        },
-    };
-    while (std.meta.stringToEnum(Valtype, word)) |valtype| {
-        try writer.writeByte(@intFromEnum(valtype));
-        word = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-            error.TooManySeparators => return CompilerError.TooManySpaces,
-            error.BannedChar => return null,
-        };
-    }
-    return word;
-}
-
-pub fn findOrAppend(list: anytype, item: []u8) !usize {
-    for (list.slice(), 0..) |cur, index| {
-        if (std.mem.eql(u8, cur, item)) {
-            return index;
-        }
-    }
-    try list.append(item);
-    return list.len - 1;
-}
-
-pub fn writeSection(writer: anytype, count: usize, content: []u8, sectionCode: u8) !void {
-    try writer.writeByte(sectionCode);
-    var countBuf = try std.BoundedArray(u8, 4).init(0);
-    var sizeBuf = try std.BoundedArray(u8, 4).init(0);
-    try std.leb.writeUleb128(countBuf.writer(), count);
-    try std.leb.writeUleb128(sizeBuf.writer(), content.len + countBuf.len);
-    try writer.writeAll(sizeBuf.slice());
-    try writer.writeAll(countBuf.slice());
-    try writer.writeAll(content);
-}
-
-pub fn compileCoreModule(source: []u8, index: *usize, writer: anytype) !void {
-    var minDeclaration: usize = 0;
-    var maxDeclaration: usize = 12;
-
-    var types = try std.BoundedArray([]u8, 0x100).init(0);
-    var funcs = try std.BoundedArray([]u8, 0x100).init(0);
-    var imports = try std.BoundedArray([]u8, 0x100).init(0);
-    var import = try std.BoundedArray(u8, 0x100).init(0);
-    var exports: usize = 0;
-    var @"export" = try std.BoundedArray(u8, 0x100).init(0);
-    var memory = try std.BoundedArray(u8, 0x100).init(0);
-    var memories = try std.BoundedArray([]u8, 0x100).init(0);
-
-    while (index.* < source.len) {
-        const startIndex = index.*;
-        if (source.len > index.* + 2 and std.mem.eql(u8, source[index.*..index.*+2], "//")) {
-            if (std.mem.indexOfScalarPos(u8, source, index.*, '\n')) |i| {
-                index.* = i;
-                _ = skip(source, index, ' ');
-                _ = skip(source, index, '\n');
-                continue;
-            } else {
-                break;
-            }
-        }
-        const declarationSlice = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-            error.TooManySeparators => return CompilerError.TooManySpaces,
-            error.BannedChar => return CompilerError.MissingDeclaration,
-        };
-        if (std.meta.stringToEnum(Declaration, declarationSlice)) |declaration| {
-            const declarationInt = @intFromEnum(declaration);
-            if (declarationInt > maxDeclaration) {
-                return CompilerError.DeclarationCannotChange;
-            }
-            if (declarationInt < minDeclaration) {
-                return CompilerError.DeclarationIsTooLate;
-            }
-            switch (declaration) {
-                .import => {
-                    const modName = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingImportModName,
-                    };
-                    const itemName = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingImportItemName,
-                    };
-                    const as = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingImportAsKeyword,
-                    };
-                    if (!std.mem.eql(u8, "as", as)) {
-                        return CompilerError.ExpectedImportAsKeyword;
-                    }
-                    const typeStr = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingImportType,
-                    };
-                    if (std.meta.stringToEnum(ImportType, typeStr)) |@"type"| {
-                        const name = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                            error.TooManySeparators => return CompilerError.TooManySpaces,
-                            error.BannedChar => return CompilerError.MissingImportName,
-                        };
-                        try std.leb.writeUleb128(import.writer(), modName.len);
-                        try import.writer().writeAll(modName);
-                        try std.leb.writeUleb128(import.writer(), itemName.len);
-                        try import.writer().writeAll(itemName);
-                        try import.writer().writeByte(@intCast(@intFromEnum(@"type")));
-
-                        _ = try findOrAppend(&funcs, name);
-
-                        switch (@"type") {
-                            .func => {
-                                var typeBuf = try std.BoundedArray(u8, 0x10).init(0);
-                                try parseFuncType(source, index, typeBuf.writer());
-                                const typeIdx = try findOrAppend(&types, typeBuf.slice());
-                                try std.leb.writeUleb128(import.writer(), typeIdx);
+            try typeBuffer.writeUleb128(buffer.len);
+            try typeBuffer.appendSlice(buffer.slice());
+            buffer.len = 0;
+            switch (word) {
+                .word => |result| if (eql(u8, result, "result")) {
+                    word = try scanner.nextWord();
+                    while (true) {
+                        switch (word) {
+                            .word => |valtypeStr| if (std.meta.stringToEnum(Valtype, valtypeStr)) |valtype| {
+                                try buffer.append(@intFromEnum(valtype));
+                            } else {
+                                return error.UnknownValtype;
                             },
-                            else => unreachable,
+                            else => break,
                         }
-                        try imports.append(name);
-                    } else {
-                        return CompilerError.UnknownImportType;
+                        word = try scanner.nextWord();
+                    }
+                    if (buffer.len == 0) {
+                        return error.ExpectedResultType;
                     }
                 },
-                .@"export" => {
-                    const exportedName = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingExportedName,
-                    };
-                    const with = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingExportWithKeyword,
-                    };
-                    if (!std.mem.eql(u8, "with", with)) {
-                        return CompilerError.ExpectedExportWithKeyword;
-                    }
-                    const typeStr = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingExportType,
-                    };
-                    if (std.meta.stringToEnum(ImportType, typeStr)) |@"type"| {
-                        const name = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                            error.TooManySeparators => return CompilerError.TooManySpaces,
-                            error.BannedChar => return CompilerError.MissingExportName,
-                        };
-                        try std.leb.writeUleb128(@"export".writer(), exportedName.len);
-                        try @"export".writer().writeAll(exportedName);
-
-                        const idx = switch (@"type") {
-                            .func => try findOrAppend(&funcs, name),
-                            .memory => try findOrAppend(&memories, name),
-                            else => unreachable,
-                        };
-                        try @"export".writer().writeByte(@intCast(@intFromEnum(@"type")));
-                        try std.leb.writeUleb128(@"export".writer(), idx);
-                        exports += 1;
-                    } else {
-                        return CompilerError.UnknownExportType;
-                    }
-                },
-                .memory => {
-                    const name = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingMemoryName,
-                    };
-
-                    const minStr = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => return CompilerError.MissingMinPageCount,
-                    };
-
-                    const min = std.fmt.parseInt(usize, minStr, 10) catch {
-                        return CompilerError.ExpectedMinPageCountToBePositiveInteger;
-                    };
-
-                    const maxStr: ?[]u8 = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
-                        error.TooManySeparators => return CompilerError.TooManySpaces,
-                        error.BannedChar => null,
-                    };
-
-                    if (maxStr) |maxStr_| {
-                        const max = std.fmt.parseInt(usize, maxStr_, 10) catch {
-                            return CompilerError.ExpectedMaxPageCountToBePositiveInteger;
-                        };
-
-                        try memory.append(1);
-                        try std.leb.writeUleb128(memory.writer(), min);
-                        try std.leb.writeUleb128(memory.writer(), max);
-                    } else {
-                        try memory.append(0);
-                        try std.leb.writeUleb128(memory.writer(), min);
-                    }
-                    _ = try findOrAppend(&memories, name);
-                },
-                else => unreachable,
+                else => {},
             }
-
-            switch (skip(source, index, ' ')) {
-                .No, .EndOfFile => {},
-                else => return CompilerError.SpaceAtTheEndOfALine,
-            }
-            switch (skip(source, index, '\n')) {
-                .No => return CompilerError.ExpectedEndOfLine,
-                .One => maxDeclaration = minDeclaration,
-                .Two, .EndOfFile => {
-                    minDeclaration += 1;
-                    maxDeclaration = 12;
-                },
-                .TooMany => return CompilerError.TooManyNewlines,
-            }
-        } else {
-            index.* = startIndex;
-            return CompilerError.UnknownDeclaration;
-        }
+            try typeBuffer.writeUleb128(buffer.len);
+            try typeBuffer.appendSlice(buffer.slice());
+        },
+        else => try typeBuffer.appendSlice(&.{ 0x60, 0, 0 }),
     }
-    var typeSec = try std.BoundedArray(u8, 0x100).init(0);
-    for (types.slice()) |@"type"| {
-        try typeSec.appendSlice(@"type");
-    }
-    try writeSection(writer, types.len, typeSec.slice(), 1);
-    try writeSection(writer, imports.len, import.slice(), 2);
-    try writeSection(writer, memories.len, memory.slice(), 5);
-    try writeSection(writer, exports, @"export".slice(), 7);
+
+    return try types.indexOf(typeBuffer.array[startLen..typeBuffer.len]);
 }
 
-pub fn readFile(reader: anytype, buffer: []u8) ![]u8 {
-    return buffer[0..try reader.readAll(buffer)];
-}
-
-pub fn indexOfBackwards(haystack: []u8, needle: u8) ?usize {
-    if (haystack.len == 0) {
-        return null;
-    }
-    var index: usize = haystack.len - 1;
-    while (index > 0 and haystack[index] != needle) : (index -= 1) {}
-    return if (index > 0) index else null;
-}
-
-pub fn main() !void {
-    var buffer: [max_source_len]u8 = undefined;
-    const source = try readFile(std.io.getStdIn().reader(), &buffer);
-
-    var index: usize = 0;
-    const writer = std.io.getStdOut().writer();
-    try writer.writeAll(&.{ 0, 'a', 's', 'm', 1, 0, 0, 0 });
-    const errWriter = std.io.getStdErr().writer();
-    compileCoreModule(source, &index, writer) catch |err| {
-        const startIndex = if (indexOfBackwards(source[0..index], '\n')) |i| i + 1 else 0;
-        const endIndex = std.mem.indexOfScalarPos(u8, source, index, '\n') orelse source.len;
-        const line = std.mem.count(u8, source[0..index], "\n");
-        const column = index - startIndex;
-        try errWriter.print("\x1b[1;31m{s}\x1b[0m at line \x1b[1;37m{d}\x1b[0m column \x1b[1;37m{d}\x1b[0m\n{s}\n", .{ @errorName(err), line + 1, column + 1, source[startIndex..endIndex] });
-        for (0..column) |_| {
-            try errWriter.writeByte(' ');
-        }
-        try errWriter.writeAll("\x1b[1;32m^");
-        if (index < endIndex) {
-            for (0..endIndex - index - 1) |_| {
-                try errWriter.writeAll("~");
-            }
-        }
-        try errWriter.writeAll("\x1b[0m\n");
+pub fn compileImport(scanner: *Scanner, importWriter: anytype, typeBuffer: anytype, funcNames: anytype, tableNames: anytype, memoryNames: anytype, globalNames: anytype, types: anytype) !void {
+    const mod = switch (try scanner.nextWord()) {
+        .word => |word| word,
+        else => return error.ExpectedModule,
     };
+
+    const name = switch (try scanner.nextWord()) {
+        .word => |word| word,
+        else => return error.ExpectedName,
+    };
+
+    const importTypeStr = switch (try scanner.nextWord()) {
+        .word => |word| word,
+        else => return error.ExpectedType,
+    };
+
+    const importType = std.meta.stringToEnum(Type, importTypeStr) orelse return error.UnknownType;
+
+    const alias = switch (try scanner.nextWord()) {
+        .word => |word| word,
+        else => return error.ExpectedAlias,
+    };
+
+    try writeUleb128(importWriter, mod.len);
+    try importWriter.writeAll(mod);
+    try writeUleb128(importWriter, name.len);
+    try importWriter.writeAll(name);
+    try importWriter.writeByte(@intFromEnum(importType));
+
+    switch (importType) {
+        .func => {
+            try funcNames.define(alias);
+            const index = try compileFuncType(scanner, typeBuffer, types);
+            try writeUleb128(importWriter, index);
+        },
+        .table => {
+            try tableNames.define(alias);
+        },
+        .memory => {
+            try memoryNames.define(alias);
+        },
+        .global => {
+            try globalNames.define(alias);
+        },
+    }
 }
+
+const expect = std.testing.expect;
+
+test "compile import" {
+    var scanner = Scanner.init("wasi fd_write func hello param i32 i32 f64 funcref result i32 i64");
+    var typeBuffer = Buffer(100).init();
+    var importBuffer = try std.BoundedArray(u8, 100).init(0);
+    var funcNames = NameMap(10).init();
+    var tableNames = NameMap(10).init();
+    var globalNames = NameMap(10).init();
+    var memoryNames = NameMap(10).init();
+    var types = ValueMap(10).init();
+    compileImport(&scanner, importBuffer.writer(), &typeBuffer, &funcNames, &tableNames, &globalNames, &memoryNames, &types) catch |err| {
+        try displayError(&scanner, stderr, "filename", @errorName(err));
+    };
+    std.debug.print("{x} {x}\n", .{ typeBuffer.slice(), importBuffer.slice() });
+}
+
+pub fn displayError(scanner: *Scanner, writer: anytype, filename: []const u8, message: []const u8) !void {
+    const start = scanner.start;
+    const end = scanner.index;
+
+    scanner.skipBackwardUntil("\n");
+    const lineStart = scanner.index;
+    scanner.skipUntil("\n");
+    const lineEnd = scanner.index;
+
+    const line = std.mem.count(u8, scanner.source[0..lineStart], "\n");
+    const column = start - lineStart;
+
+    try writer.print("\n\x1b[1;37m{s}:{d}:{d}\x1b[0m \x1b[1;31m{s}\x1b[0m\n{s}\x1b[1;32m\n", .{ filename, line, column, message, scanner.source[lineStart..lineEnd] });
+    for (0..@max(start + 1, end)) |i| {
+        if (i < start) {
+            try writer.writeByte(' ');
+        } else if (i == start or start == end) {
+            try writer.writeByte('^');
+        } else {
+            try writer.writeByte('~');
+        }
+    }
+    try writer.print("\x1b[0m\n\n", .{});
+}
+
+// const ParsingStrategy = enum {
+//     byte,
+//     v128,
+//     memarg,
+//     i32,
+//     i64,
+//     f32,
+//     f64,
+//     memoryIndex,
+//     dataIndex,
+//     elemIndex,
+//     tableIndex,
+//     globalIndex,
+//     localIndex,
+//     labelIndex,
+//     br_table,
+//     paramType,
+//     resultType,
+// };
+//
+// pub fn instParsingStrategy(inst: Inst) []const ParsingStrategy {
+//     return switch (inst) {
+//         .@"call_indirect name" => &.{ .paramType, .resultType },
+//         .br_table, &.{.br_table}, .br_if, .br => &.{.labelIndex},
+//         .@"ref.null" => &.{.reftype},
+//         .call, .@"ref.func" => &.{.funcIndex},
+//         .@"if", .block, .loop, .select => &.{.resultType},
+//         .@"local.get", .@"local.set", .@"local.tee" => &.{.localIndex},
+//         .@"global.get", .@"global.set" => &.{.globalIndex},
+//         .@"table.get", .@"table.set", .@"table.drop", .@"table.grow", .@"table.size", .@"table.fill" => &.{.tableIndex},
+//         .@"table.copy" => &.{ .tableIndex, .tableIndex },
+//         .@"table.init" => &.{ .elemIndex, .tableIndex },
+//         .@"data.drop" => &.{.dataIndex},
+//         .@"memory.init" => &.{ .dataIndex, .memoryIndex },
+//         .@"memory.size", .@"memory.grow", .@"memory.copy", .@"memory.fill" => &.{.memoryIndex},
+//         .@"i32.const" => &.{.i32},
+//         .@"i64.const" => &.{.i64},
+//         .@"f32.const" => &.{.f32},
+//         .@"f64.const" => &.{.f64},
+//         .@"i32.load", .@"i64.load", .@"f32.load", .@"f64.load", .@"i32.load8_s", .@"i32.load8_u", .@"i32.load16_s", .@"i32.load16_u", .@"i64.load8_s", .@"i64.load8_u", .@"i64.load16_s", .@"i64.load16_u", .@"i64.load32_s", .@"i64.load32_u", .@"i32.store", .@"i64.store", .@"f32.store", .@"f64.store", .@"i32.store8", .@"i32.store16", .@"i64.store8", .@"i64.store16", .@"i64.store32", .@"128.load", .@"128.load8x8_s", .@"128.load8x8_u", .@"128.load16x4_s", .@"128.load16x4_u", .@"128.load32x2_s", .@"128.load32x2_u", .@"128.load8_splat", .@"128.load16_splat", .@"128.load32_splat", .@"128.load64_splat", .@"128.load32_zero", .@"128.load64_zero", .@"128.store" => &.{.memarg},
+//         .@"v128.load8_lane", .@"v128.load16_lane", .@"v128.load32_lane", .@"v128.load64_lane", .@"v128.store8_lane", .@"v128.store16_lane", .@"v128.store32_lane", .@"v128.store64_lane" => &.{ .byte, .memarg },
+//         .@"v128.const" => &.{.v128},
+//         .@"i8x16.shuffle" => &(.{.byte} ** 16),
+//         .@"i8x16.extract_lane_s", .@"i8x16.extract_lane_u", .@"i8x16.replace_lane", .@"i16x8.extract_lane_s", .@"i16x8.extract_lane_u", .@"i16x8.replace_lane", .@"i32x4.extract_lane", .@"i32x4.replace_lane", .@"i64x2.extract_lane", .@"i64x2.replace_lane", .@"f32x4.extract_lane", .@"f32x4.replace_lane", .@"f64x2.extract_lane", .@"f64x2.replace_lane" => &.{.byte},
+//         else => &.{},
+//     };
+// }
+
+// pub fn compileParsingStrategy(strategy: ParsingStrategy, output: anytype) !void {}
+
+// const Prefix = enum(u8) {
+//     import = 2,
+//     @"export" = 7,
+//     memory = 5,
+//     table = 4,
+//     elem = 9,
+//     global = 6,
+//     data = 11,
+//     func = 10,
+// };
+//
+//
+
+// pub fn compileFuncType(scanner: *Scanner, output: anytype, locals: anytype) !void {
+//     try output.append(0x60);
+//     try compilePrefixedTypeList(scanner, output, "param", locals, "result");
+//     try compilePrefixedTypeList(scanner, output, "result", locals, null);
+// }
+//
+// pub fn compilePrefixedTypeList(scanner: *Scanner, output: anytype, prefix: []const u8, locals: anytype, end: ?[]const u8) !void {
+//     if (scanner.next) |first| {
+//         if (std.mem.eql(u8, prefix, first)) {
+//             try compileTypeList(scanner, output, locals, end);
+//         } else {
+//             try output.append(0);
+//         }
+//     }
+// }
+//
+// pub fn compileNamedParams(scanner: *Scanner, output: anytype, locals: anytype) !void {
+//     var bufferBytes = WasmBytes(16).init();
+//     while (try scanner.advance()) |next| {
+//         if (std.mem.eql(u8, next, "result")) {
+//             break;
+//         } else {
+//
+//         }
+//     }
+// }
+//
+// pub fn compileTypeList(scanner: *Scanner, output: anytype, locals: anytype, end: ?[]const u8) !void {
+//     var bufferBytes = WasmBytes(16).init();
+//     while (try scanner.advance()) |next| {
+//         if (end) |endStr| {
+//             if (std.mem.eql(u8, next, endStr)) {
+//                 break;
+//             }
+//         }
+//         if (locals) |localMap| {
+//             try localMap.append(next);
+//             _ = try scanner.advance();
+//         }
+//         if (scanner.next) |next2| {
+//             if (std.meta.stringToEnum(Type, next2)) |@"type"| {
+//                 try bufferBytes.append(@intFromEnum(@"type"));
+//             } else {
+//                 break;
+//             }
+//         } else {
+//             return error.ExpectedType;
+//         }
+//     }
+//     if (bufferBytes.len == 0) {
+//         return error.ExpectedType;
+//     }
+//     try output.writeUnsigned(bufferBytes.len);
+//     try output.appendSlice(bufferBytes.slice());
+// }
+//
+// pub fn WasmBytes(comptime N: usize) type {
+//     return struct {
+//         items: [N]u8,
+//         len: usize,
+//
+//         pub fn init() @This() {
+//             return .{
+//                 .items = undefined,
+//                 .len = 0,
+//             };
+//         }
+//
+//         pub fn append(self: *@This(), byte: u8) !void {
+//             if (self.len < N) {
+//                 self.items[self.len] = byte;
+//                 self.len += 1;
+//             } else {
+//                 return error.OutOfBounds;
+//             }
+//         }
+//
+//         pub fn appendSlice(self: *@This(), sliceToAppend: []u8) !void {
+//             if (self.len + sliceToAppend.len < N) {
+//                 @memcpy(self.items[self.len .. self.len + sliceToAppend.len], sliceToAppend);
+//             } else {
+//                 return error.OutOfBounds;
+//             }
+//         }
+//
+//         pub fn slice(self: @This()) []u8 {
+//             self.items[0..self.len];
+//         }
+//
+//         pub fn writeUnsigned(self: *@This(), number: anytype) !void {
+//             var val = number;
+//             while (true) {
+//                 var byte: u8 = @intCast(val & 0x7F);
+//                 val >>= 7;
+//                 if (val != 0) {
+//                     byte |= 0x80;
+//                 }
+//                 try self.append(byte);
+//                 if (val == 0) break;
+//             }
+//         }
+//
+//         pub fn writeVector(self: *@This(), content: []u8, count: ?usize) !void {
+//             try self.writeUnsigned(if (count) |c| c else content.len);
+//             try self.appendSlice(content);
+//         }
+//
+//         pub fn writeSection(self: *@This(), content: []u8, sectionId: u8) !void {
+//             try self.append(sectionId);
+//             try self.writeVector(content);
+//         }
+//     };
+// }
+//
+// pub fn BytesMap(comptime N: usize) type {
+//     return struct {
+//         items: [N][]u8,
+//         len: usize,
+//
+//         pub fn init() @This() {
+//             return .{
+//                 .items = undefined,
+//                 .len = 0,
+//             };
+//         }
+//
+//         pub fn append(self: *@This(), bytes: []u8) !void {
+//             if (self.len < N) {
+//                 self.items[self.len] = bytes;
+//                 self.len += 1;
+//             } else {
+//                 return error.OutOfBounds;
+//             }
+//         }
+//
+//         pub fn getIndex(self: @This(), bytes: []u8) ?usize {
+//             for (self.items, 0..) |item, index| {
+//                 if (std.mem.eql(u8, bytes, item)) {
+//                     return index;
+//                 }
+//             }
+//             return null;
+//         }
+//
+//         pub fn getName(self: @This(), index: usize) ?[]u8 {
+//             if (index < self.len) {
+//                 return self.items[index];
+//             } else {
+//                 return null;
+//             }
+//         }
+//
+//         pub fn getIndexOrAppend(self: *@This(), bytes: []u8) !usize {
+//             if (self.getIndex(bytes)) |index| {
+//                 return index;
+//             } else {
+//                 try self.append(bytes);
+//                 return self.len - 1;
+//             }
+//         }
+//     };
+// }
+
+// pub fn compileSectionBody(scanner: *Scanner, prefix: Prefix, funcTypes: anytype) !WasmBytes {
+//     var output = WasmBytes(1000).init();
+//     var count: usize = 0;
+//     switch (prefix) {
+//         .func => unreachable,
+//         else => {
+//             compileLine(scanner, prefix, &output);
+//             count += 1;
+//         },
+//     }
+//     var buffer = WasmBytes(1000).init();
+//     try buffer.writeUnsigned(count);
+//     try buffer.appendSlice(output.slice());
+//     return buffer;
+// }
+//
+// pub fn compileEndInstructions(scanner: *Scanner, currentIndentation: usize, output: anytype) !usize {
+//     const indentStr = scanner.advance();
+//     if (!std.mem.startsWith(u8, indentStr, "\n")) {
+//         return error.ExpectedNewline;
+//     }
+//     if (std.mem.count(u8, indentStr, "\n") != 1) {
+//         return error.TooManyNewlines;
+//     }
+//     const indentation = indentStr.len - 1;
+//     if (indentation > currentIndentation) {
+//         if (indentation - currentIndenation != 2) {
+//             return error.ExpectedTwoSpacesAsIndentation;
+//         }
+//         return 0;
+//     } else {
+//         if (indentation % 2 != 0) {
+//             return error.ExpectedTwoSpacesAsIndentation;
+//         }
+//         for (0..(currentIndentation - indentation) / 2) |_| {
+//             try output.append(instToBytes(.end));
+//         }
+//         return indentation;
+//     }
+// }
+//
+// pub fn compileInstruction(scanner: *Scanner, output: anytype) !void {
+//     const instStr = scanner.advance();
+//     if (std.meta.stringToEnum(Inst, instStr)) |inst| {
+//         try output.appendSlice(instToBytes(inst));
+//         scanner.advance();
+//         for (instParsingStrategy(inst)) |startegy| {
+//             try compileParsingStrategy(scanner, output, startegy);
+//         }
+//     } else {
+//         return error.UnknownInstruction;
+//     }
+// }
+//
+// pub fn compileLine(scanner: *Scanner, prefix: Prefix, output: anytype) !void {}
+//
+// pub fn compileCoreModule(scanner: *Scanner, output: anytype) !void {
+//     scanner.advance();
+//
+//     var types = BytesMap(10).init();
+//     var funcs = BytesMap(10).init();
+//     var imports = BytesMap(10).init();
+//     var memories = BytesMap(10).init();
+//     var importBytes = WasmBytes(100).init();
+//     var exportBytes = WasmBytes(100).init();
+//     var memoryBytes = WasmBytes(100).init();
+//     var exports: usize = 0;
+//
+//     while (scanner.next) |next| : (scanner.advance()) {
+//         if (std.mem.startsWith(u8, next, "//")) {
+//             scanner.skipUntil("\r\n");
+//             continue;
+//         }
+//         if (std.meta.stringToEnum(Prefix, scanner.next)) |prefix| {
+//             switch (prefix) {
+//                 .import => {
+//                     const module = scanner.advance() orelse return error.MissingModuleName;
+//                     const item = scanner.advance() orelse return error.MissingName;
+//                     const as = scanner.advance() orelse return error.MissingKeywordAs;
+//                     if (!std.mem.eql(u8, "as", as)) {
+//                         return error.ExpectedKeywordAs;
+//                     }
+//                     const importTypeStr = scanner.advance() orelse return error.MissingImportType;
+//
+//                     if (std.meta.stringToEnum(ImportType, importTypeStr)) |importType| {
+//                         const name = scanner.advance() orelse return error.MissingName;
+//                         try importBytes.writeVec(module);
+//                         try importBytes.writeVec(item);
+//                         try importBytes.append(@intFromEnum(importType));
+//
+//                         _ = try funcs.getIndexOrAppend(name);
+//
+//                         switch (importType) {
+//                             .func => {
+//                                 var typeBuf = WasmBytes(10).init();
+//                                 try compileFuncType(&scanner, &typeBuf);
+//                                 const index = try types.getIndexOrAppend(typeBuf.slice());
+//                                 try importBytes.writeUnsigned(index);
+//                             },
+//                             else => unreachable,
+//                         }
+//                         try imports.append(name);
+//                     } else {
+//                         return error.UnknownType;
+//                     }
+//                 },
+//                 .@"export" => {
+//                     const alias = scanner.advance() catch {
+//                         return error.MissingAlias;
+//                     };
+//                     const with = scanner.advance() catch {
+//                         return error.MissingKeywordWith;
+//                     };
+//                     if (!std.mem.eql(u8, "with", with)) {
+//                         return error.ExpectedKeywordWith;
+//                     }
+//                     const exportTypeStr = scanner.advance() catch {
+//                         return error.MissingExportType;
+//                     };
+//
+//                     if (std.meta.stringToEnum(ImportType, exportTypeStr)) |exportType| {
+//                         const name = scanner.advance() catch {
+//                             return error.MissingName;
+//                         };
+//                         try exportBytes.writeVec(alias);
+//
+//                         const idx = switch (@"type") {
+//                             .func => try func.getIndexOrAppend(name),
+//                             .memory => try memories.getIndexOrAppend(name),
+//                             .global => try globals.getIndexOrAppend(name),
+//                             .table => try tables.getIndexOrAppend(name),
+//                             else => unreachable,
+//                         };
+//                         try exportBytes.append(@intFromEnum(exportType));
+//                         try exportBytes.writeUnsigned(idx);
+//                         exports += 1;
+//                     } else {
+//                         return CompilerError.UnknownExportType;
+//                     }
+//                 },
+//                 .memory => {
+//                     const name = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
+//                         error.TooManySeparators => return CompilerError.TooManySpaces,
+//                         error.BannedChar => return CompilerError.MissingMemoryName,
+//                     };
+//
+//                     const minStr = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
+//                         error.TooManySeparators => return CompilerError.TooManySpaces,
+//                         error.BannedChar => return CompilerError.MissingMinPageCount,
+//                     };
+//
+//                     const min = std.fmt.parseInt(usize, minStr, 10) catch {
+//                         return CompilerError.ExpectedMinPageCountToBePositiveInteger;
+//                     };
+//
+//                     const maxStr: ?[]u8 = nextWord(source, index, ' ', '\n') catch |err| switch (err) {
+//                         error.TooManySeparators => return CompilerError.TooManySpaces,
+//                         error.BannedChar => null,
+//                     };
+//
+//                     if (maxStr) |maxStr_| {
+//                         const max = std.fmt.parseInt(usize, maxStr_, 10) catch {
+//                             return CompilerError.ExpectedMaxPageCountToBePositiveInteger;
+//                         };
+//
+//                         try memory.append(1);
+//                         try std.leb.writeUleb128(memory.writer(), min);
+//                         try std.leb.writeUleb128(memory.writer(), max);
+//                     } else {
+//                         try memory.append(0);
+//                         try std.leb.writeUleb128(memory.writer(), min);
+//                     }
+//                     _ = try findOrAppend(&memories, name);
+//                 },
+//                 else => unreachable,
+//             }
+//         } else {
+//             return error.UnknownPrefix;
+//         }
+//         if (std.meta.stringToEnum(Declaration, declarationSlice)) |declaration| {
+//             const declarationInt = @intFromEnum(declaration);
+//             if (declarationInt > maxDeclaration) {
+//                 return CompilerError.DeclarationCannotChange;
+//             }
+//             if (declarationInt < minDeclaration) {
+//                 return CompilerError.DeclarationIsTooLate;
+//             }
+//             switch (declaration) {}
+//
+//             switch (skip(source, index, ' ')) {
+//                 .No, .EndOfFile => {},
+//                 else => return CompilerError.SpaceAtTheEndOfALine,
+//             }
+//             switch (skip(source, index, '\n')) {
+//                 .No => return CompilerError.ExpectedEndOfLine,
+//                 .One => maxDeclaration = minDeclaration,
+//                 .Two, .EndOfFile => {
+//                     minDeclaration += 1;
+//                     maxDeclaration = 12;
+//                 },
+//                 .TooMany => return CompilerError.TooManyNewlines,
+//             }
+//         } else {
+//             index.* = startIndex;
+//             return CompilerError.UnknownDeclaration;
+//         }
+//     }
+//     var typeSec = try std.BoundedArray(u8, 0x100).init(0);
+//     for (types.slice()) |@"type"| {
+//         try typeSec.appendSlice(@"type");
+//     }
+//     try writeSection(writer, types.len, typeSec.slice(), 1);
+//     try writeSection(writer, imports.len, import.slice(), 2);
+//     try writeSection(writer, memories.len, memory.slice(), 5);
+//     try writeSection(writer, exports, @"export".slice(), 7);
+// }
+//
+// pub fn main() !void {
+//     const stdin = std.io.getStdIn().reader();
+//     const stdout = std.io.getStdOut().writer();
+//     const stderr = std.io.getStdErr().writer();
+//
+//     var buffer: [max_source_len]u8 = undefined;
+//     const source = buffer[0..try stdin.readAll(&buffer)];
+//
+//     var scanner = Scanner.init(source);
+//     var wasmBytes = WasmBytes(1000).init();
+//     compileCoreModule(&scanner, &wasmBytes) catch |err| {
+//         const start, const end = sourceLine(source, scanner.start);
+//         const line = std.mem.count(u8, source[0..start], "\n");
+//         const column = scanner.start - start;
+//         try writeError(stderr, @errorName(err), "stdin", line, column, source[start..end], scanner.start - start, scanner.index - start);
+//     };
+//     try stdout.print("{x}\n", .{wasmBytes.slice()});
+// }
+
+// test "Compile Func Type" {
+//     const source = "param i32 i32 i32 result i32 i32";
+//     var scanner = Scanner.init(source);
+//     var out = WasmBytes(100).init();
+//     var locals = BytesMap(100).init();
+//     try compileFuncType(&scanner, &out, null);
+//     try compileFuncType(&scanner, &out, &locals);
+// }
+//
+// test "Compile" {
+//     const source = "func hello param x i32 y i32 z i32 result i32 result i32";
+//     var scanner = Scanner.init(source);
+//     var out = WasmBytes(100).init();
+//     var locals = BytesMap(100).init();
+// }

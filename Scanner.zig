@@ -15,8 +15,9 @@ pub fn init(source: []const u8) @This() {
 const Word = union(enum) {
     newline: usize,
     doubleNewline: usize,
-    string: []const u8,
     word: []const u8,
+    endOfFile,
+    beginningOfFile,
 };
 
 fn getByte(self: @This()) u8 {
@@ -34,18 +35,18 @@ fn getPreviousByte(self: @This()) u8 {
 
 pub fn previousWord(self: *@This()) !Word {
     if (self.index == 0) {
-        return error.BeginningOfFile;
+        return .beginningOfFile;
     }
     switch (self.getByte()) {
         0 => {
-            self.skipBackward(" \n");
+            self.skipBackwardUntil(" \n");
             if (self.getByte() == ' ') {
                 self.index += 1;
             }
         },
         '\n' => {
             self.index -= 1;
-            self.skipBackward(" \n");
+            self.skipBackwardUntil(" \n");
             if (self.getByte() == ' ') {
                 self.index += 1;
             }
@@ -57,7 +58,7 @@ pub fn previousWord(self: *@This()) !Word {
                 self.index += 1;
             } else {
                 self.index -= 1;
-                self.skipBackward(" \n");
+                self.skipBackwardUntil(" \n");
                 if (self.index != 0) {
                     self.index += 1;
                 }
@@ -70,18 +71,26 @@ pub fn previousWord(self: *@This()) !Word {
     return word;
 }
 
-pub fn readUntil(self: *@This(), end: []const u8) []const u8 {
+pub fn skipUntil(self: *@This(), end: []const u8) void {
+    while (self.nextByte() != 0 and std.mem.count(u8, end, &.{self.getByte()}) == 0) {}
+}
+
+fn readUntil(self: *@This(), end: []const u8) []const u8 {
     self.start = self.index;
-    while (self.nextByte() != 0 and std.mem.count(u8, end, &.{ self.getByte() }) == 0) { }
+    self.skipUntil(end);
     return self.source[self.start..self.index];
 }
 
-fn skipBackward(self: *@This(), end: []const u8) void {
-    while (self.index > 0 and std.mem.count(u8, end, &.{ self.getByte() }) == 0) {  self.index -= 1; }
+pub fn skipBackwardUntil(self: *@This(), end: []const u8) void {
+    while (self.index > 0 and std.mem.count(u8, end, &.{self.getByte()}) == 0) {
+        self.index -= 1;
+    }
 }
 
 fn skipBackwardWhile(self: *@This(), bytes: []const u8) void {
-    while (self.index > 0 and std.mem.count(u8, bytes, &.{ self.getByte() }) > 0) {  self.index -= 1; }
+    while (self.index > 0 and std.mem.count(u8, bytes, &.{self.getByte()}) > 0) {
+        self.index -= 1;
+    }
 }
 
 pub fn nextWord(self: *@This()) !Word {
@@ -90,7 +99,7 @@ pub fn nextWord(self: *@This()) !Word {
         0 => switch (self.getPreviousByte()) {
             '\n' => return error.TrailingNewline,
             ' ' => return error.TrailingSpace,
-            else => return error.EndOfFile,
+            else => return .endOfFile,
         },
         ' ' => return error.UnexpectedSpace,
         '\n' => switch (self.nextByte()) {
@@ -144,7 +153,7 @@ const expect = std.testing.expect;
 test "empty" {
     const source = "";
     var scanner = @This().init(source);
-    try expect(scanner.nextWord() == error.EndOfFile);
+    try expect(try scanner.nextWord() == .endOfFile);
 }
 
 test "only space" {
@@ -241,5 +250,5 @@ test "func result thingie" {
     try expect(std.mem.eql(u8, (try scanner.previousWord()).word, "param"));
     try expect(std.mem.eql(u8, (try scanner.previousWord()).word, "main"));
     try expect(std.mem.eql(u8, (try scanner.previousWord()).word, "func"));
-    try expect(scanner.previousWord() == error.BeginningOfFile);
+    try expect(try scanner.previousWord() == .beginningOfFile);
 }
