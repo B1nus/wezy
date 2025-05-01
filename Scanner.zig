@@ -94,6 +94,13 @@ fn skipBackwardWhile(self: *@This(), bytes: []const u8) void {
     }
 }
 
+pub fn expectWord(self: *@This(), err: anytype) ![]const u8 {
+    switch (try self.nextWord()) {
+        .word => |word| return word,
+        else => return err,
+    }
+}
+
 pub fn nextWord(self: *@This()) !Word {
     self.start = self.index;
     switch (self.getByte()) {

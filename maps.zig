@@ -51,7 +51,7 @@ pub fn NameMap(comptime N: usize) type {
     };
 }
 
-pub fn ValueMap(comptime N: usize) type {
+pub fn ValueSet(comptime N: usize) type {
     return struct {
         array: [N][]const u8,
         len: usize,
@@ -63,18 +63,30 @@ pub fn ValueMap(comptime N: usize) type {
             };
         }
 
-        pub fn indexOf(self: *@This(), value: []const u8) !usize {
+        pub fn append(self: *@This(), value: []const u8) !void {
+            if (self.len < N) {
+                self.array[self.len] = value;
+                self.len += 1;
+            } else {
+                return error.OutOfSpace;
+            }
+        }
+
+        pub fn indexOf(self: *@This(), value: []const u8) ?usize {
             for (self.array, 0..) |nameStr, index| {
                 if (eql(u8, nameStr, value)) {
                     return index;
                 }
             }
-            if (self.len < N) {
-                self.array[self.len] = value;
-                self.len += 1;
-                return self.len - 1;
+            return null;
+        }
+
+        pub fn getIndex(self: *@This(), value: []const u8) !usize {
+            if (self.indexOf(value)) |index| {
+                return index;
             } else {
-                return error.OutOfSpace;
+                try self.append(value);
+                return self.len - 1;
             }
         }
 
@@ -100,15 +112,15 @@ test "NameMap" {
     try expect(nameMap.getUndefined() == null);
 }
 
-test "ValueMap" {
-    var valueMap = ValueMap(10).init();
+test "ValueSet" {
+    var valueMap = ValueSet(10).init();
     var itemBuf = try std.BoundedArray(u8, 10).init(0);
     try itemBuf.appendSlice(&.{ 0, 1 });
-    try expect(try valueMap.indexOf(itemBuf.slice()) == 0);
+    try expect(try valueMap.getIndex(itemBuf.slice()) == 0);
     try itemBuf.append(2);
-    try expect(try valueMap.indexOf(itemBuf.slice()) == 1);
+    try expect(try valueMap.getIndex(itemBuf.slice()) == 1);
     itemBuf.len -= 1;
-    try expect(try valueMap.indexOf(itemBuf.slice()) == 0);
+    try expect(try valueMap.getIndex(itemBuf.slice()) == 0);
     try expect(eql(u8, valueMap.slice()[0], &.{ 0, 1 }));
     try expect(eql(u8, valueMap.slice()[1], &.{ 0, 1, 2 }));
     try expect(valueMap.len == 2);

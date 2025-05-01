@@ -9,7 +9,7 @@ const instToBytes = @import("inst.zig").instToBytes;
 const Scanner = @import("Scanner.zig");
 const Buffer = @import("Buffer.zig").Buffer;
 const NameMap = @import("maps.zig").NameMap;
-const ValueMap = @import("maps.zig").ValueMap;
+const ValueSet = @import("maps.zig").ValueSet;
 
 const Type = enum(u8) {
     func,
@@ -28,8 +28,8 @@ const Valtype = enum(u8) {
     externref = 0x6f,
 };
 
-pub fn compileFuncType(scanner: *Scanner, typeBuffer: anytype, types: anytype) !usize {
-    const startLen = typeBuffer.len;
+pub fn compileFuncType(scanner: *Scanner, finalTypeBuffer: anytype, types: anytype) !usize {
+    var typeBuffer = Buffer(10).init();
     try typeBuffer.append(0x60);
 
     switch (try scanner.nextWord()) {
@@ -47,16 +47,26 @@ pub fn compileFuncType(scanner: *Scanner, typeBuffer: anytype, types: anytype) !
             switch (scanner.word) {
                 .word => |result| if (eql(u8, result, "result")) {
                     try compileTypesUntil(scanner, &buffer, null);
+                    if (buffer.len == 0) {
+                        return error.ExpectedResultType;
+                    }
                 },
                 else => {},
             }
             try typeBuffer.writeUleb128(buffer.len);
             try typeBuffer.appendSlice(buffer.slice());
         },
-        else => try typeBuffer.appendSlice(&.{ 0x60, 0, 0 }),
+        else => try typeBuffer.appendSlice(&.{ 0, 0 }),
     }
 
-    return try types.indexOf(typeBuffer.array[startLen..typeBuffer.len]);
+
+    if (types.indexOf(typeBuffer.slice())) |index| {
+        return index;
+    } else {
+        try finalTypeBuffer.appendSlice(typeBuffer.slice());
+        try types.append(finalTypeBuffer.array[finalTypeBuffer.len - typeBuffer.len..finalTypeBuffer.len]);
+        return types.len - 1;
+    }
 }
 
 pub fn compileTypesUntil(scanner: *Scanner, buffer: anytype, terminal: ?[]const u8) !void {
@@ -75,27 +85,11 @@ pub fn compileTypesUntil(scanner: *Scanner, buffer: anytype, terminal: ?[]const 
 }
 
 pub fn compileImport(scanner: *Scanner, importBuffer: anytype, typeBuffer: anytype, funcNames: anytype, tableNames: anytype, memoryNames: anytype, globalNames: anytype, types: anytype) !void {
-    const mod = switch (try scanner.nextWord()) {
-        .word => |word| word,
-        else => return error.ExpectedModule,
-    };
-
-    const name = switch (try scanner.nextWord()) {
-        .word => |word| word,
-        else => return error.ExpectedName,
-    };
-
-    const importTypeStr = switch (try scanner.nextWord()) {
-        .word => |word| word,
-        else => return error.ExpectedType,
-    };
-
+    const mod = try scanner.expectWord(error.ExpectedModule);
+    const name = try scanner.expectWord(error.ExpectedName);
+    const importTypeStr = try scanner.expectWord(error.ExpectedType);
     const importType = std.meta.stringToEnum(Type, importTypeStr) orelse return error.UnknownType;
-
-    const alias = switch (try scanner.nextWord()) {
-        .word => |word| word,
-        else => return error.ExpectedAlias,
-    };
+    const alias = try scanner.expectWord(error.ExpectedAlias);
 
     try importBuffer.writeUleb128(mod.len);
     try importBuffer.appendSlice(mod);
@@ -121,14 +115,37 @@ pub fn compileImport(scanner: *Scanner, importBuffer: anytype, typeBuffer: anyty
     }
 }
 
+pub fn compileExport(scanner: *Scanner, exportBuffer: anytype, funcNames: anytype, tableNames: anytype, memoryNames: anytype, globalNames: anytype) !void {
+    const alias = try scanner.expectWord(error.ExpectedAlias);
+    const exportTypeStr = try scanner.expectWord(error.ExpectedType);
+    const exportType = std.meta.stringToEnum(Type, exportTypeStr) orelse return error.UnknownType;
+    const name = try scanner.expectWord(error.ExpectedName);
+
+    try exportBuffer.writeUleb128(alias.len);
+    try exportBuffer.appendSlice(alias);
+    try exportBuffer.append(@intFromEnum(exportType));
+
+
+    const index = switch (exportType) {
+        .func => try funcNames.depend(name),
+        .table => try tableNames.depend(name),
+        .memory => try memoryNames.depend(name),
+        .global => try globalNames.depend(name),
+    };
+    try exportBuffer.writeUleb128(index);
+    _ = try scanner.nextWord();
+}
+
 pub fn compileAllImports(scanner: *Scanner, importBuffer: anytype, typeBuffer: anytype, funcNames: anytype, tableNames: anytype, memoryNames: anytype, globalNames: anytype, types: anytype) !void {
     while (true) {
         try compileImport(scanner, importBuffer, typeBuffer, funcNames, tableNames, globalNames, memoryNames, types);
-        switch (try scanner.nextWord()) {
+        switch (scanner.word) {
             .word => return error.ExpectedEndOfLine,
             .newline => switch (try scanner.nextWord()) {
                 .word => |import| if (eql(u8, import, "import")) {
                     continue;
+                } else {
+                    return error.ExpectedImport;
                 },
                 else => unreachable,
             },
@@ -137,25 +154,90 @@ pub fn compileAllImports(scanner: *Scanner, importBuffer: anytype, typeBuffer: a
     }
 }
 
-test "compile import" {
-    var scanner = Scanner.init("import wasi fd_write func hello param i32 i32 f64 funcref result i32 i64\n\nimport");
+pub fn compileAllExports(scanner: *Scanner, exportBuffer: anytype, funcNames: anytype, tableNames: anytype, memoryNames: anytype, globalNames: anytype) !void {
+    while (true) {
+        try compileExport(scanner, exportBuffer, funcNames, tableNames, globalNames, memoryNames);
+        switch (scanner.word) {
+            .word => return error.ExpectedEndOfLine,
+            .newline => switch (try scanner.nextWord()) {
+                .word => |@"export"| if (eql(u8, @"export", "export")) {
+                    continue;
+                } else {
+                    return error.ExpectedExport;
+                },
+                else => unreachable,
+            },
+            else => return,
+        }
+    }
+}
+
+test "compile import functions" {
+    var scanner = Scanner.init(
+        \\import mod name func alias
+        \\import mod name func alias2 param i32 i64 i32 result i32 i64
+        \\import mod name func alias3 param i32 i32
+        \\import mod name func alias4 result i32 f64
+        \\import mod name func alias5 param i32 i32
+    );
     var typeBuffer = Buffer(100).init();
     var importBuffer = Buffer(100).init();
     var funcNames = NameMap(10).init();
     var tableNames = NameMap(10).init();
     var globalNames = NameMap(10).init();
     var memoryNames = NameMap(10).init();
-    var types = ValueMap(10).init();
+    var types = ValueSet(10).init();
     try expect(eql(u8, (try scanner.nextWord()).word, "import"));
     compileAllImports(&scanner, &importBuffer, &typeBuffer, &funcNames, &tableNames, &globalNames, &memoryNames, &types) catch |err| {
         try displayError(&scanner, stderr, "filename", @errorName(err));
     };
+    try expect(eql(u8, typeBuffer.slice(), &.{ 0x60, 0, 0, 0x60, 3, 0x7f, 0x7e, 0x7f, 2, 0x7f, 0x7e, 0x60, 2, 0x7f, 0x7f, 0, 0x60, 0, 2, 0x7f, 0x7c }));
+    try expect(types.len == 4);
+    try expect(eql(u8, importBuffer.slice(), "\x03mod\x04name\x00\x00\x03mod\x04name\x00\x01\x03mod\x04name\x00\x02\x03mod\x04name\x00\x03\x03mod\x04name\x00\x02"));
+}
+
+test "compile import error" {
+    var typeBuffer = Buffer(100).init();
+    var importBuffer = Buffer(100).init();
+    var funcNames = NameMap(10).init();
+    var tableNames = NameMap(10).init();
+    var globalNames = NameMap(10).init();
+    var memoryNames = NameMap(10).init();
+    var types = ValueSet(10).init();
+
+    var scanner = Scanner.init("import mod name func");
+    try expect(eql(u8, (try scanner.nextWord()).word, "import"));
+    try expect(compileAllImports(&scanner, &importBuffer, &typeBuffer, &funcNames, &tableNames, &globalNames, &memoryNames, &types) == error.ExpectedAlias);
+    scanner = Scanner.init("import");
+    try expect(eql(u8, (try scanner.nextWord()).word, "import"));
+    try expect(compileAllImports(&scanner, &importBuffer, &typeBuffer, &funcNames, &tableNames, &globalNames, &memoryNames, &types) == error.ExpectedModule);
+}
+
+test "compile exports" {
+    var scanner = Scanner.init(
+        \\export alias func name
+        \\export alias memory name
+        \\export alias global name
+        \\export alias table name
+    );
+    var exportBuffer = Buffer(100).init();
+    var funcNames = NameMap(10).init();
+    var tableNames = NameMap(10).init();
+    var globalNames = NameMap(10).init();
+    var memoryNames = NameMap(10).init();
+
+    try expect(eql(u8, (try scanner.nextWord()).word, "export"));
+    compileAllExports(&scanner, &exportBuffer, &funcNames, &tableNames, &globalNames, &memoryNames) catch |err| {
+        try displayError(&scanner, stderr, "filename", @errorName(err));
+    };
+    try expect(eql(u8, exportBuffer.slice(), "\x05alias\x00\x00\x05alias\x02\x00\x05alias\x03\x00\x05alias\x01\x00"));
 }
 
 pub fn displayError(scanner: *Scanner, writer: anytype, filename: []const u8, message: []const u8) !void {
     const startIndex = scanner.start;
     const endIndex = scanner.index;
 
+    scanner.index -= 1;
     scanner.skipBackwardUntil("\n");
     const lineStart = scanner.index;
     scanner.skipUntil("\n");
@@ -163,7 +245,7 @@ pub fn displayError(scanner: *Scanner, writer: anytype, filename: []const u8, me
     const start = startIndex - lineStart;
     const end = endIndex - lineStart;
 
-    const line = std.mem.count(u8, scanner.source[0..lineStart], "\n");
+    const line = std.mem.count(u8, scanner.source[0..startIndex], "\n");
 
     try writer.print("\n\x1b[1;37m{s}:{d}:{d}\x1b[0m \x1b[1;31m{s}\x1b[0m\n{s}\x1b[1;32m\n", .{ filename, line, start, message, scanner.source[lineStart..lineEnd] });
     for (0..@max(start + 1, end)) |i| {
