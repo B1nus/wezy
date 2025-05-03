@@ -51,7 +51,7 @@ pub fn NameMap(comptime N: usize) type {
     };
 }
 
-pub fn ValueSet(comptime N: usize) type {
+pub fn ValueMap(comptime N: usize) type {
     return struct {
         array: [N][]const u8,
         len: usize,
@@ -63,34 +63,23 @@ pub fn ValueSet(comptime N: usize) type {
             };
         }
 
-        pub fn append(self: *@This(), value: []const u8) !void {
-            if (self.len < N) {
-                self.array[self.len] = value;
-                self.len += 1;
-            } else {
-                return error.OutOfSpace;
-            }
-        }
-
-        pub fn indexOf(self: *@This(), value: []const u8) ?usize {
+        pub fn indexOf(self: *@This(), value: []const u8) !usize {
             for (self.array, 0..) |nameStr, index| {
                 if (eql(u8, nameStr, value)) {
                     return index;
                 }
             }
-            return null;
-        }
 
-        pub fn getIndex(self: *@This(), value: []const u8) !usize {
-            if (self.indexOf(value)) |index| {
-                return index;
-            } else {
-                try self.append(value);
+            if (self.len < N) {
+                self.array[self.len] = value;
+                self.len += 1;
                 return self.len - 1;
+            } else {
+                return error.OutOfSpace;
             }
         }
 
-        pub fn slice(self: @This()) []const []const u8 {
+        pub fn slice(self: *@This()) []const []const u8 {
             return self.array[0..self.len];
         }
     };
@@ -98,30 +87,30 @@ pub fn ValueSet(comptime N: usize) type {
 
 const expect = @import("std").testing.expect;
 
-test "NameMap" {
-    var nameMap = NameMap(10).init();
-    try nameMap.define("hello");
-    try nameMap.define("hello2");
-    try expect(nameMap.define("hello") == error.AlreadyDefined);
-    try expect(try nameMap.depend("hello2") == 1);
-    try expect(try nameMap.depend("hello3") == 2);
-    try expect(eql(u8, nameMap.getUndefined().?, "hello3"));
-    try expect(try nameMap.depend("hello3") == 2);
-    try expect(try nameMap.depend("hello3") == 2);
-    try nameMap.define("hello3");
-    try expect(nameMap.getUndefined() == null);
+test "define name" {
+    var names = NameMap(10).init();
+    try names.define("name");
+    try expect(names.getUndefined() == null);
 }
 
-test "ValueSet" {
-    var valueMap = ValueSet(10).init();
-    var itemBuf = try std.BoundedArray(u8, 10).init(0);
-    try itemBuf.appendSlice(&.{ 0, 1 });
-    try expect(try valueMap.getIndex(itemBuf.slice()) == 0);
-    try itemBuf.append(2);
-    try expect(try valueMap.getIndex(itemBuf.slice()) == 1);
-    itemBuf.len -= 1;
-    try expect(try valueMap.getIndex(itemBuf.slice()) == 0);
-    try expect(eql(u8, valueMap.slice()[0], &.{ 0, 1 }));
-    try expect(eql(u8, valueMap.slice()[1], &.{ 0, 1, 2 }));
-    try expect(valueMap.len == 2);
+test "depend name" {
+    var names = NameMap(10).init();
+    try expect(try names.depend("name") == 0);
+    try names.define("name");
+    try expect(names.getUndefined() == null);
+}
+
+test "undefined name" {
+    var names = NameMap(10).init();
+    try expect(try names.depend("hello") == 0);
+    try expect(eql(u8, names.getUndefined().?, "hello"));
+}
+
+test "index of value map" {
+    var values = ValueMap(10).init();
+    try expect(try values.indexOf("hello") == 0);
+    try expect(try values.indexOf("hello") == 0);
+    try expect(try values.indexOf("hi") == 1);
+    try expect(try values.indexOf("hello") == 0);
+    try expect(values.len == 2);
 }

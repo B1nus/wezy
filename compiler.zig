@@ -59,12 +59,11 @@ pub fn compileFuncType(scanner: *Scanner, finalTypeBuffer: anytype, types: anyty
         else => try typeBuffer.appendSlice(&.{ 0, 0 }),
     }
 
-
     if (types.indexOf(typeBuffer.slice())) |index| {
         return index;
     } else {
         try finalTypeBuffer.appendSlice(typeBuffer.slice());
-        try types.append(finalTypeBuffer.array[finalTypeBuffer.len - typeBuffer.len..finalTypeBuffer.len]);
+        try types.append(finalTypeBuffer.array[finalTypeBuffer.len - typeBuffer.len .. finalTypeBuffer.len]);
         return types.len - 1;
     }
 }
@@ -81,6 +80,38 @@ pub fn compileTypesUntil(scanner: *Scanner, buffer: anytype, terminal: ?[]const 
             },
             else => break,
         }
+    }
+}
+
+pub fn compileLimit(scanner: *Scanner, buffer: anytype) !void {
+    const min = try std.fmt.parseInt(u32, try scanner.expectWord(error.ExpectedMin), 10);
+    switch (try scanner.nextWord()) {
+        .word => |word| {
+            const max = try std.fmt.parseInt(u32, word, 10);
+
+            try buffer.append(1);
+            try buffer.writeUleb128(min);
+            try buffer.writeUleb128(max);
+            _ = try scanner.nextWord();
+        },
+        else => {
+            try buffer.append(0);
+            try buffer.writeUleb128(min);
+        },
+    }
+}
+
+pub fn compileGlobalType(scanner: *Scanner, buffer: anytype) !void {
+    const valtypeStr = try scanner.expectWord(error.ExpectedValtype);
+    const valtype = std.meta.stringToEnum(Valtype, valtypeStr) orelse return error.UnknownValtype;
+    const secondWord = try scanner.expectWord(error.ExpectedMutOrValue);
+
+    try buffer.append(@intFromEnum(valtype));
+    if (eql(u8, secondWord, "mut")) {
+        try buffer.append(1);
+        _ = try scanner.nextWord();
+    } else {
+        try buffer.append(0);
     }
 }
 
@@ -105,12 +136,21 @@ pub fn compileImport(scanner: *Scanner, importBuffer: anytype, typeBuffer: anyty
         },
         .table => {
             try tableNames.define(alias);
+            const reftypeStr = try scanner.expectWord(error.ExpectedReftype);
+            const reftype = switch (std.meta.stringToEnum(Valtype, reftypeStr) orelse return error.UnknownReftype) {
+                .funcref, .externref => |reftype_| reftype_,
+                else => return error.UnknownReftype,
+            };
+            try importBuffer.append(@intFromEnum(reftype));
+            try compileLimit(scanner, importBuffer);
         },
         .memory => {
             try memoryNames.define(alias);
+            try compileLimit(scanner, importBuffer);
         },
         .global => {
             try globalNames.define(alias);
+            try compileGlobalType(scanner, importBuffer);
         },
     }
 }
@@ -125,7 +165,6 @@ pub fn compileExport(scanner: *Scanner, exportBuffer: anytype, funcNames: anytyp
     try exportBuffer.appendSlice(alias);
     try exportBuffer.append(@intFromEnum(exportType));
 
-
     const index = switch (exportType) {
         .func => try funcNames.depend(name),
         .table => try tableNames.depend(name),
@@ -134,6 +173,18 @@ pub fn compileExport(scanner: *Scanner, exportBuffer: anytype, funcNames: anytyp
     };
     try exportBuffer.writeUleb128(index);
     _ = try scanner.nextWord();
+}
+
+pub fn compileTable(scanner: *Scanner, tableBuffer: anytype, tableNames: anytype) !void {
+    const name = try scanner.expectWord(error.ExpectedName);
+    try tableNames.define(name);
+    const reftypeStr = try scanner.expectWord(error.ExpectedReftype);
+    const reftype = switch (std.meta.stringToEnum(Valtype, reftypeStr) orelse return error.UnknownReftype) {
+        .funcref, .externref => |reftype_| reftype_,
+        else => return error.UnknownReftype,
+    };
+    try importBuffer.append(@intFromEnum(reftype));
+    try compileLimit(scanner, importBuffer);
 }
 
 pub fn compileAllImports(scanner: *Scanner, importBuffer: anytype, typeBuffer: anytype, funcNames: anytype, tableNames: anytype, memoryNames: anytype, globalNames: anytype, types: anytype) !void {
@@ -172,13 +223,20 @@ pub fn compileAllExports(scanner: *Scanner, exportBuffer: anytype, funcNames: an
     }
 }
 
-test "compile import functions" {
+pub fn compileAllTables(scanner: *Scanner, tableBuffer: anytype, tableNames: anytype) !void {
+    
+}
+
+test "compile imports" {
     var scanner = Scanner.init(
         \\import mod name func alias
         \\import mod name func alias2 param i32 i64 i32 result i32 i64
         \\import mod name func alias3 param i32 i32
         \\import mod name func alias4 result i32 f64
         \\import mod name func alias5 param i32 i32
+        \\import mod name memory alias 0
+        \\import mod name global alias i32 mut
+        \\import mod name table alias funcref 0 1
     );
     var typeBuffer = Buffer(100).init();
     var importBuffer = Buffer(100).init();
@@ -193,21 +251,31 @@ test "compile import functions" {
     };
     try expect(eql(u8, typeBuffer.slice(), &.{ 0x60, 0, 0, 0x60, 3, 0x7f, 0x7e, 0x7f, 2, 0x7f, 0x7e, 0x60, 2, 0x7f, 0x7f, 0, 0x60, 0, 2, 0x7f, 0x7c }));
     try expect(types.len == 4);
-    try expect(eql(u8, importBuffer.slice(), "\x03mod\x04name\x00\x00\x03mod\x04name\x00\x01\x03mod\x04name\x00\x02\x03mod\x04name\x00\x03\x03mod\x04name\x00\x02"));
-}
+    try expect(funcNames.len == 5);
+    try expect(eql(u8, funcNames.array[0], "alias"));
+    try expect(eql(u8, funcNames.array[1], "alias2"));
+    try expect(eql(u8, funcNames.array[2], "alias3"));
+    try expect(eql(u8, funcNames.array[3], "alias4"));
+    try expect(eql(u8, funcNames.array[4], "alias5"));
+    try expect(eql(u8, importBuffer.slice(), "\x03mod\x04name\x00\x00\x03" ++
+        "mod\x04name\x00\x01\x03" ++
+        "mod\x04name\x00\x02\x03" ++
+        "mod\x04name\x00\x03\x03" ++
+        "mod\x04name\x00\x02\x03" ++
+        "mod\x04name\x02\x00\x00\x03" ++
+        "mod\x04name\x03\x7f\x01\x03" ++
+        "mod\x04name\x01\x70\x01\x00\x01"));
+    try expect(memoryNames.len == 1);
+    try expect(eql(u8, memoryNames.array[0], "alias"));
+    try expect(globalNames.len == 1);
+    try expect(eql(u8, globalNames.array[0], "alias"));
+    try expect(tableNames.len == 1);
+    try expect(eql(u8, tableNames.array[0], "alias"));
 
-test "compile import error" {
-    var typeBuffer = Buffer(100).init();
-    var importBuffer = Buffer(100).init();
-    var funcNames = NameMap(10).init();
-    var tableNames = NameMap(10).init();
-    var globalNames = NameMap(10).init();
-    var memoryNames = NameMap(10).init();
-    var types = ValueSet(10).init();
-
-    var scanner = Scanner.init("import mod name func");
+    scanner = Scanner.init("import mod name func");
     try expect(eql(u8, (try scanner.nextWord()).word, "import"));
     try expect(compileAllImports(&scanner, &importBuffer, &typeBuffer, &funcNames, &tableNames, &globalNames, &memoryNames, &types) == error.ExpectedAlias);
+
     scanner = Scanner.init("import");
     try expect(eql(u8, (try scanner.nextWord()).word, "import"));
     try expect(compileAllImports(&scanner, &importBuffer, &typeBuffer, &funcNames, &tableNames, &globalNames, &memoryNames, &types) == error.ExpectedModule);
