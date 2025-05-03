@@ -7,7 +7,7 @@ start: usize,
 end: usize,
 next: usize,
 line: usize,
-lineStart: usize,
+line_start: usize,
 
 const ImportExportType = enum(u8) {
     func = 0,
@@ -45,7 +45,7 @@ pub fn init(source: []const u8) @This() {
         .start = undefined,
         .end = undefined,
         .line = 1,
-        .lineStart = 0,
+        .line_start = 0,
     };
 }
 
@@ -89,6 +89,8 @@ pub fn string(self: *@This()) ?[]const u8 {
 pub fn newline(self: *@This()) bool {
     if (self.next < self.source.len and self.source[self.next] == '\n') {
         self.next += 1;
+        self.line += 1;
+        self.line_start = self.next;
         return true;
     } else {
         return false;
@@ -111,24 +113,38 @@ pub fn endOfFile(self: *@This()) bool {
 }
 
 pub fn integer(self: *@This(), T: type) ?T {
+    const start = self.next;
     if (self.word()) |w| {
-        return std.fmt.parseInt(T, w, 0) catch return null;
+        return std.fmt.parseInt(T, w, 0) catch {
+            self.next = start;
+            return null;
+        };
     } else {
         return null;
     }
 }
 
 pub fn float(self: *@This(), T: type) ?T {
+    const start = self.next;
     if (self.word()) |w| {
-        return std.fmt.parseFloat(T, w) catch return null;
+        return std.fmt.parseFloat(T, w) catch {
+            self.next = start;
+            return null;
+        };
     } else {
         return null;
     }
 }
 
 pub fn variant(self: *@This(), E: type) ?E {
+    const start = self.start;
     if (self.word()) |w| {
-        return std.meta.stringToEnum(E, w);
+        if (std.meta.stringToEnum(E, w)) |v| {
+            return v;
+        } else {
+            self.next = start;
+            return null;
+        }
     } else {
         return null;
     }
@@ -207,4 +223,34 @@ test "scan double newline" {
     var scanner = @This().init("\n\n   ");
     try expect(scanner.newline());
     try expect(scanner.newline());
+}
+
+test "integration" {
+    const source =
+        \\import hello world din mamma
+        \\
+        \\
+        \\
+        \\hi f32 func table
+        \\  hello
+    ;
+    var scanner = @This().init(source);
+    try expect(scanner.integer(i32) == null);
+    try expect(scanner.importExportType() == null);
+    try expect(scanner.prefix() == .import);
+    try expect(eql(u8, scanner.word().?, "hello"));
+    try expect(eql(u8, scanner.word().?, "world"));
+    try expect(eql(u8, scanner.word().?, "din"));
+    try expect(eql(u8, scanner.word().?, "mamma"));
+    try expect(scanner.newline());
+    try expect(scanner.newline());
+    try expect(scanner.newline());
+    try expect(scanner.newline());
+    try expect(eql(u8, scanner.word().?, "hi"));
+    try expect(scanner.valtype() == .f32);
+    try expect(scanner.importExportType() == .func);
+    try expect(scanner.prefix() == .table);
+    try expect(scanner.newline());
+    try expect(scanner.indentation() == 2);
+    try expect(eql(u8, scanner.word().?, "hello"));
 }
