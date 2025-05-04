@@ -1,5 +1,5 @@
 const std = @import("std");
-const expect = std.testing.expect;
+const assert = std.testing.expect;
 const eql = std.mem.eql;
 
 source: []const u8,
@@ -38,6 +38,12 @@ const Prefix = enum(u8) {
     func,
 };
 
+const DataMode = enum {
+    declarative,
+    passive,
+    active,
+};
+
 pub fn init(source: []const u8) @This() {
     return .{
         .source = source,
@@ -47,6 +53,20 @@ pub fn init(source: []const u8) @This() {
         .line = 1,
         .line_start = 0,
     };
+}
+
+pub fn expect(self: *@This(), expected: []const u8) bool {
+    const start = self.next;
+    if (self.word()) |w| {
+        if (eql(u8, expected, w)) {
+            return true;
+        } else {
+            self.next = start;
+            return false;
+        }
+    } else {
+        return false;
+    }
 }
 
 pub fn word(self: *@This()) ?[]const u8 {
@@ -137,7 +157,7 @@ pub fn float(self: *@This(), T: type) ?T {
 }
 
 pub fn variant(self: *@This(), E: type) ?E {
-    const start = self.start;
+    const start = self.next;
     if (self.word()) |w| {
         if (std.meta.stringToEnum(E, w)) |v| {
             return v;
@@ -148,6 +168,10 @@ pub fn variant(self: *@This(), E: type) ?E {
     } else {
         return null;
     }
+}
+
+pub fn dataMode(self: *@This()) ?DataMode {
+    return self.variant(DataMode);
 }
 
 pub fn valtype(self: *@This()) ?Valtype {
@@ -164,65 +188,65 @@ pub fn importExportType(self: *@This()) ?ImportExportType {
 
 test "scan valtype" {
     var scanner = @This().init("f64 i32 funcref");
-    try expect(scanner.valtype().? == .f64);
-    try expect(scanner.valtype().? == .i32);
-    try expect(scanner.valtype().? == .funcref);
+    try assert(scanner.valtype().? == .f64);
+    try assert(scanner.valtype().? == .i32);
+    try assert(scanner.valtype().? == .funcref);
 }
 
 test "scan import export type" {
     var scanner = @This().init("global func memory table");
-    try expect(scanner.importExportType().? == .global);
-    try expect(scanner.importExportType().? == .func);
-    try expect(scanner.importExportType().? == .memory);
-    try expect(scanner.importExportType().? == .table);
+    try assert(scanner.importExportType().? == .global);
+    try assert(scanner.importExportType().? == .func);
+    try assert(scanner.importExportType().? == .memory);
+    try assert(scanner.importExportType().? == .table);
 }
 
 test "scan prefix" {
     var scanner = @This().init("import func type global");
-    try expect(scanner.prefix() == .import);
-    try expect(scanner.prefix() == .func);
-    try expect(scanner.prefix() == .type);
-    try expect(scanner.prefix() == .global);
+    try assert(scanner.prefix() == .import);
+    try assert(scanner.prefix() == .func);
+    try assert(scanner.prefix() == .type);
+    try assert(scanner.prefix() == .global);
 }
 
 test "scan string" {
     var scanner = @This().init(" Hi!\\n \n");
-    try expect(eql(u8, scanner.string().?, " Hi!\\n "));
+    try assert(eql(u8, scanner.string().?, " Hi!\\n "));
 }
 
 test "scan word" {
     var scanner = @This().init("1 2  3");
-    try expect(eql(u8, scanner.word().?, "1"));
-    try expect(eql(u8, scanner.word().?, "2"));
-    try expect(scanner.word() == null);
-    try expect(scanner.indentation() == 1);
-    try expect(eql(u8, scanner.word().?, "3"));
+    try assert(eql(u8, scanner.word().?, "1"));
+    try assert(eql(u8, scanner.word().?, "2"));
+    try assert(scanner.word() == null);
+    try assert(scanner.indentation() == 1);
+    try assert(eql(u8, scanner.word().?, "3"));
 }
 
 test "scan integer" {
     var scanner = @This().init("1234567");
-    try expect(scanner.integer(i32).? == 1234567);
+    try assert(scanner.integer(i32).? == 1234567);
 }
 
 test "scan float" {
     var scanner = @This().init("1.25");
-    try expect(scanner.float(f32).? == 1.25);
+    try assert(scanner.float(f32).? == 1.25);
 }
 
 test "scan newline" {
     var scanner = @This().init("\n  ");
-    try expect(scanner.newline());
+    try assert(scanner.newline());
 }
 
 test "indentation" {
     var scanner = @This().init("    ");
-    try expect(scanner.indentation() == 4);
+    try assert(scanner.indentation() == 4);
 }
 
 test "scan double newline" {
     var scanner = @This().init("\n\n   ");
-    try expect(scanner.newline());
-    try expect(scanner.newline());
+    try assert(scanner.newline());
+    try assert(scanner.newline());
 }
 
 test "integration" {
@@ -235,22 +259,22 @@ test "integration" {
         \\  hello
     ;
     var scanner = @This().init(source);
-    try expect(scanner.integer(i32) == null);
-    try expect(scanner.importExportType() == null);
-    try expect(scanner.prefix() == .import);
-    try expect(eql(u8, scanner.word().?, "hello"));
-    try expect(eql(u8, scanner.word().?, "world"));
-    try expect(eql(u8, scanner.word().?, "din"));
-    try expect(eql(u8, scanner.word().?, "mamma"));
-    try expect(scanner.newline());
-    try expect(scanner.newline());
-    try expect(scanner.newline());
-    try expect(scanner.newline());
-    try expect(eql(u8, scanner.word().?, "hi"));
-    try expect(scanner.valtype() == .f32);
-    try expect(scanner.importExportType() == .func);
-    try expect(scanner.prefix() == .table);
-    try expect(scanner.newline());
-    try expect(scanner.indentation() == 2);
-    try expect(eql(u8, scanner.word().?, "hello"));
+    try assert(scanner.integer(i32) == null);
+    try assert(scanner.importExportType() == null);
+    try assert(scanner.prefix() == .import);
+    try assert(eql(u8, scanner.word().?, "hello"));
+    try assert(eql(u8, scanner.word().?, "world"));
+    try assert(eql(u8, scanner.word().?, "din"));
+    try assert(eql(u8, scanner.word().?, "mamma"));
+    try assert(scanner.newline());
+    try assert(scanner.newline());
+    try assert(scanner.newline());
+    try assert(scanner.newline());
+    try assert(eql(u8, scanner.word().?, "hi"));
+    try assert(scanner.valtype() == .f32);
+    try assert(scanner.importExportType() == .func);
+    try assert(scanner.prefix() == .table);
+    try assert(scanner.newline());
+    try assert(scanner.indentation() == 2);
+    try assert(eql(u8, scanner.word().?, "hello"));
 }

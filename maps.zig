@@ -40,7 +40,7 @@ pub fn NameMap(comptime N: usize) type {
             }
         }
 
-        pub fn getUndefined(self: *@This()) ?[]const u8 {
+        pub fn getUndefined(self: *const @This()) ?[]const u8 {
             for (self.array[0..self.len], self.defined[0..self.len]) |value, defined| {
                 if (!defined) {
                     return value;
@@ -63,11 +63,22 @@ pub fn ValueMap(comptime N: usize) type {
             };
         }
 
-        pub fn indexOf(self: *@This(), value: []const u8) !usize {
-            for (self.array, 0..) |nameStr, index| {
+        pub fn indexOfPos(self: @This(), value: []const u8, pos: usize) ?usize {
+            for (self.array[pos..], pos..) |nameStr, index| {
                 if (eql(u8, nameStr, value)) {
                     return index;
                 }
+            }
+            return null;
+        }
+
+        pub fn indexOf(self: @This(), value: []const u8) ?usize {
+            return self.indexOfPos(value, 0);
+        }
+
+        pub fn appendPos(self: *@This(), value: []const u8, pos: usize) !usize {
+            if (self.indexOfPos(value, pos)) |index| {
+                return index;
             }
 
             if (self.len < N) {
@@ -79,7 +90,11 @@ pub fn ValueMap(comptime N: usize) type {
             }
         }
 
-        pub fn slice(self: *@This()) []const []const u8 {
+        pub fn append(self: *@This(), value: []const u8) !usize {
+            return self.appendPos(value, 0);
+        }
+
+        pub fn slice(self: *const @This()) []const []const u8 {
             return self.array[0..self.len];
         }
     };
@@ -108,9 +123,9 @@ test "undefined name" {
 
 test "index of value map" {
     var values = ValueMap(10).init();
-    try expect(try values.indexOf("hello") == 0);
-    try expect(try values.indexOf("hello") == 0);
-    try expect(try values.indexOf("hi") == 1);
-    try expect(try values.indexOf("hello") == 0);
+    try expect(try values.append("hello") == 0);
+    try expect(try values.append("hello") == 0);
+    try expect(try values.append("hi") == 1);
+    try expect(try values.append("hello") == 0);
     try expect(values.len == 2);
 }

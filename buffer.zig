@@ -25,7 +25,7 @@ pub fn Buffer(comptime N: usize) type {
 
         pub fn appendSlice(self: *@This(), bytes: []const u8) !void {
             if (self.len + bytes.len <= N) {
-                @memcpy(self.array[self.len .. self.len + bytes.len], bytes[0..]);
+                @memcpy(self.array[self.len .. self.len + bytes.len], bytes);
                 self.len += bytes.len;
             } else {
                 return error.OutOfSpace;
@@ -63,7 +63,7 @@ pub fn Buffer(comptime N: usize) type {
             }
         }
 
-        pub fn slice(self: *@This()) []const u8 {
+        pub fn slice(self: *const @This()) []const u8 {
             return self.array[0..self.len];
         }
     };
