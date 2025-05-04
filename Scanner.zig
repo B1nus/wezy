@@ -27,7 +27,7 @@ const Valtype = enum(u8) {
     externref = 0x6f,
 };
 
-const Prefix = enum(u8) {
+pub const Prefix = enum(u8) {
     import,
     @"export",
     type,
@@ -44,6 +44,10 @@ const DataMode = enum {
     passive,
     active,
 };
+
+pub fn currentLine(self: @This()) []const u8 {
+    return self.source[self.line_start..std.mem.indexOfScalarPos(u8, self.source, self.line_start + 1, '\n') orelse self.source.len];
+}
 
 pub fn init(source: []const u8) @This() {
     return .{

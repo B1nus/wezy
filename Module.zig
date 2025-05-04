@@ -11,8 +11,6 @@ const NameMap = @import("maps.zig").NameMap(0x1000);
 
 scanner: Scanner,
 
-// Save import and export names for use in component model later.
-
 typeBuffer: Buffer,
 importBuffer: Buffer,
 functionBuffer: Buffer,
@@ -31,6 +29,9 @@ memoryNames: NameMap,
 globalNames: NameMap,
 elementNames: NameMap,
 dataNames: NameMap,
+codeNames: NameMap,
+importNames: NameMap,
+exportNames: NameMap,
 
 pub fn init(source: []const u8) @This() {
     return .{
@@ -54,6 +55,9 @@ pub fn init(source: []const u8) @This() {
         .globalNames = NameMap.init(),
         .elementNames = NameMap.init(),
         .dataNames = NameMap.init(),
+        .codeNames = NameMap.init(),
+        .importNames = NameMap.init(),
+        .exportNames = NameMap.init(),
     };
 }
 
@@ -80,7 +84,7 @@ pub fn compileValtypeList(self: *@This(), locals: ?*NameMap) !void {
         } else {
             break;
         }
-     }
+    }
 
     if (buffer.len > 0) {
         try self.typeBuffer.appendUnsigned(buffer.len);
@@ -169,7 +173,7 @@ pub fn compileString(self: *@This()) !Buffer {
                 switch (string[i]) {
                     'n' => try buffer.append('\n'),
                     '0'...'9', 'a'...'f', 'A'...'F' => if (i + 1 < string.len) {
-                        const hex = try std.fmt.parseInt(u8, string[i..i + 2], 16);
+                        const hex = try std.fmt.parseInt(u8, string[i .. i + 2], 16);
                         try buffer.append(hex);
                         i += 1;
                     } else {
@@ -204,7 +208,6 @@ pub fn compileData(self: *@This()) !void {
                 try self.dataBuffer.append(2);
                 if (self.scanner.word()) |memory| {
                     try self.dataBuffer.appendUnsigned(try self.memoryNames.depend(memory));
-
                 } else {
                     return error.ExpectedMemoryName;
                 }
@@ -224,15 +227,16 @@ pub fn compileData(self: *@This()) !void {
 pub fn compileFunc(self: *@This(), codeBuffer: *Buffer, locals: *NameMap, indentation: usize) !void {
     const name = self.scanner.word() orelse return error.ExpectedName;
     try self.funcNames.define(name);
+    try self.codeNames.define(name);
     const type_index = try self.compileType(locals);
     try self.functionBuffer.appendUnsigned(type_index);
 
     if (self.scanner.expectIndentation(indentation)) {
         try self.compileLocals(codeBuffer, locals, indentation);
-        if (self.scanner.expectSplit(indentation)) {
+        if (self.scanner.expectSplit(indentation) or (locals.len == 0 and self.scanner.peek() != null)) {
             try self.compileInstructions(codeBuffer, locals, indentation);
         } else {
-            try codeBuffer.appendSlice(&.{ 0x0b });
+            try codeBuffer.appendSlice(&.{0x0b});
         }
     } else {
         try codeBuffer.appendSlice(&.{ 0, 0x0b });
@@ -240,7 +244,7 @@ pub fn compileFunc(self: *@This(), codeBuffer: *Buffer, locals: *NameMap, indent
 }
 
 const ByteSet = struct {
-    const N: usize = 7;
+    const N: usize = 100;
     array: [N]u8,
     len: usize,
 
@@ -309,7 +313,7 @@ pub fn compileInstructions(self: *@This(), codeBuffer: *Buffer, locals: *const N
             try self.compileParsingStrategy(codeBuffer, locals, strategy);
         }
         if (!self.scanner.expectIndentation(indentation)) {
-            try codeBuffer.appendSlice(instToBytes(.@"end"));
+            try codeBuffer.appendSlice(instToBytes(.end));
             break;
         }
     }
@@ -325,8 +329,150 @@ pub fn compileParsingStrategy(self: *@This(), codeBuffer: *Buffer, locals: *cons
             const index = locals.indexOf(self.scanner.word() orelse return error.ExpectedName) orelse return error.UndefinedName;
             try codeBuffer.appendUnsigned(index);
         },
+        .funcIndex => {
+            const index = try self.funcNames.depend(self.scanner.word() orelse return error.ExpectedName);
+            try codeBuffer.appendUnsigned(index);
+        },
         else => {},
     }
+}
+
+pub fn parse(self: *@This()) !void {
+    var prefixSet = ByteSet.init();
+
+    section: while (self.scanner.peek()) |prefixStr| {
+        const prefix = std.meta.stringToEnum(Scanner.Prefix, prefixStr) orelse return error.ExpectedPrefix;
+
+        if (!prefixSet.add(@intFromEnum(prefix)))  {
+            return error.SectionAlreadyDefined;
+        }
+
+        while (eql(u8, self.scanner.word() orelse return error.ExpectedPrefix, prefixStr)) {
+            switch (prefix) {
+                .import => {
+                    const module = self.scanner.word() orelse return error.ExpectedName;
+                    const name = self.scanner.word() orelse return error.ExpectedName;
+                    const kind = self.scanner.importExportType() orelse return error.ExpectedType;
+                    const alias = self.scanner.word() orelse return error.ExpectedName;
+
+                    try self.importNames.define(alias);
+                    
+                    try self.importBuffer.appendUnsigned(module.len);
+                    try self.importBuffer.appendSlice(module);
+                    try self.importBuffer.appendUnsigned(name.len);
+                    try self.importBuffer.appendSlice(name);
+                    try self.importBuffer.append(@intFromEnum(kind));
+
+                    switch (kind) {
+                        .func => {
+                            const type_index = try self.compileType(null);
+                            try self.importBuffer.appendUnsigned(type_index);
+                        },
+                        .memory => try self.compileMemoryType(&self.memoryBuffer),
+                        .global => try self.compileGlobalType(&self.globalBuffer),
+                        .table => try self.compileTableType(&self.tableBuffer),
+                    }
+                },
+                .func => {
+                    var codeBuffer = Buffer.init();
+                    var locals = NameMap.init();
+
+                    try self.compileFunc(&codeBuffer, &locals, 2);
+                    try self.codeBuffer.appendUnsigned(codeBuffer.len);
+                    try self.codeBuffer.appendSlice(codeBuffer.slice());
+
+                    if (self.scanner.expectSplit(0)) {
+                        continue;
+                    } else {
+                        break;
+                    }
+
+                },
+                else => unreachable,
+            }
+
+            if (self.scanner.expectSplit(0)) {
+                continue :section;
+            } else if (self.scanner.expectIndentation(0)) {
+                continue;
+            }
+        }
+
+    }
+
+    _ = self.scanner.newline();
+
+    if (!self.scanner.endOfFile()) {
+        return error.ExpectedEndOfFile;
+    }
+}
+
+pub fn prefixCount(out: *Buffer, slice: []const u8, count: usize) !void {
+    var buffer = Buffer.init();
+    try buffer.appendUnsigned(count);
+    try buffer.appendSlice(slice);
+    try out.appendUnsigned(buffer.len);
+    try out.appendSlice(buffer.slice());
+}
+
+pub fn compileParsed(self: *@This()) !Buffer {
+    var out = Buffer.init();
+    if (self.types.len > 0) {
+        try out.append(1);
+        try prefixCount(&out, self.typeBuffer.slice(), self.types.len);
+    }
+
+    if (self.importNames.len > 0) {
+        try out.append(2);
+        try prefixCount(&out, self.importBuffer.slice(), self.importNames.len);
+    }
+
+    if (self.codeNames.len > 0) {
+        try out.append(3);
+        try prefixCount(&out, self.functionBuffer.slice(), self.codeNames.len);
+    }
+
+    if (self.tableNames.len > 0) {
+        try out.append(4);
+        try prefixCount(&out, self.tableBuffer.slice(), self.tableNames.len);
+    }
+
+    if (self.memoryNames.len > 0) {
+        try out.append(5);
+        try prefixCount(&out, self.memoryBuffer.slice(), self.memoryNames.len);
+    }
+
+    if (self.globalNames.len > 0) {
+        try out.append(6);
+        try prefixCount(&out, self.globalBuffer.slice(), self.globalNames.len);
+    }
+
+    if (self.exportNames.len > 0) {
+        try out.append(7);
+        try prefixCount(&out, self.exportBuffer.slice(), self.exportNames.len);
+    }
+
+    if (self.elementNames.len > 0) {
+        try out.append(9);
+        try prefixCount(&out, self.elementBuffer.slice(), self.elementNames.len);
+    }
+
+    if (self.codeNames.len > 0) {
+        try out.append(10);
+        try prefixCount(&out, self.codeBuffer.slice(), self.codeNames.len);
+    }
+
+    if (self.dataNames.len > 0) {
+        try out.append(11);
+        try prefixCount(&out, self.dataBuffer.slice(), self.dataNames.len);
+    }
+
+    return out;
+}
+
+pub fn compile(self: *@This()) !Buffer {
+    try self.parse();
+    return self.compileParsed();
 }
 
 test "func type" {
@@ -355,7 +501,7 @@ test "global type" {
     var buffer = Buffer.init();
     try mod.compileGlobalType(&buffer);
     try mod.compileGlobalType(&buffer);
-    try expect(eql(u8, buffer.slice(), &.{0x7f, 1, 0x7f, 0}));
+    try expect(eql(u8, buffer.slice(), &.{ 0x7f, 1, 0x7f, 0 }));
 }
 
 test "passive data" {
@@ -430,4 +576,31 @@ test "constant function" {
     var locals = NameMap.init();
     try mod.compileInstructions(&codeBuffer, &locals, 2);
     try expect(eql(u8, codeBuffer.slice(), &.{ 0x41, 0x00, 0x0b }));
+}
+
+test "integrationg" {
+    var mod = @This().init(
+        \\import wasi_snapshot_preview1 fd_write func fd_write param i32 i32 i32 i32 result i32
+        \\
+        \\memory memory 1
+        \\
+        \\data 0 \08\00\00\00\04\00\00\00hi!\n
+        \\
+        \\export _start func start
+        \\export memory memory memory
+        \\
+        \\func start
+        \\  i32.const 1
+        \\  i32.const 0
+        \\  i32.const 1
+        \\  i32.const 0
+        \\  call fd_write
+        \\  drop
+    );
+    const out = mod.compile() catch |err| {
+        return try std.io.getStdErr().writer().print("{s}:\n{s}\n", .{@errorName(err), mod.scanner.currentLine()});
+    };
+    try std.io.getStdOut().writeAll("\x00asm\x01\x00\x00\x00");
+    try std.io.getStdOut().writeAll(out.slice());
+    try expect(eql(u8, out.slice(), &.{ 0x01, 0x0c, 0x02, 0x60, 0x04, 0x7f, 0x7f, 0x7f, 0x7f, 0x01, 0x7f, 0x60, 0x00, 0x00, 0x02, 0x23, 0x01, 0x16, 0x77, 0x61, 0x73, 0x69, 0x5f, 0x73, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x5f, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x31, 0x08, 0x66, 0x64, 0x5f, 0x77, 0x72, 0x69, 0x74, 0x65, 0x00, 0x00, 0x03, 0x02, 0x01, 0x01, 0x05, 0x03, 0x01, 0x00, 0x01, 0x07, 0x13, 0x02, 0x06, 0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x00, 0x01, 0x06, 0x6d, 0x65, 0x6d, 0x6f, 0x72, 0x79, 0x02, 0x00, 0x0a, 0x0f, 0x01, 0x0d, 0x00, 0x41, 0x01, 0x41, 0x00, 0x41, 0x01, 0x41, 0x00, 0x10, 0x00, 0x1a, 0x0b, 0x0b, 0x12, 0x01, 0x00, 0x41, 0x00, 0x0b, 0x0c, 0x08, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x68, 0x69, 0x21, 0x0a, 0x00, 0x24, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x01, 0x12, 0x02, 0x00, 0x08, 0x66, 0x64, 0x5f, 0x77, 0x72, 0x69, 0x74, 0x65, 0x01, 0x05, 0x73, 0x74, 0x61, 0x72, 0x74, 0x06, 0x09, 0x01, 0x00, 0x06, 0x6d, 0x65, 0x6d, 0x6f, 0x72, 79 }));
 }
