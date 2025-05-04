@@ -1,7 +1,7 @@
 const std = @import("std");
 const assert = std.testing.expect;
 const eql = std.mem.eql;
-const Inst = @import("inst.zig").Inst;
+const Inst = @import("opcodes.zig").Inst;
 
 source: []const u8,
 start: usize,
@@ -27,10 +27,9 @@ const Valtype = enum(u8) {
     externref = 0x6f,
 };
 
-pub const Prefix = enum(u8) {
+pub const Prefix = enum {
     import,
     @"export",
-    type,
     memory,
     data,
     global,
@@ -263,10 +262,9 @@ test "import export type" {
 }
 
 test "prefix" {
-    var scanner = @This().init("import func type global");
+    var scanner = @This().init("import func global");
     try assert(scanner.prefix() == .import);
     try assert(scanner.prefix() == .func);
-    try assert(scanner.prefix() == .type);
     try assert(scanner.prefix() == .global);
 }
 

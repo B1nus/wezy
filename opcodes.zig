@@ -1113,14 +1113,14 @@ pub fn main() !void {
     var start: usize = undefined;
     var bytes: usize = undefined;
     {
-        const file = try std.fs.cwd().openFile("inst.zig", .{ .mode = .read_write });
+        const file = try std.fs.cwd().openFile("opcodes.zig", .{ .mode = .read_write });
         const file_reader = file.reader();
 
         bytes = try file_reader.readAll(&buffer);
         start = std.mem.indexOf(u8, &buffer, "const std = @import(\"std\");").?;
         file.close();
     }
-    const file = try std.fs.cwd().createFile("inst.zig", .{ .truncate = true });
+    const file = try std.fs.cwd().createFile("opcodes.zig", .{ .truncate = true });
 
     var req = try getFile(try std.Uri.parse("https://raw.githubusercontent.com/Webassembly/wabt/main/include/wabt/opcode.def"));
     defer req.deinit();
@@ -1178,9 +1178,14 @@ pub fn main() !void {
 }
 
 pub const ParsingStrategy = enum {
+    label,
     byte,
     v128,
-    memarg,
+    memarg_align_0,
+    memarg_align_1,
+    memarg_align_2,
+    memarg_align_3,
+    memarg_align_4,
     i32,
     i64,
     f32,
@@ -1193,24 +1198,25 @@ pub const ParsingStrategy = enum {
     localIndex,
     labelIndex,
     br_table,
-    paramType,
-    resultType,
+    type,
+    result,
     funcIndex,
     reftype,
 };
 
 pub fn instParsingStrategy(inst: Inst) []const ParsingStrategy {
     return switch (inst) {
-        .@"call_indirect" => &.{ .funcIndex, .paramType, .resultType },
+        .call_indirect => &.{ .funcIndex, .type },
         .br_table => &.{.br_table},
         .br_if, .br => &.{.labelIndex},
         .@"ref.null" => &.{.reftype},
         .call, .@"ref.func" => &.{.funcIndex},
-        .@"if", .block, .loop, .select => &.{.resultType},
+        .select => &.{.result},
+        .@"if", .block, .loop => &.{ .label, .result },
         .@"local.get", .@"local.set", .@"local.tee" => &.{.localIndex},
         .@"global.get", .@"global.set" => &.{.globalIndex},
         .@"table.get", .@"table.set", .@"table.grow", .@"table.size", .@"table.fill" => &.{.tableIndex},
-        .@"elem.drop" => &.{ .elemIndex },
+        .@"elem.drop" => &.{.elemIndex},
         .@"table.copy" => &.{ .tableIndex, .tableIndex },
         .@"table.init" => &.{ .elemIndex, .tableIndex },
         .@"data.drop" => &.{.dataIndex},
@@ -1220,8 +1226,33 @@ pub fn instParsingStrategy(inst: Inst) []const ParsingStrategy {
         .@"i64.const" => &.{.i64},
         .@"f32.const" => &.{.f32},
         .@"f64.const" => &.{.f64},
-        .@"i32.load", .@"i64.load", .@"f32.load", .@"f64.load", .@"i32.load8_s", .@"i32.load8_u", .@"i32.load16_s", .@"i32.load16_u", .@"i64.load8_s", .@"i64.load8_u", .@"i64.load16_s", .@"i64.load16_u", .@"i64.load32_s", .@"i64.load32_u", .@"i32.store", .@"i64.store", .@"f32.store", .@"f64.store", .@"i32.store8", .@"i32.store16", .@"i64.store8", .@"i64.store16", .@"i64.store32", .@"v128.load", .@"v128.load8x8_s", .@"v128.load8x8_u", .@"v128.load16x4_s", .@"v128.load16x4_u", .@"v128.load32x2_s", .@"v128.load32x2_u", .@"v128.load8_splat", .@"v128.load16_splat", .@"v128.load32_splat", .@"v128.load64_splat", .@"v128.load32_zero", .@"v128.load64_zero", .@"v128.store" => &.{.memarg},
-        .@"v128.load8_lane", .@"v128.load16_lane", .@"v128.load32_lane", .@"v128.load64_lane", .@"v128.store8_lane", .@"v128.store16_lane", .@"v128.store32_lane", .@"v128.store64_lane" => &.{ .byte, .memarg },
+        .@"i32.load8_s",
+        .@"i32.load8_u",
+        .@"i64.load8_s",
+        .@"i64.load8_u",
+        .@"i32.store8",
+        .@"i64.store8",
+        .@"v128.load8x8_s",
+        .@"v128.load8x8_u",
+        .@"v128.load8_splat",
+        => &.{.memarg_align_0},
+        .@"i32.load16_s",
+        .@"i32.load16_u",
+        .@"i64.load16_s",
+        .@"i64.load16_u",
+        .@"i32.store16",
+        .@"i64.store16",
+        .@"v128.load16x4_s",
+        .@"v128.load16x4_u",
+        .@"v128.load16_splat",
+        => &.{.memarg_align_1},
+        .@"i32.load", .@"i64.load32_s", .@"i64.load32_u", .@"i32.store", .@"i64.store32", .@"f32.load", .@"f32.store", .@"v128.load32x2_s", .@"v128.load32x2_u", .@"v128.load32_splat", .@"v128.load32_zero" => &.{.memarg_align_2},
+        .@"i64.load", .@"i64.store", .@"f64.load", .@"f64.store", .@"v128.load64_splat", .@"v128.load64_zero" => &.{.memarg_align_3},
+        .@"v128.load", .@"v128.store" => &.{.memarg_align_4},
+        .@"v128.store8_lane", .@"v128.load8_lane" => &.{ .memarg_align_0, .byte },
+        .@"v128.store16_lane", .@"v128.load16_lane" => &.{ .memarg_align_1, .byte },
+        .@"v128.store32_lane", .@"v128.load32_lane" => &.{ .memarg_align_2, .byte },
+        .@"v128.store64_lane", .@"v128.load64_lane" => &.{ .memarg_align_3, .byte },
         .@"v128.const" => &.{.v128},
         .@"i8x16.shuffle" => &(.{.byte} ** 16),
         .@"i8x16.extract_lane_s", .@"i8x16.extract_lane_u", .@"i8x16.replace_lane", .@"i16x8.extract_lane_s", .@"i16x8.extract_lane_u", .@"i16x8.replace_lane", .@"i32x4.extract_lane", .@"i32x4.replace_lane", .@"i64x2.extract_lane", .@"i64x2.replace_lane", .@"f32x4.extract_lane", .@"f32x4.replace_lane", .@"f64x2.extract_lane", .@"f64x2.replace_lane" => &.{.byte},
