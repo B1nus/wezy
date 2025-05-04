@@ -16,10 +16,8 @@ pub fn NameMap(comptime N: usize) type {
         }
 
         pub fn depend(self: *@This(), name: []const u8) !usize {
-            for (self.array, 0..) |nameStr, index| {
-                if (eql(u8, nameStr, name)) {
-                    return index;
-                }
+            if (self.indexOf(name)) |index| {
+                return index;
             }
             if (self.len < N) {
                 self.array[self.len] = name;
@@ -38,6 +36,15 @@ pub fn NameMap(comptime N: usize) type {
             } else {
                 self.defined[index] = true;
             }
+        }
+
+        pub fn indexOf(self: @This(), name: []const u8) ?usize {
+            for (self.array, 0..) |nameStr, index| {
+                if (eql(u8, nameStr, name)) {
+                    return index;
+                }
+            }
+            return null;
         }
 
         pub fn getUndefined(self: *const @This()) ?[]const u8 {

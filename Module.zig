@@ -1,6 +1,9 @@
 const std = @import("std");
 const eql = std.mem.eql;
 const expect = std.testing.expect;
+const instToBytes = @import("inst.zig").instToBytes;
+const instParsingStrategy = @import("inst.zig").instParsingStrategy;
+const ParsingStrategy = @import("inst.zig").ParsingStrategy;
 const Scanner = @import("Scanner.zig");
 const Buffer = @import("buffer.zig").Buffer(0x10000);
 const ValueMap = @import("maps.zig").ValueMap(0x1000);
@@ -22,7 +25,7 @@ codeBuffer: Buffer,
 dataBuffer: Buffer,
 
 types: ValueMap,
-functionNames: NameMap,
+funcNames: NameMap,
 tableNames: NameMap,
 memoryNames: NameMap,
 globalNames: NameMap,
@@ -45,7 +48,7 @@ pub fn init(source: []const u8) @This() {
         .dataBuffer = Buffer.init(),
 
         .types = ValueMap.init(),
-        .functionNames = NameMap.init(),
+        .funcNames = NameMap.init(),
         .tableNames = NameMap.init(),
         .memoryNames = NameMap.init(),
         .globalNames = NameMap.init(),
@@ -98,6 +101,12 @@ pub fn compilePrefixedValtypeList(self: *@This(), prefix: []const u8, locals: ?*
 pub fn compileType(self: *@This(), locals: ?*NameMap) !usize {
     const start = self.typeBuffer.len;
     try self.typeBuffer.append(0x60);
+
+    if (self.scanner.peek()) |peek| {
+        if (!eql(u8, peek, "param") and !eql(u8, peek, "result") and !self.scanner.peekNewline()) {
+            return error.ExpectedParamOrResult;
+        }
+    }
 
     try self.compilePrefixedValtypeList("param", locals);
     try self.compilePrefixedValtypeList("result", null);
@@ -181,6 +190,7 @@ pub fn compileData(self: *@This()) !void {
     const name = self.scanner.word() orelse return error.ExpectedName;
     try self.dataNames.define(name);
     const data_mode = self.scanner.dataMode() orelse return error.ExpectedDataMode;
+
     switch (data_mode) {
         .passive => {
             try self.dataBuffer.append(1);
@@ -209,6 +219,114 @@ pub fn compileData(self: *@This()) !void {
     const string = try self.compileString();
     try self.dataBuffer.appendUnsigned(string.len);
     try self.dataBuffer.appendSlice(string.slice());
+}
+
+pub fn compileFunc(self: *@This(), codeBuffer: *Buffer, locals: *NameMap, indentation: usize) !void {
+    const name = self.scanner.word() orelse return error.ExpectedName;
+    try self.funcNames.define(name);
+    const type_index = try self.compileType(locals);
+    try self.functionBuffer.appendUnsigned(type_index);
+
+    if (self.scanner.expectIndentation(indentation)) {
+        try self.compileLocals(codeBuffer, locals, indentation);
+        if (self.scanner.expectSplit(indentation)) {
+            try self.compileInstructions(codeBuffer, locals, indentation);
+        } else {
+            try codeBuffer.appendSlice(&.{ 0x0b });
+        }
+    } else {
+        try codeBuffer.appendSlice(&.{ 0, 0x0b });
+    }
+}
+
+const ByteSet = struct {
+    const N: usize = 7;
+    array: [N]u8,
+    len: usize,
+
+    pub fn init() @This() {
+        return .{
+            .array = undefined,
+            .len = 0,
+        };
+    }
+
+    pub fn add(self: *@This(), byte: u8) bool {
+        // too many types
+        if (self.len >= N) {
+            return false;
+        }
+
+        // already exists
+        for (self.array[0..self.len]) |other| {
+            if (byte == other) {
+                return false;
+            }
+        }
+
+        // append
+        self.array[self.len] = byte;
+        self.len += 1;
+        return true;
+    }
+};
+
+pub fn compileLocals(self: *@This(), codeBuffer: *Buffer, locals: *NameMap, indentation: usize) !void {
+    var valtypes = ByteSet.init();
+    var buffer = Buffer.init();
+    while (self.scanner.valtype()) |valtype| {
+        const valtypeByte = @intFromEnum(valtype);
+
+        if (!valtypes.add(valtypeByte)) {
+            return error.DuplicateValtype;
+        }
+
+        var count: usize = 0;
+        while (self.scanner.word()) |word| : (count += 1) {
+            try locals.define(word);
+        }
+        if (count == 0) {
+            return error.ExpectedName;
+        }
+        try buffer.appendUnsigned(count);
+        try buffer.append(valtypeByte);
+
+        if (self.scanner.expectIndentation(indentation)) {
+            continue;
+        } else {
+            break;
+        }
+    }
+    try codeBuffer.appendUnsigned(valtypes.len);
+    try codeBuffer.appendSlice(buffer.slice());
+}
+
+pub fn compileInstructions(self: *@This(), codeBuffer: *Buffer, locals: *const NameMap, indentation: usize) !void {
+    while (self.scanner.inst()) |inst| {
+        // Don't forget special treatement for select instruction.
+        try codeBuffer.appendSlice(instToBytes(inst));
+        for (instParsingStrategy(inst)) |strategy| {
+            try self.compileParsingStrategy(codeBuffer, locals, strategy);
+        }
+        if (!self.scanner.expectIndentation(indentation)) {
+            try codeBuffer.appendSlice(instToBytes(.@"end"));
+            break;
+        }
+    }
+}
+
+pub fn compileParsingStrategy(self: *@This(), codeBuffer: *Buffer, locals: *const NameMap, startegy: ParsingStrategy) !void {
+    switch (startegy) {
+        .i32 => {
+            const integer = self.scanner.integer(i32) orelse return error.ExpectedInteger;
+            try codeBuffer.appendSigned(integer);
+        },
+        .localIndex => {
+            const index = locals.indexOf(self.scanner.word() orelse return error.ExpectedName) orelse return error.UndefinedName;
+            try codeBuffer.appendUnsigned(index);
+        },
+        else => {},
+    }
 }
 
 test "func type" {
@@ -252,4 +370,64 @@ test "active data" {
     try expect(mod.scanner.newline());
     try mod.compileData();
     try expect(eql(u8, mod.dataBuffer.slice(), "\x02\x00\x41\x00\x0b\x07hello!\n\x00\x41\x01\x0b\x04hi!\n"));
+}
+
+test "empty function" {
+    var mod = @This().init("hello");
+    var codeBuffer = Buffer.init();
+    var locals = NameMap.init();
+    try mod.compileFunc(&codeBuffer, &locals, 2);
+    try expect(eql(u8, codeBuffer.slice(), &.{ 0, 0x0b }));
+}
+
+test "locals" {
+    var mod = @This().init(
+        \\i32 x y z
+        \\  i64 w
+    );
+    var codeBuffer = Buffer.init();
+    var locals = NameMap.init();
+    try mod.compileLocals(&codeBuffer, &locals, 2);
+    try expect(eql(u8, codeBuffer.slice(), &.{ 2, 3, 0x7f, 1, 0x7e }));
+}
+
+test "instructions" {
+    var mod = @This().init(
+        \\i32.const 2
+        \\  local.set x
+    );
+    var codeBuffer = Buffer.init();
+    var locals = NameMap.init();
+    try locals.define("x");
+    try mod.compileInstructions(&codeBuffer, &locals, 2);
+    try expect(locals.len == 1);
+    try expect(eql(u8, locals.array[0], "x"));
+    try expect(eql(u8, codeBuffer.slice(), &.{ 0x41, 2, 0x21, 0, 0xb }));
+}
+
+test "locals in function" {
+    var mod = @This().init(
+        \\hello param x i32 result i32
+        \\  i32 y
+        \\
+        \\  i32.const 2
+        \\  local.set y
+        \\  local.get x
+        \\  local.get y
+        \\  i32.add
+    );
+    var codeBuffer = Buffer.init();
+    var locals = NameMap.init();
+    try mod.compileFunc(&codeBuffer, &locals, 2);
+    try expect(eql(u8, codeBuffer.slice(), &.{ 1, 1, 0x7f, 0x41, 0x02, 0x21, 0x01, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b }));
+}
+
+test "constant function" {
+    var mod = @This().init(
+        \\i32.const 0
+    );
+    var codeBuffer = Buffer.init();
+    var locals = NameMap.init();
+    try mod.compileInstructions(&codeBuffer, &locals, 2);
+    try expect(eql(u8, codeBuffer.slice(), &.{ 0x41, 0x00, 0x0b }));
 }

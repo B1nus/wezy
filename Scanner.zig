@@ -1,6 +1,7 @@
 const std = @import("std");
 const assert = std.testing.expect;
 const eql = std.mem.eql;
+const Inst = @import("inst.zig").Inst;
 
 source: []const u8,
 start: usize,
@@ -55,6 +56,26 @@ pub fn init(source: []const u8) @This() {
     };
 }
 
+pub fn peek(self: *@This()) ?[]const u8 {
+    const start = self.next;
+    if (self.word()) |w| {
+        self.next = start;
+        return w;
+    } else {
+        return null;
+    }
+}
+
+pub fn peekNewline(self: *@This()) bool {
+    const start = self.next;
+    if (self.newline()) {
+        self.next = start;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 pub fn expect(self: *@This(), expected: []const u8) bool {
     const start = self.next;
     if (self.word()) |w| {
@@ -66,6 +87,20 @@ pub fn expect(self: *@This(), expected: []const u8) bool {
         }
     } else {
         return false;
+    }
+}
+
+pub fn inst(self: *@This()) ?Inst {
+    const start = self.next;
+    if (self.word()) |w| {
+        if (std.meta.stringToEnum(Inst, w)) |instruction| {
+            return instruction;
+        } else {
+            self.next = start;
+            return null;
+        }
+    } else {
+        return null;
     }
 }
 
@@ -128,6 +163,28 @@ pub fn indentation(self: *@This()) usize {
     return self.end - self.start;
 }
 
+pub fn expectIndentation(self: *@This(), target: usize) bool {
+    const start = self.next;
+    if (self.newline()) {
+        if (self.indentation() == target) {
+            return true;
+        }
+    }
+    self.next = start;
+    return false;
+}
+
+pub fn expectSplit(self: *@This(), target: usize) bool {
+    const start = self.next;
+    if (self.newline() and self.newline()) {
+        if (self.indentation() == target) {
+            return true;
+        }
+    }
+    self.next = start;
+    return false;
+}
+
 pub fn endOfFile(self: *@This()) bool {
     return self.next >= self.source.len;
 }
@@ -186,14 +243,14 @@ pub fn importExportType(self: *@This()) ?ImportExportType {
     return self.variant(ImportExportType);
 }
 
-test "scan valtype" {
+test "valtype" {
     var scanner = @This().init("f64 i32 funcref");
     try assert(scanner.valtype().? == .f64);
     try assert(scanner.valtype().? == .i32);
     try assert(scanner.valtype().? == .funcref);
 }
 
-test "scan import export type" {
+test "import export type" {
     var scanner = @This().init("global func memory table");
     try assert(scanner.importExportType().? == .global);
     try assert(scanner.importExportType().? == .func);
@@ -201,7 +258,7 @@ test "scan import export type" {
     try assert(scanner.importExportType().? == .table);
 }
 
-test "scan prefix" {
+test "prefix" {
     var scanner = @This().init("import func type global");
     try assert(scanner.prefix() == .import);
     try assert(scanner.prefix() == .func);
@@ -209,12 +266,12 @@ test "scan prefix" {
     try assert(scanner.prefix() == .global);
 }
 
-test "scan string" {
+test "string" {
     var scanner = @This().init(" Hi!\\n \n");
     try assert(eql(u8, scanner.string().?, " Hi!\\n "));
 }
 
-test "scan word" {
+test "word" {
     var scanner = @This().init("1 2  3");
     try assert(eql(u8, scanner.word().?, "1"));
     try assert(eql(u8, scanner.word().?, "2"));
@@ -223,17 +280,17 @@ test "scan word" {
     try assert(eql(u8, scanner.word().?, "3"));
 }
 
-test "scan integer" {
+test "integer" {
     var scanner = @This().init("1234567");
     try assert(scanner.integer(i32).? == 1234567);
 }
 
-test "scan float" {
+test "float" {
     var scanner = @This().init("1.25");
     try assert(scanner.float(f32).? == 1.25);
 }
 
-test "scan newline" {
+test "newline" {
     var scanner = @This().init("\n  ");
     try assert(scanner.newline());
 }
@@ -243,7 +300,7 @@ test "indentation" {
     try assert(scanner.indentation() == 4);
 }
 
-test "scan double newline" {
+test "double newline" {
     var scanner = @This().init("\n\n   ");
     try assert(scanner.newline());
     try assert(scanner.newline());
