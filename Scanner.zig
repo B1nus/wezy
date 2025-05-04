@@ -45,7 +45,7 @@ const DataMode = enum {
 };
 
 pub fn currentLine(self: @This()) []const u8 {
-    return self.source[self.line_start..std.mem.indexOfScalarPos(u8, self.source, self.line_start + 1, '\n') orelse self.source.len];
+    return self.source[self.line_start..std.mem.indexOfScalarPos(u8, self.source, self.line_start, '\n') orelse self.source.len];
 }
 
 pub fn init(source: []const u8) @This() {

@@ -23,21 +23,24 @@ pub fn main() !void {
         const writer = stdErr.writer();
 
         const column = module.scanner.start - module.scanner.line_start;
+        const column_end = module.scanner.end - module.scanner.line_start;
 
-        try writer.print("{d}:{d} \x1b[31m{s}\x1b[0m\n{s}\n\x1b[32m", .{
+        try writer.print("\x1b[37m{d}:{d}\x1b[0m \x1b[31m{s}\x1b[0m\n{s}\n\x1b[32m", .{
             module.scanner.line,
             column + 1,
             @errorName(compiler_error),
             module.scanner.currentLine(),
         });
 
-        for (0..@max(module.scanner.end, module.scanner.start + 1)) |index| {
-            if (index == module.scanner.start) {
-                try writer.writeByte('^');
-            } else if (index > module.scanner.start) {
+        for (0..column) |_| {
+            try writer.writeByte(' ');
+        }
+
+        try writer.writeByte('^');
+
+        if (column_end > column + 1) {
+            for (0..column_end - column - 1) |_| {
                 try writer.writeByte('~');
-            } else {
-                try writer.writeByte(' ');
             }
         }
 
