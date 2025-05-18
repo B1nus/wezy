@@ -1,4 +1,4 @@
-use examples/level8.we
+use "examples/level8.we"
 
 div, rem = div_rem(9, 4)
 assert(div == 2)
