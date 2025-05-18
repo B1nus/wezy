@@ -1,0 +1,10 @@
+func converges(real f32, imaginary f32) bool
+    repeat 10
+        real = real + real * real - imaginary * imaginary
+        imaginary = imaginary + 2 * real * imaginary
+
+        if real * real + imaginary * imaginary > 4
+            return false
+
+    return true
+

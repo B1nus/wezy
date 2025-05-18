@@ -1,0 +1,10 @@
+repeat
+    x = 1
+    y = 2
+
+    repeat
+        x = x + y + 2
+        if x > 100
+            break outer
+        else if x > 101
+            break inner

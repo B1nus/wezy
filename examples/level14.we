@@ -1,0 +1,2 @@
+text = read("file.txt")
+output(text)

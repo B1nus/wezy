@@ -1,0 +1,2 @@
+func div_rem(x i64, y i64) i64, i64
+    return x / y, x % y
