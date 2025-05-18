@@ -1,3 +1,5 @@
-hello = input()
-output(hello)
+hello = "hello, world" // Uses data to initialize it, but it's not immutable.
+hello.append('!')
+hello.extend("\n\n")
 
+output(hello)

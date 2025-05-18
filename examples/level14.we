@@ -1,2 +1,3 @@
-text = read("file.txt")
-output(text)
+hello = input()
+output(hello)
+

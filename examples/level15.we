@@ -1,6 +1,2 @@
-use examples/level8.we
-
-div, rem = div_rem(9, 4)
-assert(div == 2)
-assert(rem == 1)
-
+text = read("file.txt")
+output(text)
