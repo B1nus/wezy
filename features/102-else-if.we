@@ -1,0 +1,8 @@
+if true
+    x = 5
+else if false
+    y = 6
+else if true
+    z = 5
+else
+    y = 0

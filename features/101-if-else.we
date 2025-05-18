@@ -1,0 +1,4 @@
+if true
+    x = 5
+else
+    y = 5
