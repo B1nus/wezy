@@ -3,7 +3,7 @@ variant result
     err [u8]
 
 x = result
-    ok = 1
+    ok 1
 
 y = result
     err = "msg"
