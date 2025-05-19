@@ -1,0 +1,11 @@
+variant result
+    ok u64
+    err [u8]
+
+x = result
+    err "error"
+
+if x == .ok
+    x = 5
+else if x == .err
+    x = 6
