@@ -1,9 +1,8 @@
 variant result
-    ok u64
-    err [u8]
+    ok
+    err
 
-x = result
-    err "error"
+x = result.err
 
 if x == .ok
     x = 5
