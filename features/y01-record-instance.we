@@ -1,0 +1,9 @@
+record enemy
+    health u64
+    damage u64
+    speed u64
+
+bob = enemy
+    health 100
+    damage 10
+    speed 20
