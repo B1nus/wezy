@@ -1,0 +1,6 @@
+variant number
+    integer s64
+    float f64
+    zero
+    infinity
+    nan
