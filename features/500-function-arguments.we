@@ -1,1 +1,1 @@
-func map(list [i32],
+func map(list [i32], func(i32) i32) [i32]
