@@ -1,0 +1,6 @@
+x u64 = 5 // typed assignment
+x = 5 // untyped assignment (inferred as a s64)
+x u32 = 5 // shadowing
+x u16 = x // implicit cast (crashes if it don't work)
+
+

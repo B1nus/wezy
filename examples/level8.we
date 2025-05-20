@@ -1,2 +1,2 @@
-func div_rem(x i64, y i64) i64, i64
+function div_rem(x s64, y s64) s64, s64
     return x / y, x % y

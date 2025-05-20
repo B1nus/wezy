@@ -1,66 +1,54 @@
-use wasi:stdio/stdout as stdout // wasi:x/y is automatically included.
-// use local_file/path.we          // include all functions from this file.
+use "wasi:stdio/stdout" as stdout // wasi:x/y is automatically included.
+// use "local_file/path.we"          // include all functions from this file.
 
 // 3b1b video on the mandelbrot-set (https://m.youtube.com/shorts/y9BK--OxZpY)
 
 x, z = do_the_thing_5_times(1, 1) // x and z are locals in the _start functions
 
-x_str = x.format() // Use as a method on any function which takes i32 as the first arg
-z_str = z.format()
+x_str = format(x) // Use as a method on any function which takes s32 as the first arg
+z_str = format(z)
 output_stream = stdout.get_stdout()
-output_stream.blocking_write_and_flush("x:") // Automatically added to data section
-output_stream.blocking_write_and_flush(x_str)
-output_stream.blocking_write_and_flush("z:") // Automcatically added to to data section
-output_stream.blocking_write_and_flush(z_str)
+string = join(["x: ", x_str, ", z: ", z_str, "\n"])
+blocking_write_and_flush(string)
 
-func format(n i32) [u8] // Automatically exported
-    out [u8]            // Declare a variable without a value
+function format(n s32) [u8] // Automatically exported
+    out [u8]            // Declare a variable without a value (it get's assigned a default value. In this case it's the empty list)
     negative = n < 0
-    n = n.abs()
-    loop
-        out.append(n % 10)
+    n = abs(n)
+    repeat
+        append(out, n % 10)
         n = n / 10
         if n == 0
             break
 
     if negative
-        out.append('-')
+        append(out, '-')
 
     return out.reverse()
 
-func reverse(list [u8]) [u8] // Automatically exported
+function reverse(list [u8]) [u8] // Automatically exported
     new [u8]
-    i = list.length - 1
-    loop
+    i = length(list) - 1
+    repeat length(list)
         i = i - 1
-        new.append(list.get(i))
-        if i <= 0
-            break
+        append(new, get(list, i))
 
     return new
 
-func do_the_thing(x i32, y i32) i32, i32 // Automatically exported
-    z = x + y   // Infered as i32
+function do_the_thing(x s32, y s32) s32, s32 // Automatically exported
+    z = x + y   // Infered as s32
     b = 5.0     // Infered as f64
-    z = z + b   // Infered as i32 (Crashes on impossible cast)
+    z = z + b   // Infered as s32 (Crashes on impossible cast)
 
-    loop
+    repeat 10
         b = z + x
         x = b + z
 
-        if x >= 100
-            break
-
     return x, z // The x outside of this function is also modified.
 
-func do_the_thing_5_times(x i32, y i32) i32, i32 // Automatically exported
-    count = 5
-    loop
+function do_the_thing_5_times(x s32, y s32) s32, s32 // Automatically exported
+    repeat 5
         x, z = do_the_thing(x, z)
-
-        count = count - 1
-        if count <= 0
-            break
 
     return x, z
 

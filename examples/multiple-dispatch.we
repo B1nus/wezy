@@ -1,0 +1,8 @@
+function name(x s64) u8
+    return '1'
+
+function name(x f64) u8
+    return '2'
+
+assert(name(1) == '1')
+assert(name(1.0) == '2')
