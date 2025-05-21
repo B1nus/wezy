@@ -1,20 +1,21 @@
-use "wasi:stdio/stdout" as stdout // wasi:x/y is automatically included.
-// use "local_file/path.we"          // include all functions from this file.
+use "wasi:stdio/stdout" as stdout # wasi:x/y is automatically included.
+# use "local_file/path.we"          # include all functions from this file.
 
-// 3b1b video on the mandelbrot-set (https://m.youtube.com/shorts/y9BK--OxZpY)
+# 3b1b video on the mandelbrot-set (https://m.youtube.com/shorts/y9BK--OxZpY)
 
-x, z = do_the_thing_5_times(1, 1) // x and z are locals in the _start functions
+x, z = do_the_thing_5_times(1, 1) # x and z are globals
 
-x_str = format(x) // Use as a method on any function which takes s32 as the first arg
+x_str = format(x) # Use as a method on any function which takes s32 as the first arg
 z_str = format(z)
 output_stream = stdout.get_stdout()
 string = join(["x: ", x_str, ", z: ", z_str, "\n"])
 blocking_write_and_flush(string)
 
-function format(n s32) [u8] // Automatically exported
-    out [u8]            // Declare a variable without a value (it get's assigned a default value. In this case it's the empty list)
+function format(n s32) [u8] # Automatically exported
+    out [u8]            # Declare a variable without a value (it get's assigned a default value. In this case it's the empty list)
     negative = n < 0
     n = abs(n)
+    x, y = y, x
     repeat
         append(out, n % 10)
         n = n / 10
@@ -26,7 +27,7 @@ function format(n s32) [u8] // Automatically exported
 
     return out.reverse()
 
-function reverse(list [u8]) [u8] // Automatically exported
+function reverse(list [u8]) [u8] # Automatically exported
     new [u8]
     i = length(list) - 1
     repeat length(list)
@@ -35,18 +36,18 @@ function reverse(list [u8]) [u8] // Automatically exported
 
     return new
 
-function do_the_thing(x s32, y s32) s32, s32 // Automatically exported
-    z = x + y   // Infered as s32
-    b = 5.0     // Infered as f64
-    z = z + b   // Infered as s32 (Crashes on impossible cast)
+function do_the_thing(x s32, y s32) s32, s32 # Automatically exported
+    z = x + y   # Infered as s32
+    b = 5.0     # Infered as f64
+    z = z + b   # Infered as s32 (Crashes on impossible cast)
 
     repeat 10
         b = z + x
         x = b + z
 
-    return x, z // The x outside of this function is also modified.
+    return x, z # The x outside of this function is also modified.
 
-function do_the_thing_5_times(x s32, y s32) s32, s32 // Automatically exported
+function do_the_thing_5_times(x s32, y s32) s32, s32 # Automatically exported
     repeat 5
         x, z = do_the_thing(x, z)
 
