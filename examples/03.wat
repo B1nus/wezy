@@ -1,7 +1,8 @@
 (module
-  (import "std" "assert(bool)" (func $"assert(bool)" (param i32)))
+  (import "std" "assert(bool)" (func $"assert(bool,[u8],[u8],u32)" (param i32 i32 i32 i32 i32 i32) (result i32 i32 i32 i32 i32)))
   (import "std" ".allocator-start" (global $".allocator-start" (mut i32)))
-  (data (i32.const 0) "x == 4") ;; Needed to give debug info when the assertion would fail
+  (data (i32.const 0) "file.we")
+  (data (i32.const 7) "x == 4") ;; Needed to give debug info when the assertion would fail
   (global $x (mut i32) (i32.const 0))
   (func (export ".main()")
     (global.set $".allocator-start" (i32.const 6))
@@ -12,7 +13,17 @@
     (global.get $x)
     (i32.const 4)
     (i32.eq)
+    (i32.const 0) ;; file name
+    (i32.const 7)
+    (i32.const 7) ;; condition
+    (i32.const 6)
+    (i32.const 7) ;; Line number
     (call $"assert(bool)")
+    (drop)
+    (drop)
+    (drop)
+    (drop)
+    (drop)
   )
   (func $add_one (param $x i32) (result i32)
     (local.get $x)
