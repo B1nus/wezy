@@ -1,2 +1,0 @@
-func hello(x s32, y s32) s32
-func hi()

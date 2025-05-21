@@ -1,5 +1,0 @@
-x ?u64 = 5
-y ?f64 = null
-
-if x == 5 and y == 1.0
-    x = null

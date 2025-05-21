@@ -1,3 +1,0 @@
-record player
-    name [u8]
-    score u64

@@ -1,7 +1,0 @@
-variant result
-    ok u64
-    err [u8]
-
-x = result.ok 1
-
-y = result.err "msg"

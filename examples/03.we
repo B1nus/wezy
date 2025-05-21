@@ -1,0 +1,8 @@
+x = 3 // Created as a global. Inferred to be a s64
+
+function add_one(x s64)
+    x = x + 1
+
+add_one(x) // The new value for x is automatically assignmed to the global x variable
+
+assert(x == 4) // This should not fail

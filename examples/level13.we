@@ -1,5 +1,0 @@
-hello = "hello, world" // Uses data to initialize it, but it's not immutable.
-append(hello, '!')
-join(hello, "\n\n")
-
-output(hello)
