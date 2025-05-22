@@ -1,3 +1,3 @@
 hello = "hello"
 world = ", world"
-hello_world = join(hello, world)
+hello_world = hello.joined(world)

@@ -1,38 +1,38 @@
-use "wasi:stdio/stdout" as stdout # wasi:x/y is automatically included.
-# use "local_file/path.we"          # include all functions from this file.
+use "wasi:stdio/stdout" as stdout
 
 # 3b1b video on the mandelbrot-set (https://m.youtube.com/shorts/y9BK--OxZpY)
 
 x, z = do_the_thing_5_times(1, 1) # x and z are globals
 
-x_str = format(x) # Use as a method on any function which takes s32 as the first arg
-z_str = format(z)
 output_stream = stdout.get_stdout()
-string = join(["x: ", x_str, ", z: ", z_str, "\n"])
-blocking_write_and_flush(string)
+
+x_str = x.format(10)
+z_str = z.format(10)
+
+string = "x: ".joined(x_str).joined(", z:").joined(z_str).joined("\n")
+output_stream.blocking_write_and_flush(string)
 
 function format(n s32) [u8] # Automatically exported
     out [u8]            # Declare a variable without a value (it get's assigned a default value. In this case it's the empty list)
     negative = n < 0
-    n = abs(n)
-    x, y = y, x
+    n = n.absolute()
     repeat
-        append(out, n % 10)
+        out.add(n % 10)
         n = n / 10
         if n == 0
             break
 
     if negative
-        append(out, '-')
+        out.add('-')
 
-    return out.reverse()
+    return reversed(out)
 
-function reverse(list [u8]) [u8] # Automatically exported
+function reversed(list [u8]) [u8] # Automatically exported
     new [u8]
-    i = length(list) - 1
-    repeat length(list)
+    i = list.length() - 1
+    repeat list.length()
         i = i - 1
-        append(new, get(list, i))
+        new.add(list.get(i))
 
     return new
 

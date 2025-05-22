@@ -1,27 +1,108 @@
-output("Hello, world!\n")
-user_input = input()
-output("You typed: ", user_input)
+read(path [u8]) [u8] # Read from file
+write(path [u8], text [u8]) # Write to file
 
-x [s64]
-x.add(1)
-_ = x.pop()
-assert(x.length == 0)
+input() [u8] # Get from stdin
+output(text [u8]) # Output in stdout
 
-y {s64}
-y.add(1)
-y.add(1)
-assert(y == { 1 })
+assert(condition bool)
 
-z {[u8]:u32}
-z.set("You", 2)
-z.remove("You")
-assert(z.size() == 0)
+record color
+    r u8
+    g u8
+    b u8
+    a u8
 
-assert((pi - 3.14).abs() < 0.01)
-assert((e - 2.7).abs() < 0.1)
+resolution() u64, u64
+set_pixel(x u64, y u64, color color)
+get_pixel(x u64, y u64) color
+draw_image(path [u8], x u64, y u64, rotation f32, color color)
 
-_ = read("tmp.txt")
-write("tmp.txt", "Hello!\n")
+play_sound(path [u8])
 
-width, height = resolution()
-set_pixel_color(width / 2, height / 2, color.rgb(0, 0.5, 0.5))
+set_volume(volume f32)
+get_volume() f32
+
+# Implicit cast from set to list and vice verse like with numbers?
+
+hash(_) u64 # Hash anything
+
+# Lists
+[_]
+.add(value _)
+.remove(index u64)
+.get(index u64) _ # "Did you mean to use .get()?" If a user tries indexing syntax.
+.set(index u64, value _)
+.insert(index u64, value _)
+.pop() _
+.slice(start u64, end u64) # Error: "Did you mean to use .sliced()?"
+.sliced(start u64, end u64) [_] # Error: "Did you mean to use .slice()?"
+.join(other [_]) # Error: "Did you mean to use .joined()"
+.joined(other [_]) [_] # Error: "Did you mean to use .join()"
+.sort(f function(_, _) bool) # Error: "Did you mean to use .sorted()?"
+.sorted(f function(_, _) bool) # Error: "Did you mean to user .sort()?"
+.set() {_}
+.length() u64
+.clear()
+
+{_}
+.add(value _)
+.remove(value)
+.join(other {_}) 
+.joined(other {_}) {_}
+.subtract(other {_})
+.subtracted(other {_}) {_}
+.retain(other {_})
+.retained(other {_}) {_}
+.list() [_]
+.length() u64
+.clear()
+
+{_:_}
+.set(key _, value _) # Clone the key and value
+.get(key _) _ # "Did you mean to use .get()?" If a user tries indexing syntax.
+.keys() [_]
+.remove(key _)
+.length() u64
+.clear()
+
+assert((pi - 3.14159).absolute() < 0.0001)
+assert((e - 2.71828).absolute() < 0.0001)
+
+char u8 = 'u'
+string [u8] = "hello"
+number s64 = 123
+
+# integers:
+    rotate_left(_, u8) _
+    rotate_right(_, u8) _
+    xor(_, _) _
+    or(_, _) _
+    and(_, _) _
+    _.inverted() _
+    _.leading_zeros() u8 # Error trailing_zeroEs "Did you mean trailing_zeros()?" auto fix? maybe?
+    _.trailing_zeros() u8
+    _.ones() u8
+    %
+# signed integers:
+    s_.absolute() u_
+    s_.sign() s_ # -1, 0 or 1
+# unsigned integers:
+    s_.square_root() u_
+# floats:
+    f_.copy_sign(f_) f_ # Return the float with the sign of the operand
+    f_.sign() f_
+    f_.truncate() f_ # Rounds toward zero
+    f_.nearest() f_ # Rounds toward nearest even number
+    f_.floor() f_ # Round downward
+    f_.ceiling() f_ # Round upward
+    f_.absolute() f_
+    f_.square_root() _
+# all numbers:
+    _.reinterpret() _ # Use the same bits and just change the type
+    max(_, _) _
+    min(_, _) _
+    ^ # Fails when negative left side and non integer right side or left is zero and right is less than zero
+    / # Fails when right side is zero
+    +
+    -
+    *
