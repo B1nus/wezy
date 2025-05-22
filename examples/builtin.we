@@ -15,9 +15,18 @@ record color
 resolution() u64, u64
 set_pixel(x u64, y u64, color color)
 get_pixel(x u64, y u64) color
-draw_image(path [u8], x u64, y u64, rotation f32, color color)
+draw_image(path [u8], x u64, y u64, rotation f32)
+draw_triangle(x1 u64, y1 u64, x2 u64, y2 u64, x3 u64, y3 u64, color color)
 
-play_sound(path [u8])
+record sound
+    volume f32
+    pitch f32
+    time f32
+
+    function pause()
+    function resume()
+
+load_sound(path [u8]) sound
 
 set_volume(volume f32)
 get_volume() f32
