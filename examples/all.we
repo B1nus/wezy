@@ -1,0 +1,26 @@
+use "wasi:io/streams" # as streams
+
+repeat 10 # as loop
+    if condition
+        break
+    else if condition
+        continue
+
+function do_thing(x s64, y s64) s64, s64
+    return y, x
+
+variant result
+    ok u32
+    err [u8]
+
+    function unwrap(this) u32
+        assert(this == .ok)
+        return this.ok
+
+record file
+    path [u8]
+    writeable bool
+    readable bool
+
+    function read(this) [u8]
+        return read(this.path)
