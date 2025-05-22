@@ -31,6 +31,36 @@ load_sound(path [u8]) sound
 set_volume(volume f32)
 get_volume() f32
 
+variant key
+    letter u8 # 'a', 'b', ..., 'z', '!', '@', ...
+    function u8 # f1, f2, ..., f12
+    fn
+    left_arrow
+    right_arrow
+    up_arrow
+    down_arrow
+    caps_lock
+    tab
+    escape
+    left_control
+    right_control
+    left_shift
+    right_shift
+    left_alt
+    right_alt
+    space
+    left_mouse
+    right_mouse
+    middle_mouse
+    windows
+    
+is_pressed(key key) bool
+pressed() [key]
+caps_lock() bool
+
+mouse_scroll() s64
+mouse_position() u64, u64
+
 # Implicit cast from set to list and vice verse like with numbers?
 
 hash(_) u64 # Hash anything
@@ -82,8 +112,8 @@ string [u8] = "hello"
 number s64 = 123
 
 # integers:
-    rotate_left(_, u8) _
-    rotate_right(_, u8) _
+    _.rotated_left(u8) _ # Error "Did you mean rotateD_left()?" auto fix? maybe?
+    _.rotated_right(u8) _ # Error "Did you mean rotateD_left()?" auto fix? maybe?
     xor(_, _) _
     or(_, _) _
     and(_, _) _
