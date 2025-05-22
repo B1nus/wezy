@@ -17,6 +17,18 @@ repeat 10 ^ 3
 
 use "wasi:io/streams" as wasi
 
+# Hmmm
+record list(item_type type)
+    pointer u32
+    length u32
+
+    item_byte_size = byte_size_of(item_type)
+    item_byte_alignment = byte_alignment_of(item_type)
+    
+    function append(this, item item_type)
+        this.pointer = reallocate(this.pointer, this.length * item_byte_size, item_byte_alignment, (this.length + 1) * item_byte_size)
+        this.length = this.length + 1
+
 record player
     x f32
     y f32
