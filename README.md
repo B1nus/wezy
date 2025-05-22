@@ -1,7 +1,89 @@
-# crust
+# we
 Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start.html), [LÖVE](https://www.love2d.org/), [Rust](https://www.rust-lang.org/) and [Zig](https://ziglang.org/). A great first language and a great next language to learn after Scratch. Head over to the [website](https://b1nus.github.io/crust/) to start coding. Have fun!
 
-Look [what people are able to do in geometry dash](https://www.youtube.com/watch?v=2I02aKeqgpM). It's not even built for this, but creative people still find a way. I love this so much.
+# Entire Language
+```
+function raise_to_integer(x, y s64) _ # Decide the type for x and the return type at compile time
+    return x ^ y # Raise x to the power of y
+
+x, y s64 # Declare types
+x, y s64, _ s64, _ = 1, 2, 3, 4 # Assign values
+
+repeat 10 ^ 3
+    if true
+        break
+    else if false
+        continue
+
+use "wasi:io/streams" as wasi
+
+record player
+    x f32
+    y f32
+    health health_bar
+    name [u8]
+
+    function move(this, dx, dy)
+        this.x = this.x + dx
+        this.y = this.y + dy
+
+    record health_bar
+        max u64
+        current u64
+
+player_instance = player
+    x 1.0
+    y 5.0
+    health player.health_bar
+        max 100
+        current 100
+    name "guy1"
+
+player.move(1, -1)
+player.name.append('!')
+
+variant result
+    contents [u8]
+    not_found
+    out_of_memory
+    generall
+
+file_read_result = result.contents "Sup homie, I see you readin that file."
+assert(file_read_result == .contents) # Shorthand for variant literal kind
+
+# Da fuck is this?
+function double_function(func function(_) _) function(_) _
+    function doubled(x) _
+        return func(x) * 2
+    
+    return doubled
+
+# Labels
+repeat as outer
+    repeat as inner
+        if true
+            break outer
+        else
+            continue inner
+
+hello_world = "Hello, world!\n"
+# Memory related methods
+pointer = hello_world.pointer
+length = hello_world.length
+
+# Memory functions
+byte = read_byte(pointer)
+assert(byte == 'H')
+write_byte(pointer, 'h')
+assert(hello_world == "hello, world!\n")
+# Don't forget about allocate, reallocate and free
+
+# Write out all builtin functionsand methods
+# Write out all builtin constants
+
+# Generics could be allowed by allowing types as values
+```
+Look [what people are able to do in geometry dash](https://www.youtube.com/watch?v=2I02aKeqgpM). It's not built for this, but creative people still find a way. I love this so much.
 # Simplicity Idea Nuggets
 - Functions implicitly return and reassign their arguments.
 
