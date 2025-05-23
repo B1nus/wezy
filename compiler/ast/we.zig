@@ -82,8 +82,39 @@ pub const RecordValue = struct {
     fields: List([]const u8),
     values: List(Value),
 };
-pub const BinaryValue = [2]*Value;
-pub const UnaryValue = *Value;
+pub const BinaryValue = struct {
+    left: *Value,
+    right: *Value,
+    operator: BinaryOperator,
+};
+pub const BinaryOperator = enum {
+    @"and",
+    @"or",
+    @"xor",
+    addition,
+    subtraction,
+    multiplication,
+    division,
+    exponentiation,
+    remainder,
+    shift_left,
+    shift_right,
+    less,
+    more,
+    less_equal,
+    more_equal,
+    equal,
+    not_equal,
+};
+pub const UnaryValue = struct {
+    right: *Value,
+    operator: UnaryOperator,
+};
+pub const UnaryOperator = enum {
+    not,
+    positive,
+    negative,
+};
 
 pub const Value = union(enum) {
     integer: u64,
@@ -91,33 +122,17 @@ pub const Value = union(enum) {
     string: List(u8),
     char: u21,
     bool: bool,
-    @"and": BinaryValue,
-    @"or": BinaryValue,
-    @"xor": BinaryValue,
-    not: UnaryValue,
-    negative: UnaryValue,
-    positive: UnaryValue,
-    addition: BinaryValue,
-    subtraction: BinaryValue,
-    multiplication: BinaryValue,
-    division: BinaryValue,
-    exponentiation: BinaryValue,
-    remainder: BinaryValue,
-    shift_left: BinaryValue,
-    shift_right: BinaryValue,
-    less: BinaryValue,
-    more: BinaryValue,
-    less_equal: BinaryValue,
-    more_equal: BinaryValue,
-    equal: BinaryValue,
-    not_equal: BinaryValue,
-    list: ListValue,
+    unary: UnaryValue,
+    binary: BinaryValue,
+    list: ListValuer,
     set: SetValue,
     map: MapValue,
     name: Name,
     variant: VariantValue,
     record: RecordValue,
     invalid,
+
+
 };
 
 pub const ListType = *Type;
