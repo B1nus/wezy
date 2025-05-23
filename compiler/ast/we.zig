@@ -1,9 +1,9 @@
 const std = @import("std");
 const List = std.ArrayList;
 
-const Block = List(Statement);
+pub const Block = List(Statement);
 
-const Statement = union(enum) {
+pub const Statement = union(enum) {
     function: Function,
     @"return": List(Value),
     @"continue": ?[]const u8,
@@ -17,79 +17,79 @@ const Statement = union(enum) {
     @"if": If,
 };
 
-const Function = struct {
+pub const Function = struct {
     name: []const u8,
     parameters: List([]const u8),
     type: FunctionType,
     body: Block,
 };
 
-const Use = struct {
+pub const Use = struct {
     path: []const u8,
     alias: ?[]const u8,
 };
 
-const Repeat = struct {
+pub const Repeat = struct {
     label: ?[]const u8,
     value: ?Value, // Allow booleans for while loops?
     body: Block,
 };
 
-const If = struct {
+pub const If = struct {
     condition: Value,
     success: Block,
     failure: Block,
 };
 
-const Bind = struct {
+pub const Bind = struct {
     names: List([]const u8),
     type: Type,
 };
 
-const Assign = struct {
+pub const Assign = struct {
     names: List(Name),
     types: List(Type),
     values: List(Value),
 };
 
-const Record = struct {
+pub const Record = struct {
     name: []const u8,
     fields: List([]const u8),
     values: List(Type),
 };
 
-const Variant = struct {
+pub const Variant = struct {
     name: []const u8,
     fields: List([]const u8),
     values: List(?Type),
 };
 
-const Name = struct {
+pub const Name = struct {
     name: []const u8,
     field: List([]const u8),
 };
 
-const ListValue = List(Value);
-const SetValue = List(Value);
-const MapValue = List([2]Value);
-const VariantValue = struct {
+pub const ListValue = List(Value);
+pub const SetValue = List(Value);
+pub const MapValue = List([2]Value);
+pub const VariantValue = struct {
     variant: Name,
     field: []const u8,
     value: *Value,
 };
-const RecordValue = struct {
+pub const RecordValue = struct {
     record: Name,
     fields: List([]const u8),
     values: List(Value),
 };
-const BinaryValue = [2]*Value;
-const UnaryValue = *Value;
+pub const BinaryValue = [2]*Value;
+pub const UnaryValue = *Value;
 
 pub const Value = union(enum) {
     integer: u64,
     float: f64,
     string: List(u8),
-    char: u32,
+    char: u21,
     bool: bool,
     @"and": BinaryValue,
     @"or": BinaryValue,
@@ -105,24 +105,31 @@ pub const Value = union(enum) {
     remainder: BinaryValue,
     shift_left: BinaryValue,
     shift_right: BinaryValue,
+    less: BinaryValue,
+    more: BinaryValue,
+    less_equal: BinaryValue,
+    more_equal: BinaryValue,
+    equal: BinaryValue,
+    not_equal: BinaryValue,
     list: ListValue,
     set: SetValue,
     map: MapValue,
     name: Name,
     variant: VariantValue,
     record: RecordValue,
+    invalid,
 };
 
-const ListType = *Type;
-const SetType = *Type;
-const MapType = [2]*Type;
-const FunctionType = struct {
+pub const ListType = *Type;
+pub const SetType = *Type;
+pub const MapType = [2]*Type;
+pub const FunctionType = struct {
     this: ?[]const u8,
     parameters: List(Type),
     result: List(Type),
 };
 
-const Type = union(enum) {
+pub const Type = union(enum) {
     s8,
     s16,
     s32,

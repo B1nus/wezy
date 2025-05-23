@@ -3,32 +3,20 @@ const List = std.ArrayList;
 const assert = std.debug.assert;
 
 source: []const u8,
-first: Token,
-second: Token,
 stack: List(u64),
 index: u64,
 indenting: bool,
 
-pub fn init(source: []const u8) @This() {
-    var this = @This(){
+pub fn init(allocator: std.mem.Allocator, source: []const u8) @This() {
+    var stack = List(u64).init(allocator);
+    stack.append(0) catch unreachable;
+
+    return .{
         .source = source,
-        .first = undefined,
-        .second = undefined,
-        .stack = List(u64).init(std.heap.c_allocator),
+        .stack = stack,
         .indenting = false,
         .index = 0,
     };
-
-    this.stack.append(0) catch unreachable;
-    this.first = this.nextToken();
-    this.second = this.nextToken();
-
-    return this;
-}
-
-pub fn advance(this: *@This()) void {
-    this.first = this.second;
-    this.second = this.nextToken();
 }
 
 fn currentByte(this: @This()) u8 {
@@ -39,7 +27,7 @@ fn currentByte(this: @This()) u8 {
     }
 }
 
-fn nextToken(this: *@This()) Token {
+pub fn nextToken(this: *@This()) Token {
     const Prefix = enum {
         none,
         hexadecimal,
@@ -183,10 +171,14 @@ fn nextToken(this: *@This()) Token {
             .integer => |pref| {
                 const byte = this.currentByte();
 
-                if (!pref.valid(byte) and byte != '_') {
+                if (!pref.valid(byte)) {
+                    if (!pref.valid(this.source[this.index - 1])) {
+                        state = .invalid;
+                        continue;
+                    }
                     if (byte == '.') {
                         state = .{ .float = pref };
-                    } else {
+                    } else if (byte != '_') {
                         tag = switch (pref) {
                             .none => .integer,
                             .hexadecimal => .hexadecimal_integer,
@@ -200,14 +192,21 @@ fn nextToken(this: *@This()) Token {
             .float => |pref| {
                 const byte = this.currentByte();
 
-                if (!pref.valid(byte) and byte != '_') {
-                    tag = switch (pref) {
-                        .none => .float,
-                        .hexadecimal => .hexadecimal_float,
-                        .binary => .binary_float,
-                        .octal => .octal_float,
-                    };
-                    break;
+                if (!pref.valid(byte)) {
+                    if (!pref.valid(this.source[this.index - 1])) {
+                        state = .invalid;
+                        continue;
+                    }
+
+                    if (byte != '_') {
+                        tag = switch (pref) {
+                            .none => .float,
+                            .hexadecimal => .hexadecimal_float,
+                            .binary => .binary_float,
+                            .octal => .octal_float,
+                        };
+                        break;
+                    }
                 }
             },
             .newline => switch (this.currentByte()) {
@@ -289,7 +288,7 @@ pub const Token = struct {
         std.debug.assert(source_ == null or std.mem.eql(u8, source_.?.@"0"[this.start..this.end], source_.?.@"1"));
     }
 
-    const Tag = enum {
+    pub const Tag = enum {
         variable,
         integer,
         hexadecimal_integer,
@@ -334,22 +333,24 @@ pub const Token = struct {
 
 test "numbers" {
     var this = @This().init(
-        \\0x 0x00 0x0.0 0b 0b0.0 0b.0 0o 0o0.0 0_0 0.0
+        std.heap.c_allocator,
+        \\0x0 0x00 0x0.0 0b0 0b0.0 0b0.0 0o0 0o0.0 0_0 0.
     );
-    this.first.assert(.hexadecimal_integer, 0, 2, .{ this.source, "0x" });
-    this.second.assert(.hexadecimal_integer, 3, 7, .{ this.source, "0x00" });
-    this.nextToken().assert(.hexadecimal_float, 8, 13, .{ this.source, "0x0.0" });
-    this.nextToken().assert(.binary_integer, 14, 16, .{ this.source, "0b" });
-    this.nextToken().assert(.binary_float, 17, 22, .{ this.source, "0b0.0" });
-    this.nextToken().assert(.binary_float, 23, 27, .{ this.source, "0b.0" });
-    this.nextToken().assert(.octal_integer, 28, 30, .{ this.source, "0o" });
-    this.nextToken().assert(.octal_float, 31, 36, .{ this.source, "0o0.0" });
-    this.nextToken().assert(.integer, 37, 40, .{ this.source, "0_0" });
-    this.nextToken().assert(.float, 41, 44, .{ this.source, "0.0" });
+    this.nextToken().assert(.hexadecimal_integer, 0, 3, .{ this.source, "0x0" });
+    this.nextToken().assert(.hexadecimal_integer, 4, 8, .{ this.source, "0x00" });
+    this.nextToken().assert(.hexadecimal_float, 9, 14, .{ this.source, "0x0.0" });
+    this.nextToken().assert(.binary_integer, 15, 18, .{ this.source, "0b0" });
+    this.nextToken().assert(.binary_float, 19, 24, .{ this.source, "0b0.0" });
+    this.nextToken().assert(.binary_float, 25, 30, .{ this.source, "0b0.0" });
+    this.nextToken().assert(.octal_integer, 31, 34, .{ this.source, "0o0" });
+    this.nextToken().assert(.octal_float, 35, 40, .{ this.source, "0o0.0" });
+    this.nextToken().assert(.integer, 41, 44, .{ this.source, "0_0" });
+    this.nextToken().assert(.invalid, 45, 47, .{ this.source, "0." });
 }
 
 test "indentation" {
     var this = @This().init(
+        std.heap.c_allocator,
         \\hello
         \\   h
         \\  h
@@ -357,8 +358,8 @@ test "indentation" {
         \\ h
         \\h
     );
-    this.first.assert(.variable, 0, 5, .{ this.source, "hello" });
-    this.second.assert(.indentation, 5, 9, null);
+    this.nextToken().assert(.variable, 0, 5, .{ this.source, "hello" });
+    this.nextToken().assert(.indentation, 5, 9, null);
     this.nextToken().assert(.variable, 9, 10, .{ this.source, "h" });
     this.nextToken().assert(.dedentation, 10, 13, null);
     this.nextToken().assert(.variable, 13, 14, .{ this.source, "h" });
