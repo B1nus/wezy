@@ -1,0 +1,36 @@
+function generic<T, N>(list [N T], thing T) [N T]
+    return x
+
+list [3 s64] = generic([1, 2, 3]) # T: s64 and N: 3
+
+function add<T>(list mut [T], item T)
+    return
+
+x mut [u8] = "hello"
+
+if boolean
+    thing1
+else if boolean
+    thing2
+else
+    thing3
+
+repeat boolean/integer as label
+    if boolean
+        break label
+    else
+        continue label
+    else
+        do_thing(x, y) # Error if return value
+        _ = do_thing(x, y)
+
+choice Thing
+    x s16
+    y s8
+    z s64
+
+bundle Color
+    r u8
+    g u8
+    b u8
+    a u8
