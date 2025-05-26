@@ -1,12 +1,57 @@
-function generic<T, N>(list [N T], thing T) [N T]
+use "file.we" as file
+
+Type = file.Type
+
+function generic<T, N>(list [N T], thing T) [N + 1 T]
     return x
 
-list [3 s64] = generic([1, 2, 3]) # T: s64 and N: 3
+list [3 S64] = generic([1, 2, 3]) # T: S64 and N: 3
 
 function add<T>(list mut [T], item T)
+    item_size u32 = size_in_bytes<T>()
+    list.pointer = reallocate(
+        list.pointer(),
+        list.length * item_size,
+        alignment_in_bytes<T>(),
+        list.length * item_size + item_size,
+    )
+    item.store(list.pointer + list.length - 1)
+
+function get<T>(list [T], index u64) T
+    assert(index < list.length, Error.out_of_bounds) # Some nice error explaining what's gone wrong
+    return load<T>(list.pointer + index * size_in_bytes<T>())
+
+# Function literals and functions as value always have concrete types, no generics.
+add function(mut S64, S64) = function(mut list [S64], item S64)
     return
 
-x mut [u8] = "hello"
+function accumulate<T1, T2>(list [T1], accumulator function(mut T2, T1), initial_value T2) T2 # This works because the accumulator type can be decided at every call
+    mut accumulated = initial_value
+    i = 1
+    repeat list.length()
+        accumulator(mut accumulated, list.get(i))
+    return accumulated
+
+# Functions cannot use global variables or variables from their outer scope. Pass it in as a parameter instead.
+# Fixes problems with closures. Fuck em. Just have pure functions.
+
+# This is so good. Now we know when to return and reassign arguments to achieve mutability
+
+# Automatic ability to call as if the first argument is an object
+sum S64 = list.accumulate(function(mut x S64, item S64)
+    x = x + item
+)
+
+# Multiple dispatch works only for the first parameter
+function hello(x s64, y s64)
+function hello(x s64) # Fine
+function hello(x s64, z s32) # Not fine, Error.
+
+mut x [U8] = "hello"
+
+x = 1
+y = 2
+# x, y = y, x NO!
 
 if boolean
     thing1
@@ -25,12 +70,12 @@ repeat boolean/integer as label
         _ = do_thing(x, y)
 
 choice Thing
-    x s16
-    y s8
-    z s64
+    x S16
+    y S8
+    z S64
 
 bundle Color
-    r u8
-    g u8
-    b u8
-    a u8
+    r U8
+    g U8
+    b U8
+    a U8
