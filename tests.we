@@ -1,16 +1,21 @@
 use "file.we" as file
 
+output(1.format(10))
+thing = Thing
+    x 1
+    y 2
+output(thing.format())
 Type = file.Type
 
-function generic<T, N>(list [N T], thing T) [N + 1 T]
+function generic<T, size>(list [size T], thing T) [size + 1 T]
     return x
 
-list [3 S64] = generic([1, 2, 3]) # T: S64 and N: 3
+list [4 S64] = generic([1, 2, 3]) # T: S64 and N: 3
 
 function add<T>(list mut [T], item T)
     item_size u32 = size_in_bytes<T>()
     list.pointer = reallocate(
-        list.pointer(),
+        list.pointer,
         list.length * item_size,
         alignment_in_bytes<T>(),
         list.length * item_size + item_size,
@@ -22,8 +27,8 @@ function get<T>(list [T], index u64) T
     return load<T>(list.pointer + index * size_in_bytes<T>())
 
 # Function literals and functions as value always have concrete types, no generics.
-add function(mut S64, S64) = function(mut list [S64], item S64)
-    return
+add function(mut [S64], S64) = function(mut list [S64], item S64)
+get_s64 = get<s64> # Like so for example. this has type "function([s64], u64) s64"
 
 function accumulate<T1, T2>(list [T1], accumulator function(mut T2, T1), initial_value T2) T2 # This works because the accumulator type can be decided at every call
     mut accumulated = initial_value
@@ -32,7 +37,7 @@ function accumulate<T1, T2>(list [T1], accumulator function(mut T2, T1), initial
         accumulator(mut accumulated, list.get(i))
     return accumulated
 
-# Functions cannot use global variables or variables from their outer scope. Pass it in as a parameter instead.
+# Functions cannot use global variables or variables from their outer scope unless it's immutable. Pass it in as a parameter instead.
 # Fixes problems with closures. Fuck em. Just have pure functions.
 
 # This is so good. Now we know when to return and reassign arguments to achieve mutability
@@ -44,8 +49,7 @@ sum S64 = list.accumulate(function(mut x S64, item S64)
 
 # Multiple dispatch works only for the first parameter
 function hello(x s64, y s64)
-function hello(x s64) # Fine
-function hello(x s64, z s32) # Not fine, Error.
+function hello(x s64) # Not ok. Error.
 
 mut x [U8] = "hello"
 
@@ -69,7 +73,7 @@ repeat boolean/integer as label
         do_thing(x, y) # Error if return value
         _ = do_thing(x, y)
 
-choice Thing
+choice Thing # No methods, not nothing. It's just data. There should be no mistaking in that.
     x S16
     y S8
     z S64
@@ -79,3 +83,18 @@ bundle Color
     g U8
     b U8
     a U8
+
+# Coerce "a" into 'a' if need be
+# Skip the bounds check for integers?
+# Insert division by zero check for div and rem for integers.
+
+mut U64 x = 1
+function do_stuff(mut U64 x) U64
+    x = x + 1
+
+x mut U64 = 1
+x = x + 1
+function do_stuff(mut x U64) U64
+
+mut x U64, mut y S64 = 1
+_ = do_stuff(mut y)
