@@ -1,0 +1,37 @@
+function format(bool Bool) [U8]
+    if bool
+        return "true"
+    else
+        return "false"
+
+function format<T>(list [T]) [U8]
+    mut out [U8] = '['
+    i = 0
+    repeat list.length
+        append_list(mut out, format(get(list, i)))
+        i = i + 1
+    append(out, ']')
+    return out
+
+function format<Float>(float Float, base U64, decimals U64) [U8]
+    mut out
+
+function format<Integer>(integer Integer, base U64) [U8]
+    assert(base >= 2)
+
+    mut out [U8]
+
+    negative = integer < 0
+    
+    mut value = integer
+    repeat
+        append(mut out, remainder(value, integer) + '0')
+        value = value / base
+
+        if value == 0
+            break
+
+    if negative
+        append(out, '-')
+
+    return out

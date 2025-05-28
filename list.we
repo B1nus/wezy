@@ -1,0 +1,62 @@
+function pointer_to_item<T>(list [T], index u64)
+    assert(index < list.length)
+    return list.pointer + index * size_in_bytes<T>()
+
+function slice<T>(list [T], start U64, end U64) [T]
+
+function join<T>(list [T], other_list [T]) [T]
+    mut out [T]
+    append_list(mut out, list)
+    append_list(mut out, other_list)
+    return out
+
+function join<T>(lists [[T]]) [T]
+    mut out [T]
+    i = 0
+    repeat lists.length
+        append_list(out, get(lists, i))
+        i = i + 1
+    return out
+
+function append<T>(mut list [T], item T)
+    alignment = alignment_in_bytes<T>()
+    item_size = size_in_bytes<T>()
+    list.pointer = reallocate(
+        list.pointer,
+        list.length * item_size,
+        alignment,
+        (list.length + 1) * item_size,
+    )
+    store(item, list.pointer + list.length)
+    list.length = list.length + 1
+
+function append_list<T>(mut list [T], other_list [T])
+    i = 0
+    repeat other_list.length
+        append(mut list, get(other_list, i))
+        i = i + 1
+
+function get<T>(list [T], index u64) T
+    return load<T>(pointer_to_item(index))
+
+function set<T>(mut list [T], index u64, item T)
+    store(item, pointer_to_item(index))
+
+function pop<T>(mut list [T]) T
+    assert(list.length > 0)
+    last_index = list.length - 1
+    item = get(last_index)
+    remove(mut list, last_index)
+    return item
+
+function remove<T>(mut list [T], index u64)
+    list.length = list.length - 1
+
+    # Move all elements to the left
+    i = index
+    item_size = size_in_bytes<T>()
+    repeat i < list.length
+        item_pointer = pointer_to_item(list, i + 1)
+        item = load<T>(item_pointer)
+        store(item, pointer_to_item(list, i))
+

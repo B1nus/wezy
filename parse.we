@@ -1,0 +1,2 @@
+function parse_integer<T>(literal [U8], base U64) T
+    mut integer T = 0
