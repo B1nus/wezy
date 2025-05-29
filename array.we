@@ -1,0 +1,23 @@
+# The only special thing about this record is that it has builtin literals:
+# array Array<5, U64> # Initialized to zero. but get's allocated enough memory.
+# array Array<5, U64> = [ 1, 2, 3, 0, 69 ]
+# array Array<10, U8> = "Sup ma dudes!"
+# array Array<_, _> = "Sup!\n"
+
+record Array<size u32, Item>
+    pointer u32
+
+# This is a bit weird but whatever
+function size<size U64>(array Array<size, _>) U32
+    return size
+
+# One-indexed
+function item_pointer<size U64, Item>(array Array<size, Item>, index U32) U32
+    assert<index >= 1 and index <= size>() # Compile time assert
+    return array.pointer + (index - 1) * size<Item>()
+
+function set<size u64, Item>(mut array Array<size, Item>, index u64, item Item)
+    store(item, item_pointer(array, index))
+
+function get<size u64, Item>(array Array<size, Item>, index u64) Item
+    return load<Item>(item_pointer(array, index))
