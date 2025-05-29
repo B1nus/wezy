@@ -2,7 +2,7 @@ use "file.we" as file
 
 # only multiple return, no expression lists or tuple type. Just use records.
 # forced explicit ignoring of return values. each one, specify a type if you want to make sure you're correct about the type.
-# builtin functions size_in_bytes<T>, alignment_in_bytes<T>, reallocate, allocate, free, store<T>, load<T>, to_string<T>
+# builtin functions size_in_bytes<T>, alignment_in_bytes<T>, reallocate, allocate, free, store<T>, load<T>, to_string<T>, assert<T>, assert()
 # [length Type] is coerced and cloned into [Type] or mut [Type]. (Using it with mut is weird though)
 # inferred generic arguments. (Help users when the compiler cannot figure it out)
 # generic expressions.
@@ -18,58 +18,57 @@ use "file.we" as file
 # asserts are run at compile time if possible.
 # records and variants are only data.
 
-function assert<condition Bool>()
-    if not condition
-        panic()
+function comptime_check<x U64, y U64>() Bool
+	return x == y
 
-function assert(condition Bool)
-    if not condition
-        panic()
+use "std"
 
-function hello<length>(name [length U8])
-    name [U8] = name
-    hello(name)
+bool = comptime_check<1,2>
+assert<bool>()
+
+function hello<length U64>(name Array<length, U8>)
+	hello(name)
 
 function hello(name [U8])
-    output(join(["Hello ", name, "!\n"]))
+	output(join(["Hello ", name, "!\n"]))
 
-hello("Guest")
+hello<_>("Guest")
 
 output("What's your name?\n")
-name = input()
+name List<U8> = input()
 hello(name)
 
 mut hash = 0
 i = 0
 repeat name.length
-    hash = hash + get(name, i)
-    i = i + 1
+hash = hash + get(name, i)
+i = i + 1
 
 if hash > 60
-    output("Wowzies that's big\n")
+	output("Wowzies that's big\n")
 else if hash > 40
-    output("That's still prettie big!\n")
+	output("That's still prettie big!\n")
 else
-    output("Eeh, size doesn't matter anyway\n")
+	output("Eeh, size doesn't matter anyway\n")
 
 # I have confirmed. This alignment thing works in practice! It's so simple. I love it.
 
 # The alignment of a variant is the largest alignment of it's members
 # The size of a variant is the size of the largest member plus 4 bytes
 variant Result
-    unknown
-    yes U64
-    nah Bool
+unknown
+yes U64
+nah Bool
 
 # The alignment of a record is the alignment of it's largest field type
 # The size is the sum of the field types
 record Thing
-    field U8
-    other_thing S8
+field U8
+other_thing S8
 
 thing = Thing
-    field 'u'
-    other_thing - 4
+field 'u'
+other_thing - 4
 
 result Result = .uknown
 result Result = .yes 64
@@ -79,12 +78,12 @@ x, _ U8, y = do_thing(1, 2, 3)
 mut x = 0
 
 function thing() # Pass it as a parameter "function thing(mut x S64)"
-    x = x + 1 # Error
+x = x + 1 # Error
 
 x U8 = 1
 
 function thing2() # This is fine because x is immutable.
-    output([x]) # Make it into a list to make output accept it
+output([x]) # Make it into a list to make output accept it
 
 thing3 = thing2
 thing3() # Works.

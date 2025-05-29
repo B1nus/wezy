@@ -1,0 +1,13 @@
+use "list.we"
+use "hash.we"
+
+record Map<Key, Value>
+	lists List<List<Pair<Key, Value>>>
+
+# Literal: { key: value, key: value, ... }
+
+record Pair<Key, Value>
+	key Key
+	value Value
+
+function 

@@ -1,0 +1,15 @@
+use "wasm" as wasm
+use "meta" as meta
+
+function is_32_bit<T>() Bool
+	return 
+
+function add<T>(integer T, integer2 T) T
+	type_literal = meta.type_literal<T>()
+	assert<
+		type_literal == "S32" or
+		type_literal == "S16" or
+		type_literal == "
+	wasm.local.get(0)
+	wasm.local.get(1)
+	wasm.i32.add()

@@ -1,0 +1,3 @@
+size<Type>() U64
+alignment<Type>() U64
+assert<condition Bool>()

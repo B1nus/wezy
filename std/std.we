@@ -1,0 +1,9 @@
+use "memory.we" as memory
+use "meta.we" as meta
+use "list.we"
+use "array.we"
+use "map.we"
+use "set.we"
+use "hash.we"
+use "format.we"
+use "parse.we"

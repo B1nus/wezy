@@ -1,0 +1,24 @@
+use "meta" as meta # Should it be called compiler? Also, should we not just put all of that into one file?
+# use "tokenizer" as tokenizer
+# use "parser" as parser
+# use "compiler" as compiler
+# use "ast" as ast 
+use "std"
+
+function hash<T>(unsigned T) U64
+	type_literal Array<_, U8> = meta.type_literal<T>()
+	assert<get(type_literal, 1) == 'U'>() # Comptime assert. Will try another generic function if it fails.
+	return unsigned # Will fail if it is not a integer and at compile time it will try another generic function.
+
+function hash<T>(signed T) U64
+	type_literal = meta.type_literal<T>()
+	assert<get(type_literal, 1) == 'S'>()
+	return abs(signed)
+
+function hash<T>(list List<T>) U64
+	mut sum U64 = 0
+	mut i = 1
+	repeat list.length
+		sum = sum + hash(get(list, i))
+		i = i + 1
+	return sum

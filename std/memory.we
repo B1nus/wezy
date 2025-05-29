@@ -1,0 +1,18 @@
+use "meta" as meta
+use "wasm" as wasm
+
+reallocate(old_pointer U32, old_size U32, alignment U32, new_size U32) U32
+size() U32
+	wasm.memory.size()
+function grow(pages U32)
+	wasm.local.get("pages")
+	wasm.memory.grow()
+	wasm.memory.drop()
+store<Type>(pointer U32, value Type)
+load<Type>(pointer U32) Type
+	mut value Type
+	fields Array<_, List<_, U8>> = meta.fields<Type>()
+	mut i = 1
+	repeat size(fields)
+		meta.set_field(mut value, get(fields, i), )
+		i = i + 1
