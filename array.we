@@ -5,14 +5,19 @@
 # array Array = "Sup!\n"
 # array Array<_, U64> = [ 1, 2, 3, 4, 5 ] # Decided as Array<5, U64> at compile time.
 
+use "memory" as memory # compile time asserts that it exists
+use "meta" as meta # compile time asserts again. Same when you use something from the namespace.
+# compile time error if the file is not found. for example because we are sandboxed.
+# the memory and meta namespace is not inclided when importing array.we You need to import those yourself.
+
 record Array<length u32, Item>
     pointer u32
 
 function alignment<T>(array Array<_, T>) U32
-    return alignment<T>()
+    return meta.alignment<T>()
 
 function size<length U64, Item>(array Array<length, Item>) U32
-    return length * size<Item>()
+    return length * meta.size<Item>()
 
 # This is a bit weird but whatever
 function length<length U64>(array Array<length, _>) U32
@@ -24,7 +29,7 @@ function item_pointer<length U64, Item>(array Array<length, Item>, index U32) U3
     return array.pointer + (index - 1) * size<Item>()
 
 function set<length u64, Item>(mut array Array<length, Item>, index u64, item Item)
-    store(item, item_pointer(array, index))
+    memory.store(item, item_pointer(array, index))
 
 function get<length u64, Item>(array Array<length, Item>, index u64) Item
-    return load<Item>(item_pointer(array, index))
+    return memory.load<Item>(item_pointer(array, index))
