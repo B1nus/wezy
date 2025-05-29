@@ -52,11 +52,17 @@ else if hash > 40
 else
     output("Eeh, size doesn't matter anyway\n")
 
+# I have confirmed. This alignment thing works in practice! It's so simple. I love it.
+
+# The alignment of a variant is the largest alignment of it's members
+# The size of a variant is the size of the largest member plus 4 bytes
 variant Result
     unknown
     yes U64
     nah Bool
 
+# The alignment of a record is the alignment of it's largest field type
+# The size is the sum of the field types
 record Thing
     field U8
     other_thing S8
