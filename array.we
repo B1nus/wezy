@@ -2,22 +2,29 @@
 # array Array<5, U64> # Initialized to zero. but get's allocated enough memory.
 # array Array<5, U64> = [ 1, 2, 3, 0, 69 ]
 # array Array<10, U8> = "Sup ma dudes!"
-# array Array<_, _> = "Sup!\n"
+# array Array = "Sup!\n"
+# array Array<_, U64> = [ 1, 2, 3, 4, 5 ] # Decided as Array<5, U64> at compile time.
 
-record Array<size u32, Item>
+record Array<length u32, Item>
     pointer u32
 
+function alignment<T>(array Array<_, T>) U32
+    return alignment<T>()
+
+function size<length U64, Item>(array Array<length, Item>) U32
+    return length * size<Item>()
+
 # This is a bit weird but whatever
-function size<size U64>(array Array<size, _>) U32
-    return size
+function length<length U64>(array Array<length, _>) U32
+    return length
 
 # One-indexed
-function item_pointer<size U64, Item>(array Array<size, Item>, index U32) U32
-    assert<index >= 1 and index <= size>() # Compile time assert
+function item_pointer<length U64, Item>(array Array<length, Item>, index U32) U32
+    assert<index >= 1 and index <= length>() # Compile time assert
     return array.pointer + (index - 1) * size<Item>()
 
-function set<size u64, Item>(mut array Array<size, Item>, index u64, item Item)
+function set<length u64, Item>(mut array Array<length, Item>, index u64, item Item)
     store(item, item_pointer(array, index))
 
-function get<size u64, Item>(array Array<size, Item>, index u64) Item
+function get<length u64, Item>(array Array<length, Item>, index u64) Item
     return load<Item>(item_pointer(array, index))
