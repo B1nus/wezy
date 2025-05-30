@@ -1,0 +1,7 @@
+function add(x, y)
+ return x + y
+
+z = add(1, 2) # works
+
+function eql() # define a eql and hash that works for any type including user defined types
+# the user can write their own hash an eql function if the want to. concrete types is choosen begfore generics.
