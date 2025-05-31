@@ -9,6 +9,9 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 
 Look [what people are able to do in geometry dash](https://www.youtube.com/watch?v=2I02aKeqgpM). It's not built for this, but creative people still find a way. I love this so much.
 # Simplicity Idea Nuggets
+- Arbitrary sized integers are actually easy to implement. Make it all into i64 in wasm. and mask out the number
+- Larger integers than i64 is also not very hard. i69 would be two i64. Implement this progressively with harder functions as you progress. Use function composition.
+- Arbitrary code run at compile time using function<constant1, constant2, ... >(). repeat, if etc just work. calling another non generic functions works as well if the input is constant.
 - Functions implicitly return and reassign their arguments.
 
 Note: I need to do more market research. I don't understand my target audience at all.
