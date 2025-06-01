@@ -1,0 +1,8 @@
+multinine_string =
+"
+Hello world!
+
+onamaewa?
+"
+
+output(multiline_string)
