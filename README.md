@@ -6,6 +6,7 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 - Super (almost too) simple building blocks
 - Beginner-friendly errors (simple terminology, short but clear errors with example solutions)
 - Automatic error correction (":" before types for example) ("loop","for","while" instead of "repeat")
+- Remember the code a user wrote so it doesn't disapear once they exit. alternatively prompt the user to save their work when they they try and close the website.
 
 Look [what people are able to do in geometry dash](https://www.youtube.com/watch?v=2I02aKeqgpM). It's not built for this, but creative people still find a way. I love this so much.
 # Simplicity Idea Nuggets
