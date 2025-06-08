@@ -4,6 +4,8 @@ Inspired by [Scratch](https://scratch.mit.edu/), [Lua](https://www.lua.org/start
 mmm. only allow booleans in if statements?
 mmm. recursive record definitions.
 
+How about not having mutability at all? Fits better with wasm and technically makes the language simpler. idk.
+
 # Goals
 - Easy to iterate (learn from zig's mistakes) (hotreloading)
 - Super (almost too) simple building blocks
